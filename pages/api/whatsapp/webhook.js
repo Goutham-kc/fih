@@ -1,5 +1,5 @@
 import { connectDB } from '@/lib/db';
-import { isValidSignature, sendWhatsAppMessage } from '@/lib/whatsapp';
+import { sendWhatsAppMessage } from '@/lib/whatsapp';
 import { parseCommand } from '@/lib/commandParser';
 import { getPendingIntent, createPendingIntent, clearPendingIntent } from '@/lib/pendingIntent';
 import { fuzzyMatch } from '@/lib/fuzzyMatch';
@@ -9,17 +9,6 @@ import Debt from '@/models/Debt';
 import Deadline from '@/models/Deadline';
 import ImportantDate from '@/models/ImportantDate';
 import WatchlistItem from '@/models/WatchlistItem';
-
-export const config = { api: { bodyParser: false } };
-
-async function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', (chunk) => (data += chunk));
-    req.on('end', () => resolve(data));
-    req.on('error', reject);
-  });
-}
 
 const HELP_TEXT = `Commands:
 >todo <text> [| due-date]
@@ -198,17 +187,10 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Read raw body for signature verification
-  const rawBody = await getRawBody(req);
-  const signature = req.headers['x-hub-signature-256'];
-
-  if (!isValidSignature(rawBody, signature)) {
-    console.warn('Invalid WhatsApp signature');
-    return res.status(403).end();
+  let payload = req.body;
+  if (typeof payload === 'string') {
+    try { payload = JSON.parse(payload); } catch {}
   }
-
-  let payload;
-  try { payload = JSON.parse(rawBody); } catch { return res.status(400).end(); }
 
   // Extract the message
   const entry = payload?.entry?.[0];
@@ -228,8 +210,9 @@ export default async function handler(req, res) {
   const user = await User.findOne({
     whatsappNumber: { $in: [waNumberWithPlus, waNumberWithoutPlus] },
   });
+
   if (!user) {
-    console.warn('Unknown WhatsApp sender:', from, '(checked:', waNumberWithPlus, waNumberWithoutPlus, ')');
+    console.warn('Unknown WhatsApp sender:', from);
     return res.status(200).end();
   }
 
