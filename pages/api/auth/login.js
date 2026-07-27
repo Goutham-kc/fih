@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { serialize } from 'cookie';
 import { connectDB } from '@/lib/db';
-import { signToken } from '@/lib/auth';
+import { signToken, serializeCookie } from '@/lib/auth';
 import User from '@/models/User';
 
 export default async function handler(req, res) {
@@ -23,7 +22,7 @@ export default async function handler(req, res) {
     const token = signToken(user._id);
     res.setHeader(
       'Set-Cookie',
-      serialize('token', token, {
+      serializeCookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
