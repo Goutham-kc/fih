@@ -222,17 +222,19 @@ export default async function handler(req, res) {
 
   await connectDB();
 
-  // Find user by WhatsApp number (strip/add + prefix)
-  const waNumber = from.startsWith('+') ? from : `+${from}`;
-  const user = await User.findOne({ whatsappNumber: waNumber });
+  // Find user by WhatsApp number (flexible with or without '+' prefix)
+  const waNumberWithPlus = from.startsWith('+') ? from : `+${from}`;
+  const waNumberWithoutPlus = from.replace(/^\+/, '');
+  const user = await User.findOne({
+    whatsappNumber: { $in: [waNumberWithPlus, waNumberWithoutPlus] },
+  });
   if (!user) {
-    // Unknown sender — ignore silently or log
-    console.warn('Unknown WhatsApp sender:', waNumber);
+    console.warn('Unknown WhatsApp sender:', from, '(checked:', waNumberWithPlus, waNumberWithoutPlus, ')');
     return res.status(200).end();
   }
 
   const userId = user._id;
-  const reply = (msg) => sendWhatsAppMessage(waNumber, msg);
+  const reply = (msg) => sendWhatsAppMessage(waNumberWithPlus, msg);
 
   // Handle 'cancel'
   if (text.toLowerCase() === 'cancel') {
