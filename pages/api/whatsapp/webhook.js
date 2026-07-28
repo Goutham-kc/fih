@@ -609,6 +609,44 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
       if (natural.type === 'list') {
         return handleListQuery(userId, natural, reply);
       }
+      if (natural.type === 'balance_query') {
+        const { person } = natural;
+        if (person) {
+          const debts = await Debt.find({ userId, person: new RegExp(`^${person}$`, 'i'), settled: false });
+          if (!debts.length) {
+            return reply(`💰 Balance with ${person}: No active debts! (₹0 balance)`);
+          }
+          let iOwe = 0, owedToMe = 0;
+          debts.forEach(d => {
+            if (d.direction === 'i_owe') iOwe += d.amount;
+            else owedToMe += d.amount;
+          });
+          const net = owedToMe - iOwe;
+          let summaryStr = `💰 Balance with ${person}:\n`;
+          if (iOwe > 0) summaryStr += `• You owe ${person}: ₹${iOwe}\n`;
+          if (owedToMe > 0) summaryStr += `• ${person} owes you: ₹${owedToMe}\n`;
+          if (net > 0) summaryStr += `\n👉 Net Position: ${person} owes you ₹${net}`;
+          else if (net < 0) summaryStr += `\n👉 Net Position: You owe ${person} ₹${Math.abs(net)}`;
+          else summaryStr += `\n👉 Net Position: Even / Settled (₹0 balance)`;
+
+          return reply(summaryStr);
+        } else {
+          const debts = await Debt.find({ userId, settled: false });
+          let iOwe = 0, owedToMe = 0;
+          debts.forEach(d => {
+            if (d.direction === 'i_owe') iOwe += d.amount;
+            else owedToMe += d.amount;
+          });
+          const net = owedToMe - iOwe;
+          let summaryStr = `💰 Total Debt Summary:\n`;
+          summaryStr += `• Total You Owe: ₹${iOwe}\n`;
+          summaryStr += `• Total Owed To You: ₹${owedToMe}\n`;
+          if (net >= 0) summaryStr += `\n👉 Net Position: +₹${net}`;
+          else summaryStr += `\n👉 Net Position: -₹${Math.abs(net)}`;
+
+          return reply(summaryStr);
+        }
+      }
       if (natural.type === 'multi_reminder') {
         const summaryLines = [];
         let firstCreated = null;
