@@ -86,7 +86,15 @@ export default function Login() {
             <img
               src="/logo.png"
               alt="FIH"
-              style={{ width: 64, height: 64, margin: '0 auto 16px', display: 'block', objectFit: 'contain' }}
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: '50%',
+                margin: '0 auto 20px',
+                display: 'block',
+                objectFit: 'cover',
+                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.4), 0 0 0 2px rgba(192, 193, 255, 0.3)',
+              }}
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
             <div style={{
