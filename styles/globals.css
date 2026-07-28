@@ -355,61 +355,48 @@ select.input option {
   color: #121319;
 }
 
-.countdown-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.countdown-chip.overdue {
-  background: rgba(255, 180, 171, 0.15);
-  color: var(--accent-error);
-}
-
-.countdown-chip.today {
-  background: rgba(255, 209, 102, 0.15);
-  color: var(--accent-amber);
-}
-
-.countdown-chip.upcoming {
-  background: rgba(52, 211, 153, 0.15);
-  color: var(--accent-emerald);
-}
-
 /* ── Responsive Mobile Overrides ───────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
     display: none !important;
   }
+
   .main-content {
     margin-left: 0 !important;
-    padding: 16px !important;
+    padding: 16px 16px 88px 16px !important;
     width: 100% !important;
   }
-  .mobile-header {
+
+  .mobile-topbar {
     display: flex !important;
   }
+
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+
   .desktop-header {
     display: none !important;
   }
+
   .grid-summary {
     grid-template-columns: 1fr !important;
   }
+
   .kanban {
     grid-template-columns: 1fr !important;
   }
+
   .card {
     padding: 16px !important;
   }
 }
 
 @media (min-width: 769px) {
-  .mobile-header {
+  .mobile-topbar {
+    display: none !important;
+  }
+  .mobile-bottom-nav {
     display: none !important;
   }
 }
