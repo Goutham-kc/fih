@@ -247,15 +247,17 @@ export default async function handler(req, res) {
   const userId = user._id;
   const reply = (msg) => sendWhatsAppMessage(waNumberWithPlus, msg);
 
-  // Handle 'cancel'
-  if (text.toLowerCase() === 'cancel') {
-    await clearPendingIntent(userId);
-    await reply('Cancelled.');
-    return res.status(200).end();
-  }
-
   // Check for pending intent
   const pending = await getPendingIntent(userId);
+
+  // Handle 'cancel'
+  if (text.toLowerCase() === 'cancel') {
+    if (pending) {
+      await clearPendingIntent(userId);
+      await reply('Cancelled.');
+    }
+    return res.status(200).end();
+  }
   if (pending) {
     // Handle numbered pick for ambiguous fuzzy matches
     if (['done_pick', 'watch_done_pick'].includes(pending.module)) {
