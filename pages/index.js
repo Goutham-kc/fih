@@ -110,7 +110,7 @@ export default function Dashboard() {
       <div className="ambient-glow" style={{ top: -100, left: '25%' }} />
       <div className="ambient-glow" style={{ bottom: -100, right: '25%' }} />
 
-      {/* Left Sidebar Navigation */}
+      {/* Desktop Left Sidebar Navigation */}
       <nav className="sidebar">
         <div style={{ marginBottom: 32, paddingLeft: 8 }}>
           <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>fih</h2>
@@ -143,10 +143,45 @@ export default function Dashboard() {
         </div>
       </nav>
 
+      {/* Mobile Top Header Bar */}
+      <header className="mobile-header" style={{
+        padding: '12px 16px',
+        background: 'rgba(18, 19, 25, 0.95)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid var(--border-subtle)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        flexDirection: 'column',
+        gap: 12
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>fih</h2>
+          <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 12, padding: '4px 8px' }}>
+            Sign Out
+          </button>
+        </div>
+
+        {/* Horizontal Scrollable Tabs on Mobile */}
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setActiveTab(tab.id)}
+              style={{ fontSize: 13, padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap' }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', marginRight: 6 }}>{tab.svg}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
       {/* Main Content Canvas */}
       <main className="main-content">
-        {/* Top Header */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+        {/* Desktop Top Header */}
+        <header className="desktop-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>
             {TABS.find(t => t.id === activeTab)?.label}
           </h1>
