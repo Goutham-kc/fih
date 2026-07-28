@@ -9,6 +9,6 @@ jobs:
     steps:
       - name: Trigger reminder check
         run: |
-          curl -f -X POST "https://fih.vercel.app/api/cron/reminders" \
+          curl -f -X POST "https://fih-black.vercel.app/api/cron/reminders" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             --max-time 30
