@@ -602,6 +602,29 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
       if (natural.type === 'list') {
         return handleListQuery(userId, natural, reply);
       }
+      if (natural.type === 'multi_reminder') {
+        const summaryLines = [];
+        let firstCreated = null;
+
+        for (const item of natural.items) {
+          const rem = await Reminder.create({ userId, title: item.title, remindAt: item.remindAt });
+          const timeStr = new Date(rem.remindAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+          summaryLines.push(`🔔 Reminder: "${rem.title}" (${timeStr})`);
+          if (!firstCreated) firstCreated = { module: 'reminder', id: rem._id, label: rem.title };
+        }
+
+        if (firstCreated) {
+          await createPendingIntent(userId, {
+            module: 'undo_last',
+            partialData: { targetModule: firstCreated.module, targetId: firstCreated.id, label: firstCreated.label },
+            missingField: 'undo_action',
+            question: `Reply 'undo' to revert.`
+          });
+        }
+
+        return reply(`📌 Scheduled Reminders:\n\n${summaryLines.join('\n')}\n\n(Wrong? Reply 'undo' to revert)`);
+      }
+
       if (natural.type === 'reminder') {
         const reminder = await Reminder.create({ userId, title: natural.title, remindAt: natural.remindAt });
         const timeStr = new Date(reminder.remindAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
