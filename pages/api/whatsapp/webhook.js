@@ -14,21 +14,35 @@ import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 
 const HELP_TEXT = `fih 🥀
+───────────────
 
-*Direct Commands:*
->todo <text> [| due-date]
->done <title>
->debt owe <person> <amount> [note]
->debt owed <person> <amount> [note]
->debt settle <person>
->deadline <title> | <date> [time]
->date <title> | <MM-DD or YYYY-MM-DD>
->watch <title> [| type]
->list <todo|debt|reminder|deadline|date|watch>
+*COMMANDS* (Prefix: >)
 
-*Quick Controls:*
-undo — revert last item
-cancel — clear active question`;
+• *To-do:*
+\`>todo <text> | <due-date>\`
+\`>done <title>\`
+
+• *Debts:*
+\`>debt owe <person> <amount> | <note>\`
+\`>debt owed <person> <amount> | <note>\`
+\`>debt settle <person>\`
+
+• *Deadlines & Reminders:*
+\`>deadline <title> | <date> <time>\`
+\`>reminder <text> | <time>\`
+
+• *Dates & Watchlist:*
+\`>date <title> | <MM-DD or YYYY-MM-DD>\`
+\`>watch <title> | <movie|show|book>\`
+
+• *List Items:*
+\`>list <todo|debt|reminder|deadline|date|watch>\`
+
+───────────────
+*CONTROLS*
+
+• \`undo\` — Revert last item
+• \`cancel\` — Clear active prompt`;
 
 function formatTodo(t, i) {
   const due = t.dueDate ? ` (due ${new Date(t.dueDate).toLocaleDateString('en-IN')})` : '';
