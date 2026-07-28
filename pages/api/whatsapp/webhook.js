@@ -514,6 +514,38 @@ export default async function handler(req, res) {
     }
   }
 
+  // Main message processing (commands and natural language parsing)
+  if (text.startsWith('>')) {
+    const parsed = parseCommand(text);
+    if (parsed.type === 'missing') {
+      await createPendingIntent(userId, parsed);
+      await reply(parsed.question);
+    } else {
+      await handleCommand(parsed, userId, reply, user.environmentMode || 'live');
+    }
+    return res.status(200).end();
+  }
+
+  const naturalResult = parseNaturalLanguage(text);
+
+  if (naturalResult.type === 'list') {
+    await handleListQuery(userId, naturalResult, reply, user.environmentMode || 'live');
+    return res.status(200).end();
+  }
+
+  if (naturalResult.confidence === 'high') {
+    await handleCommand(naturalResult, userId, reply, user.environmentMode || 'live');
+    return res.status(200).end();
+  }
+
+  // Fallback for low-confidence / unclassified messages
+  await createPendingIntent(userId, {
+    module: 'classify_forward',
+    partialData: { rawText: text },
+    missingField: 'module',
+    question: `I wasn't sure how to save that. Reply with 1-6:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`,
+  });
+  await reply(`I wasn't sure how to save "${text}". Reply with 1-6:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`);
   return res.status(200).end();
 }
 
