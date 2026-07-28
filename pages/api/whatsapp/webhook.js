@@ -254,6 +254,66 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
+function parseDebtInput(text, defaultData = {}) {
+  const clean = text.trim();
+  const subTokens = clean.split(/\s+/);
+
+  let action = defaultData.action;
+  let person = defaultData.person;
+  let amount = defaultData.amount;
+  let note = defaultData.note || '';
+
+  const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
+  if (numMatch && !amount) {
+    amount = parseFloat(numMatch[1]);
+  }
+
+  if (/\b(owed|owes|receivable|to_me)\b/i.test(clean)) {
+    action = 'owed';
+  } else if (/\b(owe|pay|payable)\b/i.test(clean)) {
+    action = 'owe';
+  } else if (/\b(settle|settled)\b/i.test(clean)) {
+    action = 'settle';
+  }
+
+  const keywords = ['owe', 'owed', 'owes', 'settle', 'i', 'me', 'you', 'to', 'for', 'rs', 'inr', '₹'];
+  const nameTokens = subTokens.filter(t => !/^\d+(?:\.\d+)?$/.test(t) && !keywords.includes(t.toLowerCase()));
+  if (nameTokens.length > 0 && !person) {
+    person = nameTokens.join(' ');
+  }
+
+  return { action, person, amount, note };
+}
+
+    // Handle debt pending intent
+    if (pending.module === 'debt') {
+      const merged = parseDebtInput(text, pending.partialData);
+      if (merged.person && merged.amount && merged.action) {
+        await clearPendingIntent(userId);
+        const direction = merged.action === 'owe' ? 'i_owe' : 'owed_to_me';
+        const debt = await Debt.create({
+          userId, person: merged.person, amount: merged.amount,
+          direction, note: merged.note,
+        });
+        const dir = direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
+        await reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
+        return res.status(200).end();
+      }
+
+      await createPendingIntent(userId, {
+        module: 'debt',
+        partialData: merged,
+        missingField: 'details',
+        question: !merged.person ? `Who is this debt with?` : !merged.amount ? `How much is the amount?` : `Do you owe ${merged.person} or do they owe you?`
+      });
+
+      const promptMsg = !merged.person ? `Who is this debt with?\n(Reply e.g.: Andrew owed OR Alex owe)`
+        : !merged.amount ? `How much is the amount for ${merged.person}?\n(Reply e.g.: 500)`
+        : `Did you owe ${merged.person} or do they owe you?\n(Reply owe OR owed)`;
+      await reply(promptMsg);
+      return res.status(200).end();
+    }
+
     // Handle classify_forward pending intent for forwarded / plain text messages
     if (pending.module === 'classify_forward') {
       const choice = text.trim().toLowerCase();
@@ -268,18 +328,30 @@ export default async function handler(req, res) {
 
       if (choice === '2' || choice === 'debt') {
         await clearPendingIntent(userId);
-        const parsedDebt = parseCommand(`>debt ${rawText}`);
-        if (parsedDebt.type === 'debt') {
-          await handleCommand(parsedDebt, userId, reply);
+        const parsedData = parseDebtInput(rawText);
+        if (parsedData.person && parsedData.amount && parsedData.action) {
+          const direction = parsedData.action === 'owe' ? 'i_owe' : 'owed_to_me';
+          const debt = await Debt.create({
+            userId, person: parsedData.person, amount: parsedData.amount,
+            direction, note: parsedData.note,
+          });
+          const dir = direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
+          await reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
           return res.status(200).end();
         }
+
         await createPendingIntent(userId, {
           module: 'debt',
-          partialData: { note: rawText },
+          partialData: parsedData,
           missingField: 'details',
-          question: `Who is this debt with and what is the amount?\n(Reply e.g.: Alex 500 owe OR Sam 1200 owed)`
+          question: !parsedData.person ? `Who is this debt with?` : `How much is the amount?`
         });
-        await reply(`Who is this debt with and what is the amount?\n(Reply e.g.: Alex 500 owe OR Sam 1200 owed)`);
+
+        const promptMsg = !parsedData.person && !parsedData.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
+          : !parsedData.person ? `Who is this debt with?\n(Reply e.g.: Andrew owed OR Alex owe)`
+          : !parsedData.amount ? `How much is the amount for ${parsedData.person}?\n(Reply e.g.: 500)`
+          : `Did you owe ${parsedData.person} or do they owe you?\n(Reply owe OR owed)`;
+        await reply(promptMsg);
         return res.status(200).end();
       }
 
