@@ -6,7 +6,7 @@ import ImportantDate from '@/models/ImportantDate';
 import Reminder from '@/models/Reminder';
 import User from '@/models/User';
 
-const TOLERANCE_MINUTES = 10; // ± window around cron interval
+const TOLERANCE_MINUTES = 10;
 
 function minutesUntil(date) {
   return (new Date(date) - Date.now()) / 60000;
@@ -27,18 +27,22 @@ export default async function handler(req, res) {
     const userId = user._id;
     const waNumber = user.whatsappNumber;
 
-    // --- Timed Reminders ---
+    // --- Timed Reminders (Atomic claim lock prevents duplicates) ---
     const dueReminders = await Reminder.find({
       userId,
       sent: false,
       remindAt: { $lte: new Date() },
     });
     for (const r of dueReminders) {
-      await sendWhatsAppMessage(waNumber, `🔔 Reminder: "${r.title}"`);
-      r.sent = true;
-      r.sentAt = new Date();
-      await r.save();
-      sent++;
+      const claimed = await Reminder.findOneAndUpdate(
+        { _id: r._id, sent: false },
+        { sent: true, sentAt: new Date() },
+        { new: true }
+      );
+      if (claimed) {
+        await sendWhatsAppMessage(waNumber, `🔔 Reminder: "${r.title}"`);
+        sent++;
+      }
     }
 
     // --- Deadlines ---
@@ -61,15 +65,23 @@ export default async function handler(req, res) {
       }
     }
 
-    // --- Todos with due date in next hour ---
+    // --- Todos with due date in next hour (Atomic claim lock) ---
     const soonTodos = await Todo.find({
       userId,
       status: 'open',
+      reminderSent: { $ne: true },
       dueDate: { $gt: new Date(), $lt: new Date(Date.now() + 65 * 60 * 1000) },
     });
     for (const todo of soonTodos) {
-      await sendWhatsAppMessage(waNumber, `⏰ Reminder: To-do "${todo.title}" is due soon.`);
-      sent++;
+      const claimed = await Todo.findOneAndUpdate(
+        { _id: todo._id, reminderSent: { $ne: true } },
+        { reminderSent: true },
+        { new: true }
+      );
+      if (claimed) {
+        await sendWhatsAppMessage(waNumber, `⏰ Reminder: To-do "${todo.title}" is due soon.`);
+        sent++;
+      }
     }
 
     // --- Important dates today ---

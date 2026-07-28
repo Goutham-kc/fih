@@ -7,6 +7,7 @@ const TodoSchema = new Schema({
   dueDate: { type: Date, default: null },
   priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
   status: { type: String, enum: ['open', 'done'], default: 'open' },
+  reminderSent: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   completedAt: { type: Date, default: null },
 });
