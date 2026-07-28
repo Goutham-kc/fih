@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 function cleanNote(note, personName) {
   if (!note) return '';
   const stopWords = ['i', 'me', 'you', 'my', 'rs', 'inr', 'rupees', 'owes', 'owe', 'owed', 'give', 'pay', 'paid'];
