@@ -112,13 +112,7 @@ export default function Dashboard() {
 
       {/* Left Sidebar Navigation */}
       <nav className="sidebar">
-        <div style={{ marginBottom: 32, paddingLeft: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img
-            src="/logo.png"
-            alt="FIH"
-            style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain' }}
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          />
+        <div style={{ marginBottom: 32, paddingLeft: 8 }}>
           <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>fih</h2>
         </div>
 

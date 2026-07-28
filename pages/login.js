@@ -83,6 +83,12 @@ export default function Login() {
         }}>
           {/* Brand Logo */}
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <img
+              src="/logo.png"
+              alt="FIH"
+              style={{ width: 64, height: 64, margin: '0 auto 16px', display: 'block', objectFit: 'contain' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
             <div style={{
               fontSize: 52,
               fontWeight: 800,
