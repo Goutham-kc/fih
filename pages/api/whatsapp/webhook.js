@@ -13,7 +13,7 @@ import ProcessedMessage from '@/models/ProcessedMessage';
 import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 
-const HELP_TEXT = `*FIH Assistant Menu*
+const HELP_TEXT = `fih 🥀
 
 *Direct Commands:*
 >todo <text> [| due-date]
