@@ -537,6 +537,36 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
     const natural = parseNaturalLanguage(text);
 
     if (natural.confidence === 'high') {
+      if (natural.type === 'announcement') {
+        const summaryLines = [];
+        let firstCreated = null;
+
+        for (const item of natural.items) {
+          if (item.type === 'deadline') {
+            const dl = await Deadline.create({ userId, title: item.title, dueDate: item.dueDate, category: item.category || 'academic' });
+            const dueStr = new Date(dl.dueDate).toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+            summaryLines.push(`⏳ Deadline: "${dl.title}" (due ${dueStr})`);
+            if (!firstCreated) firstCreated = { module: 'deadline', id: dl._id, label: dl.title };
+          }
+          if (item.type === 'todo') {
+            const td = await Todo.create({ userId, title: item.title });
+            summaryLines.push(`📋 To-do: "${td.title}"`);
+            if (!firstCreated) firstCreated = { module: 'todo', id: td._id, label: td.title };
+          }
+        }
+
+        if (firstCreated) {
+          await createPendingIntent(userId, {
+            module: 'undo_last',
+            partialData: { targetModule: firstCreated.module, targetId: firstCreated.id, label: firstCreated.label },
+            missingField: 'undo_action',
+            question: `Reply 'undo' to revert.`
+          });
+        }
+
+        return reply(`📌 Extracted from announcement:\n\n${summaryLines.join('\n')}\n\n(Wrong? Reply 'undo' to revert)`);
+      }
+
       if (natural.type === 'list') {
         return handleListQuery(userId, natural, reply);
       }
