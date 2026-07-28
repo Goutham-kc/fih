@@ -287,12 +287,17 @@ export default async function handler(req, res) {
     }
   }
 
-  // Find user by WhatsApp number (flexible with or without '+' prefix)
-  const waNumberWithPlus = from.startsWith('+') ? from : `+${from}`;
-  const waNumberWithoutPlus = from.replace(/^\+/, '');
-  const user = await User.findOne({
-    whatsappNumber: { $in: [waNumberWithPlus, waNumberWithoutPlus] },
+  // Find user by WhatsApp number (flexible digit matching & single-user fallback)
+  const cleanFrom = from.replace(/\D/g, '');
+  const allUsers = await User.find({});
+  let user = allUsers.find(u => {
+    const userDigits = (u.whatsappNumber || '').replace(/\D/g, '');
+    return userDigits && (userDigits === cleanFrom || cleanFrom.endsWith(userDigits) || userDigits.endsWith(cleanFrom));
   });
+
+  if (!user && allUsers.length === 1) {
+    user = allUsers[0];
+  }
 
   if (!user) {
     console.warn('Unknown WhatsApp sender:', from);
@@ -300,7 +305,7 @@ export default async function handler(req, res) {
   }
 
   const userId = user._id;
-  const reply = (msg) => sendWhatsAppMessage(waNumberWithPlus, msg);
+  const reply = (msg) => sendWhatsAppMessage(from, msg);
 
   // Check for pending intent
   const pending = await getPendingIntent(userId);
