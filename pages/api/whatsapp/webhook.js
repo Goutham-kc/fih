@@ -254,6 +254,80 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
+    // Handle classify_forward pending intent for forwarded / plain text messages
+    if (pending.module === 'classify_forward') {
+      const choice = text.trim().toLowerCase();
+      const rawText = pending.partialData.rawText;
+
+      if (choice === '1' || choice === 'todo' || choice.includes('to-do')) {
+        await clearPendingIntent(userId);
+        const todo = await Todo.create({ userId, title: rawText });
+        await reply(`✅ To-do added: "${todo.title}"`);
+        return res.status(200).end();
+      }
+
+      if (choice === '2' || choice === 'debt') {
+        await clearPendingIntent(userId);
+        const parsedDebt = parseCommand(`>debt ${rawText}`);
+        if (parsedDebt.type === 'debt') {
+          await handleCommand(parsedDebt, userId, reply);
+          return res.status(200).end();
+        }
+        await createPendingIntent(userId, {
+          module: 'debt',
+          partialData: { note: rawText },
+          missingField: 'details',
+          question: `Who is this debt with and what is the amount?\n(Reply e.g.: Alex 500 owe OR Sam 1200 owed)`
+        });
+        await reply(`Who is this debt with and what is the amount?\n(Reply e.g.: Alex 500 owe OR Sam 1200 owed)`);
+        return res.status(200).end();
+      }
+
+      if (choice === '3' || choice === 'deadline') {
+        await clearPendingIntent(userId);
+        const parsedDl = parseCommand(`>deadline ${rawText}`);
+        if (parsedDl.type === 'deadline') {
+          await handleCommand(parsedDl, userId, reply);
+          return res.status(200).end();
+        }
+        await createPendingIntent(userId, {
+          module: 'deadline',
+          partialData: { title: rawText },
+          missingField: 'dueDate',
+          question: `When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`
+        });
+        await reply(`When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`);
+        return res.status(200).end();
+      }
+
+      if (choice === '4' || choice === 'date') {
+        await clearPendingIntent(userId);
+        const parsedDate = parseCommand(`>date ${rawText}`);
+        if (parsedDate.type === 'date') {
+          await handleCommand(parsedDate, userId, reply);
+          return res.status(200).end();
+        }
+        await createPendingIntent(userId, {
+          module: 'date',
+          partialData: { title: rawText },
+          missingField: 'date',
+          question: `What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`
+        });
+        await reply(`What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`);
+        return res.status(200).end();
+      }
+
+      if (choice === '5' || choice === 'watch' || choice.includes('watchlist')) {
+        await clearPendingIntent(userId);
+        const item = await WatchlistItem.create({ userId, title: rawText, type: 'show' });
+        await reply(`✅ Added to watchlist: "${item.title}" [show]`);
+        return res.status(200).end();
+      }
+
+      await reply(`Please reply with 1-5 or type cancel:\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist`);
+      return res.status(200).end();
+    }
+
     // Generic field answer
     const newPartial = { ...pending.partialData, [pending.missingField]: text };
     const syntheticCommand = buildSyntheticCommand(pending.module, newPartial);
@@ -269,7 +343,19 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Fresh command
+  // Non-command message (e.g. forwarded text without leading >)
+  if (!text.startsWith('>')) {
+    await createPendingIntent(userId, {
+      module: 'classify_forward',
+      partialData: { rawText: text },
+      missingField: 'choice',
+      question: `What should I save this as?\n\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist\n\nReply 1-5 or type cancel.`
+    });
+    await reply(`What should I save this as?\n\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist\n\nReply 1-5 or type cancel.`);
+    return res.status(200).end();
+  }
+
+  // Fresh command starting with >
   const parsed = parseCommand(text);
   if (parsed.type === 'missing') {
     await createPendingIntent(userId, {
