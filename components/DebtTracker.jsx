@@ -4,7 +4,8 @@ export default function DebtTracker() {
   const [debts, setDebts] = useState([]);
   const [summary, setSummary] = useState({ totalOwe: 0, totalOwed: 0, net: 0 });
   const [loading, setLoading] = useState(true);
-  const [showSettled, setShowSettled] = useState(false);
+  const [activeTab, setActiveTab] = useState('balances'); // 'balances' | 'journal'
+  const [journalFilter, setJournalFilter] = useState('all'); // 'all' | 'settled' | 'active'
   const [person, setPerson] = useState('');
   const [amount, setAmount] = useState('');
   const [direction, setDirection] = useState('i_owe');
@@ -50,11 +51,12 @@ export default function DebtTracker() {
     fetchDebts();
   }
 
-  const visible = debts.filter(d => showSettled ? true : !d.settled);
+  const activeDebts = debts.filter(d => !d.settled);
+  const settledDebts = debts.filter(d => d.settled);
 
-  // Group by person
+  // Group active debts by person
   const byPerson = {};
-  visible.forEach(d => {
+  activeDebts.forEach(d => {
     if (!byPerson[d.person]) byPerson[d.person] = [];
     byPerson[d.person].push(d);
   });
@@ -68,10 +70,23 @@ export default function DebtTracker() {
     return owed - owe;
   }
 
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  const filteredJournal = debts.filter(d => {
+    if (journalFilter === 'settled') return d.settled;
+    if (journalFilter === 'active') return !d.settled;
+    return true;
+  });
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading debts...</div>
+        <div>Loading ledger...</div>
       </div>
     );
   }
@@ -140,94 +155,182 @@ export default function DebtTracker() {
         </form>
       </div>
 
-      {/* Filter Toggle */}
+      {/* View Switcher: Active Balances vs Transaction Journal */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Balances by Person</h2>
-        <button className="btn btn-secondary" onClick={() => setShowSettled(!showSettled)} style={{ fontSize: 12 }}>
-          {showSettled ? 'Hide Settled' : 'Show Settled'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, background: 'rgba(255, 255, 255, 0.03)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+          <button
+            className={`btn ${activeTab === 'balances' ? 'btn-secondary' : 'btn-ghost'}`}
+            onClick={() => setActiveTab('balances')}
+            style={{ fontSize: 13, padding: '6px 16px' }}
+          >
+            Active Balances ({activeDebts.length})
+          </button>
+          <button
+            className={`btn ${activeTab === 'journal' ? 'btn-secondary' : 'btn-ghost'}`}
+            onClick={() => setActiveTab('journal')}
+            style={{ fontSize: 13, padding: '6px 16px' }}
+          >
+            Transaction Journal ({debts.length})
+          </button>
+        </div>
+
+        {activeTab === 'journal' && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['all', 'settled', 'active'].map(f => (
+              <button
+                key={f}
+                className={`btn ${journalFilter === f ? 'btn-secondary' : 'btn-ghost'}`}
+                onClick={() => setJournalFilter(f)}
+                style={{ fontSize: 12, padding: '4px 10px', textTransform: 'capitalize' }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Cards per Person */}
-      {Object.keys(byPerson).length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No debts recorded</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Use the form above or text your WhatsApp bot: <code style={{ background: 'var(--bg-elevated)', padding: '2px 6px', borderRadius: 4 }}>{'>debt owe John 500'}</code></p>
-        </div>
-      ) : (
-        Object.entries(byPerson).map(([name, ds]) => {
-          const net = getPersonNet(ds);
-          const hasActive = ds.some(d => !d.settled);
+      {/* View 1: Active Balances by Person */}
+      {activeTab === 'balances' && (
+        Object.keys(byPerson).length === 0 ? (
+          <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No active debts</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>All balances are settled! Check the Transaction Journal below for past history.</p>
+          </div>
+        ) : (
+          Object.entries(byPerson).map(([name, ds]) => {
+            const net = getPersonNet(ds);
 
-          return (
-            <div key={name} className="card" style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: 'var(--gradient-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: 16
-                  }}>
-                    {name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700 }}>{name}</h3>
+            return (
+              <div key={name} className="card" style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: net > 0 ? 'var(--accent-emerald)' : net < 0 ? 'var(--accent-rose)' : 'var(--text-muted)',
-                      marginTop: 2
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      background: 'var(--gradient-primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: 16,
+                      color: '#1000a9'
                     }}>
-                      {net > 0 ? `owes you ₹${net.toLocaleString('en-IN')}` : net < 0 ? `you owe ₹${Math.abs(net).toLocaleString('en-IN')}` : 'All settled'}
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: 16, fontWeight: 700 }}>{name}</h3>
+                      <div style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: net > 0 ? 'var(--accent-emerald)' : net < 0 ? 'var(--accent-rose)' : 'var(--text-muted)',
+                        marginTop: 2
+                      }}>
+                        {net > 0 ? `owes you ₹${net.toLocaleString('en-IN')}` : net < 0 ? `you owe ₹${Math.abs(net).toLocaleString('en-IN')}` : 'All settled'}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {hasActive && (
                   <button className="btn btn-secondary" onClick={() => settleAll(name)} style={{ fontSize: 12, padding: '6px 14px' }}>
                     ✓ Settle All
                   </button>
-                )}
-              </div>
+                </div>
 
-              {/* Debt Entries */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
-                {ds.map(d => (
-                  <div key={d._id} style={{
-                    fontSize: 13,
-                    background: 'rgba(14, 15, 26, 0.6)',
-                    borderRadius: 10,
-                    padding: '8px 12px',
-                    display: 'flex',
-                    justify: 'space-between',
-                    alignItems: 'center',
-                    opacity: d.settled ? 0.45 : 1,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{
-                        color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
-                        fontWeight: 700,
-                        fontSize: 11
-                      }}>
-                        {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
+                {/* Debt Entries */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+                  {ds.map(d => (
+                    <div key={d._id} style={{
+                      fontSize: 13,
+                      background: 'rgba(14, 15, 26, 0.6)',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      display: 'flex',
+                      justify: 'space-between',
+                      alignItems: 'center',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{
+                          color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
+                          fontWeight: 700,
+                          fontSize: 11
+                        }}>
+                          {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
+                        </span>
+                        <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{d.amount}</span>
+                        {d.note && <span style={{ color: 'var(--text-muted)' }}>· {d.note}</span>}
+                      </div>
+
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        {formatDate(d.createdAt)}
                       </span>
-                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{d.amount}</span>
-                      {d.note && <span style={{ color: 'var(--text-muted)' }}>· {d.note}</span>}
                     </div>
-
-                    {d.settled && <span className="badge badge-done">Settled</span>}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+            );
+          })
+        )
+      )}
+
+      {/* View 2: Transaction Journal & History */}
+      {activeTab === 'journal' && (
+        filteredJournal.length === 0 ? (
+          <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No transactions in journal</h3>
+          </div>
+        ) : (
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '14px 20px' }}>Date</th>
+                    <th style={{ padding: '14px 20px' }}>Person</th>
+                    <th style={{ padding: '14px 20px' }}>Direction</th>
+                    <th style={{ padding: '14px 20px' }}>Amount</th>
+                    <th style={{ padding: '14px 20px' }}>Note</th>
+                    <th style={{ padding: '14px 20px' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredJournal.map(d => (
+                    <tr key={d._id} style={{ borderBottom: '1px solid var(--border-subtle)', opacity: d.settled ? 0.65 : 1 }}>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        {formatDate(d.createdAt)}
+                      </td>
+                      <td style={{ padding: '14px 20px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {d.person}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <span className={`badge ${d.direction === 'i_owe' ? 'badge-high' : 'badge-done'}`}>
+                          {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 20px', fontWeight: 700, color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)' }}>
+                        ₹{d.amount.toLocaleString('en-IN')}
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>
+                        {d.note || '—'}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        {d.settled ? (
+                          <span className="badge badge-done" style={{ fontSize: 11 }}>
+                            Settled {d.settledDate ? `(${new Date(d.settledDate).toLocaleDateString('en-IN')})` : ''}
+                          </span>
+                        ) : (
+                          <span className="badge badge-medium" style={{ fontSize: 11 }}>
+                            Active
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          );
-        })
+          </div>
+        )
       )}
     </div>
   );

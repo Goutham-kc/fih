@@ -79,11 +79,22 @@ async function handleCommand(parsed, userId, reply) {
     }
 
     case 'debt': {
+      if (parsed.action === 'history' || parsed.action === 'journal') {
+        const debts = await Debt.find({ userId }).sort({ createdAt: -1 }).limit(10);
+        if (!debts.length) return reply('Your transaction journal is empty.');
+        const lines = debts.map((d, i) => {
+          const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
+          const status = d.settled ? ` [Settled ${d.settledDate ? new Date(d.settledDate).toLocaleDateString('en-IN') : ''}]` : ' [Active]';
+          return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${d.note ? ` - ${d.note}` : ''}${status}`;
+        });
+        return reply(`📜 Transaction Journal (Last 10):\n\n${lines.join('\n')}`);
+      }
+
       if (parsed.action === 'settle') {
         const debts = await Debt.find({ userId, person: new RegExp(parsed.person, 'i'), settled: false });
         if (!debts.length) return reply(`No unsettled debts found for "${parsed.person}".`);
         await Debt.updateMany({ _id: { $in: debts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
-        return reply(`✅ Settled all debts with ${debts[0].person}.`);
+        return reply(`✅ Settled all debts with ${debts[0].person}. Transaction saved to your Journal.`);
       }
       const debt = await Debt.create({
         userId, person: parsed.person, amount: parsed.amount,
