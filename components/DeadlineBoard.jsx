@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 export default function DeadlineBoard() {
   const [deadlines, setDeadlines] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterCategory, setFilterCategory] = useState('all');
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [category, setCategory] = useState('personal');
@@ -42,75 +43,126 @@ export default function DeadlineBoard() {
     const days = Math.floor(abs / 86400000);
     const hours = Math.floor((abs % 86400000) / 3600000);
     const mins = Math.floor((abs % 3600000) / 60000);
-    if (diff < 0) return { label: `overdue by ${days > 0 ? days + 'd ' : ''}${hours}h`, type: 'overdue' };
+    if (diff < 0) return { label: `Overdue by ${days > 0 ? days + 'd ' : ''}${hours}h`, type: 'overdue' };
     if (days === 0 && hours < 4) return { label: hours === 0 ? `${mins}m left` : `${hours}h ${mins}m left`, type: 'today' };
-    return { label: days > 0 ? `in ${days}d ${hours}h` : `in ${hours}h`, type: 'upcoming' };
+    return { label: days > 0 ? `In ${days}d ${hours}h` : `In ${hours}h`, type: 'upcoming' };
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)' }}>Loading...</div>;
+  const filtered = deadlines.filter(d => filterCategory === 'all' || d.category === filterCategory);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
+        <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
+        <div>Loading deadlines...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade">
-      <div className="card" style={{ marginBottom: 20 }}>
+      {/* Create Form */}
+      <div className="card" style={{ marginBottom: 24 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Add Upcoming Deadline</h3>
         <form onSubmit={addDeadline}>
-          <div className="form-row">
-            <div className="form-group" style={{ flex: 2 }}>
-              <label>Title</label>
-              <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Deadline title" required />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, alignItems: 'end' }}>
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>TITLE</label>
+              <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. End Semester Exam" required />
             </div>
-            <div className="form-group">
-              <label>Due date &amp; time</label>
+
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>DUE DATE &amp; TIME</label>
               <input className="input" type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} required />
             </div>
-            <div className="form-group">
-              <label>Category</label>
+
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>CATEGORY</label>
               <select className="input" value={category} onChange={e => setCategory(e.target.value)}>
-                <option value="personal">Personal</option>
-                <option value="academic">Academic</option>
-                <option value="internship">Internship</option>
+                <option value="personal">👤 Personal</option>
+                <option value="academic">🎓 Academic</option>
+                <option value="internship">💼 Internship</option>
               </select>
             </div>
-            <button type="submit" className="btn btn-primary" disabled={adding} style={{ alignSelf: 'flex-end' }}>
-              {adding ? '...' : '+ Add'}
+
+            <button type="submit" className="btn btn-primary" disabled={adding} style={{ height: 46 }}>
+              {adding ? 'Adding...' : '+ Save Deadline'}
             </button>
           </div>
         </form>
       </div>
 
-      {deadlines.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📅</div>
-          <p>No deadlines yet.</p>
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Upcoming Deadlines ({filtered.length})</h2>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {['all', 'personal', 'academic', 'internship'].map(cat => (
+            <button
+              key={cat}
+              className={`btn ${filterCategory === cat ? 'btn-secondary' : 'btn-ghost'}`}
+              onClick={() => setFilterCategory(cat)}
+              style={{ fontSize: 12, padding: '4px 12px', textTransform: 'capitalize' }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Deadline Cards */}
+      {filtered.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📅</div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No deadlines found</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Create a deadline above or text your WhatsApp bot!</p>
         </div>
       ) : (
-        deadlines.map(dl => {
-          const cd = getCountdown(dl.dueDate);
-          return (
-            <div key={dl._id} className="card" style={{ marginBottom: 10, borderLeft: `3px solid ${dl.category === 'academic' ? '#a78bfa' : dl.category === 'internship' ? '#fb923c' : '#6c63ff'}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontWeight: 600 }}>{dl.title}</span>
-                    <span className={`badge badge-${dl.category}`}>{dl.category}</span>
-                    <span className={`countdown-chip ${cd.type}`}>{cd.label}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {filtered.map(dl => {
+            const cd = getCountdown(dl.dueDate);
+            const borderAccent = dl.category === 'academic' ? 'var(--accent-violet)' : dl.category === 'internship' ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+
+            return (
+              <div key={dl._id} className="card" style={{ borderLeft: `4px solid ${borderAccent}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                      <span style={{ fontWeight: 700, fontSize: 16 }}>{dl.title}</span>
+                      <span className={`badge badge-${dl.category}`}>{dl.category}</span>
+                      <span className={`countdown-chip ${cd.type}`}>{cd.label}</span>
+                    </div>
+
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>🕒</span>
+                      <span>{new Date(dl.dueDate).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })}</span>
+                    </div>
+
+                    <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>Automated Reminders:</span>
+                      {dl.reminderOffsets.map(o => (
+                        <span key={o} style={{
+                          fontSize: 11,
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid var(--border-subtle)',
+                          padding: '2px 8px',
+                          borderRadius: 8,
+                          color: 'var(--text-secondary)'
+                        }}>
+                          {o >= 1440 ? `${o/1440}d` : o >= 60 ? `${o/60}h` : `${o}m`} before
+                          {dl.remindersSent.includes(o) ? ' ✓' : ''}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                    {new Date(dl.dueDate).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                  </div>
-                  <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {dl.reminderOffsets.map(o => (
-                      <span key={o} className="tag">
-                        {o >= 1440 ? `${o/1440}d` : o >= 60 ? `${o/60}h` : `${o}m`} before
-                        {dl.remindersSent.includes(o) ? ' ✓' : ''}
-                      </span>
-                    ))}
-                  </div>
+
+                  <button className="btn btn-ghost btn-icon" onClick={() => deleteDeadline(dl._id)} style={{ color: 'var(--text-muted)' }}>
+                    🗑️
+                  </button>
                 </div>
-                <button className="btn btn-ghost" onClick={() => deleteDeadline(dl._id)} style={{ padding: '4px 8px', fontSize: 16 }}>🗑️</button>
               </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
     </div>
   );

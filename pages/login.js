@@ -38,44 +38,71 @@ export default function Login() {
         <title>Login — fih</title>
         <meta name="description" content="Sign in to your fih dashboard" />
       </Head>
+
       <div style={{
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-base)',
+        background: 'var(--bg-dark)',
         padding: '24px',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
+        {/* Glow Spheres */}
         <div style={{
+          position: 'absolute',
+          top: '20%',
+          left: '30%',
+          width: 400,
+          height: 400,
+          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, rgba(0,0,0,0) 70%)',
+          pointerEvents: 'none',
+          filter: 'blur(60px)',
+        }} />
+
+        <div style={{
+          position: 'absolute',
+          bottom: '20%',
+          right: '30%',
+          width: 400,
+          height: 400,
+          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(0,0,0,0) 70%)',
+          pointerEvents: 'none',
+          filter: 'blur(60px)',
+        }} />
+
+        <div className="card" style={{
           width: '100%',
-          maxWidth: '400px',
-          background: 'var(--bg-card)',
-          borderRadius: '20px',
-          border: '1px solid var(--border)',
-          padding: '40px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-          animation: 'slideUp 0.4s ease forwards',
+          maxWidth: '420px',
+          padding: '44px 36px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          position: 'relative',
+          zIndex: 10,
+          animation: 'fadeIn 0.4s ease forwards'
         }}>
           {/* Logo */}
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
             <div style={{
-              fontSize: '48px',
+              fontSize: 52,
               fontWeight: 800,
-              background: 'linear-gradient(135deg, #6c63ff, #3ecfcf)',
+              background: 'var(--gradient-primary)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              letterSpacing: '-2px',
+              letterSpacing: '-0.04em',
               lineHeight: 1,
-              marginBottom: '8px',
+              marginBottom: 8,
             }}>fih</div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
-              Your life, organized.
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>
+              Your personal life, organized.
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ marginBottom: '16px' }}>
-              <label htmlFor="email">✉️ Email</label>
+            <div style={{ marginBottom: 20 }}>
+              <label htmlFor="email" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.05em' }}>
+                EMAIL ADDRESS
+              </label>
               <input
                 id="email"
                 type="email"
@@ -88,8 +115,10 @@ export default function Login() {
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: '24px' }}>
-              <label htmlFor="password">🔒 Password</label>
+            <div style={{ marginBottom: 24 }}>
+              <label htmlFor="password" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.05em' }}>
+                PASSWORD
+              </label>
               <input
                 id="password"
                 type="password"
@@ -103,13 +132,15 @@ export default function Login() {
 
             {error && (
               <div style={{
-                background: 'rgba(255,77,109,0.1)',
-                border: '1px solid rgba(255,77,109,0.3)',
-                color: '#ff4d6d',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                marginBottom: '16px',
+                background: 'rgba(244, 63, 94, 0.12)',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
+                color: 'var(--accent-rose)',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                fontSize: 13,
+                marginBottom: 20,
+                textAlign: 'center',
+                fontWeight: 600
               }}>{error}</div>
             )}
 
@@ -117,15 +148,15 @@ export default function Login() {
               type="submit"
               className="btn btn-primary"
               disabled={loading}
-              style={{ width: '100%', justifyContent: 'center', height: '44px', fontSize: '15px' }}
+              style={{ width: '100%', height: 48, fontSize: 15, borderRadius: 12 }}
             >
-              {loading ? '⏳ Signing in...' : '→ Sign In'}
+              {loading ? 'Signing in...' : 'Sign In →'}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px', marginTop: '24px', marginBottom: 0 }}>
-            Single-user app · <a href="https://github.com" style={{ color: 'var(--accent1)' }}>GitHub</a>
-          </p>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, marginTop: 28 }}>
+            Single-user life dashboard &amp; WhatsApp Bot
+          </div>
         </div>
       </div>
     </>
