@@ -1,6 +1,28 @@
 import { useState } from 'react';
 
 export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) {
+  const [wiping, setWiping] = useState(false);
+  const [wipeMessage, setWipeMessage] = useState('');
+
+  async function handleWipeLive() {
+    if (!confirm('Are you sure you want to wipe all Live data? This cannot be undone.')) return;
+    setWiping(true);
+    setWipeMessage('');
+    try {
+      const res = await fetch('/api/user/wipe-live', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setWipeMessage('✅ Live database wiped clean successfully!');
+      } else {
+        setWipeMessage(`❌ Error: ${data.error || 'Failed to wipe'}`);
+      }
+    } catch (e) {
+      setWipeMessage('❌ Network error when wiping database.');
+    } finally {
+      setWiping(false);
+    }
+  }
+
   return (
     <div style={{ maxWidth: 640 }}>
       {/* Header */}
@@ -18,6 +40,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         borderRadius: 16,
         padding: 24,
         boxShadow: 'var(--shadow-card)',
+        marginBottom: 24,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
@@ -88,6 +111,45 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Danger Zone: Wipe Live Database */}
+      <div style={{
+        background: 'var(--bg-surface)',
+        border: '1px solid rgba(239, 68, 68, 0.3)',
+        borderRadius: 16,
+        padding: 24,
+        boxShadow: 'var(--shadow-card)',
+      }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#f87171', marginBottom: 4 }}>
+          Danger Zone
+        </h3>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
+          Permanently clear all items (todos, debts, deadlines, dates, watchlist, reminders) from your Live database.
+        </p>
+
+        <button
+          onClick={handleWipeLive}
+          disabled={wiping}
+          className="btn"
+          style={{
+            background: 'rgba(239, 68, 68, 0.15)',
+            color: '#f87171',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            padding: '8px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            borderRadius: 8,
+          }}
+        >
+          {wiping ? 'Wiping Live Database...' : 'Wipe Live Database'}
+        </button>
+
+        {wipeMessage && (
+          <div style={{ marginTop: 12, fontSize: 13, color: wipeMessage.includes('✅') ? '#4ade80' : '#f87171' }}>
+            {wipeMessage}
+          </div>
+        )}
       </div>
     </div>
   );
