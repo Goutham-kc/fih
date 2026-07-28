@@ -61,6 +61,37 @@ function formatDebt(person, debts) {
   return `${person}: ${label}`;
 }
 
+function parseDebtInput(text, defaultData = {}) {
+  const clean = text.trim();
+  const subTokens = clean.split(/\s+/);
+
+  let action = defaultData.action;
+  let person = defaultData.person;
+  let amount = defaultData.amount;
+  let note = defaultData.note || '';
+
+  const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
+  if (numMatch && !amount) {
+    amount = parseFloat(numMatch[1]);
+  }
+
+  if (/\b(owed|owes|receivable|to_me)\b/i.test(clean)) {
+    action = 'owed';
+  } else if (/\b(owe|pay|payable)\b/i.test(clean)) {
+    action = 'owe';
+  } else if (/\b(settle|settled)\b/i.test(clean)) {
+    action = 'settle';
+  }
+
+  const keywords = ['owe', 'owed', 'owes', 'settle', 'i', 'me', 'you', 'to', 'for', 'rs', 'inr', '₹'];
+  const nameTokens = subTokens.filter(t => !/^\d+(?:\.\d+)?$/.test(t) && !keywords.includes(t.toLowerCase()));
+  if (nameTokens.length > 0 && !person) {
+    person = nameTokens.join(' ');
+  }
+
+  return { action, person, amount, note };
+}
+
 async function handleCommand(parsed, userId, reply, envMode = 'live') {
   const envQuery = envMode === 'live'
     ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
@@ -307,37 +338,6 @@ export default async function handler(req, res) {
       }
       return res.status(200).end();
     }
-
-function parseDebtInput(text, defaultData = {}) {
-  const clean = text.trim();
-  const subTokens = clean.split(/\s+/);
-
-  let action = defaultData.action;
-  let person = defaultData.person;
-  let amount = defaultData.amount;
-  let note = defaultData.note || '';
-
-  const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
-  if (numMatch && !amount) {
-    amount = parseFloat(numMatch[1]);
-  }
-
-  if (/\b(owed|owes|receivable|to_me)\b/i.test(clean)) {
-    action = 'owed';
-  } else if (/\b(owe|pay|payable)\b/i.test(clean)) {
-    action = 'owe';
-  } else if (/\b(settle|settled)\b/i.test(clean)) {
-    action = 'settle';
-  }
-
-  const keywords = ['owe', 'owed', 'owes', 'settle', 'i', 'me', 'you', 'to', 'for', 'rs', 'inr', '₹'];
-  const nameTokens = subTokens.filter(t => !/^\d+(?:\.\d+)?$/.test(t) && !keywords.includes(t.toLowerCase()));
-  if (nameTokens.length > 0 && !person) {
-    person = nameTokens.join(' ');
-  }
-
-  return { action, person, amount, note };
-}
 
     // Handle debt pending intent
     if (pending.module === 'debt') {
