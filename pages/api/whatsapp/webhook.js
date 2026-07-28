@@ -10,6 +10,7 @@ import Deadline from '@/models/Deadline';
 import ImportantDate from '@/models/ImportantDate';
 import WatchlistItem from '@/models/WatchlistItem';
 import ProcessedMessage from '@/models/ProcessedMessage';
+import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 
 const HELP_TEXT = `Commands:
@@ -354,6 +355,7 @@ function parseDebtInput(text, defaultData = {}) {
         if (targetModule === 'deadline') await Deadline.deleteOne({ _id: targetId, userId });
         if (targetModule === 'date') await ImportantDate.deleteOne({ _id: targetId, userId });
         if (targetModule === 'watch') await WatchlistItem.deleteOne({ _id: targetId, userId });
+        if (targetModule === 'reminder') await Reminder.deleteOne({ _id: targetId, userId });
 
         await reply(`🗑️ Undone! Removed "${label}".`);
         return res.status(200).end();
@@ -591,6 +593,20 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
       if (natural.type === 'list') {
         return handleListQuery(userId, natural, reply);
       }
+      if (natural.type === 'reminder') {
+        const reminder = await Reminder.create({ userId, title: natural.title, remindAt: natural.remindAt });
+        const timeStr = new Date(reminder.remindAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const label = `${reminder.title} at ${timeStr}`;
+
+        await createPendingIntent(userId, {
+          module: 'undo_last',
+          partialData: { targetModule: 'reminder', targetId: reminder._id, label },
+          missingField: 'undo_action',
+          question: `Reply 'undo' to revert.`
+        });
+        return reply(`🔔 Reminder set: "${reminder.title}" (for ${timeStr})\n\n(Wrong? Reply 'undo' to revert)`);
+      }
+
       if (natural.type === 'debt') {
         if (natural.action === 'settle') {
           const debts = await Debt.find({ userId, person: new RegExp(natural.person, 'i'), settled: false });

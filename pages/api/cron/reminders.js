@@ -3,6 +3,7 @@ import { sendWhatsAppMessage } from '@/lib/whatsapp';
 import Deadline from '@/models/Deadline';
 import Todo from '@/models/Todo';
 import ImportantDate from '@/models/ImportantDate';
+import Reminder from '@/models/Reminder';
 import User from '@/models/User';
 
 const TOLERANCE_MINUTES = 10; // ± window around cron interval
@@ -25,6 +26,20 @@ export default async function handler(req, res) {
   for (const user of users) {
     const userId = user._id;
     const waNumber = user.whatsappNumber;
+
+    // --- Timed Reminders ---
+    const dueReminders = await Reminder.find({
+      userId,
+      sent: false,
+      remindAt: { $lte: new Date() },
+    });
+    for (const r of dueReminders) {
+      await sendWhatsAppMessage(waNumber, `🔔 Reminder: "${r.title}"`);
+      r.sent = true;
+      r.sentAt = new Date();
+      await r.save();
+      sent++;
+    }
 
     // --- Deadlines ---
     const deadlines = await Deadline.find({ userId });
