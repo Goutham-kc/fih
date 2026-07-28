@@ -1,4 +1,13 @@
-import { useState, useEffect } from 'react';
+function cleanNote(note, personName) {
+  if (!note) return '';
+  const stopWords = ['i', 'me', 'you', 'my', 'rs', 'inr', 'rupees', 'owes', 'owe', 'owed', 'give', 'pay', 'paid'];
+  const lowerName = personName ? personName.toLowerCase() : '';
+  const words = note.trim().split(/\s+/).filter(w => {
+    const lw = w.toLowerCase();
+    return lw !== lowerName && !stopWords.includes(lw);
+  });
+  return words.join(' ');
+}
 
 export default function DebtTracker() {
   const [debts, setDebts] = useState([]);
@@ -265,9 +274,9 @@ export default function DebtTracker() {
                           {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
                         </span>
                         <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{d.amount}</span>
-                        {d.note && (
+                        {cleanNote(d.note, name) && (
                           <span style={{ color: 'var(--text-secondary)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
-                            · {d.note}
+                            · {cleanNote(d.note, name)}
                           </span>
                         )}
                       </div>
