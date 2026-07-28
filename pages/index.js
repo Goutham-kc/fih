@@ -7,6 +7,7 @@ import DeadlineBoard from '@/components/DeadlineBoard';
 import ImportantDates from '@/components/ImportantDates';
 import Watchlist from '@/components/Watchlist';
 import ReminderBoard from '@/components/ReminderBoard';
+import SettingsView from '@/components/SettingsView';
 
 const TABS = [
   {
@@ -134,6 +135,7 @@ export default function Dashboard() {
       case 'deadlines': return <DeadlineBoard key={`deadlines-${envMode}`} />;
       case 'dates': return <ImportantDates key={`dates-${envMode}`} />;
       case 'watchlist': return <Watchlist key={`watchlist-${envMode}`} />;
+      case 'settings': return <SettingsView key="settings" envMode={envMode} onSwitchEnvMode={switchEnvMode} updatingEnv={updatingEnv} />;
       default: return null;
     }
   }
@@ -151,7 +153,7 @@ export default function Dashboard() {
 
       {/* Desktop Left Sidebar Navigation */}
       <nav className="sidebar">
-        <div style={{ marginBottom: 32, paddingLeft: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginBottom: 32, paddingLeft: 8 }}>
           <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>fih</h2>
         </div>
 
@@ -170,62 +172,37 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Settings & Environment Switcher JUST ABOVE Sign Out */}
-        <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ padding: '0 8px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
-              Settings
+        {/* Settings & Sign Out Section */}
+        <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Settings Button with Mode Badge */}
+          <button
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+            style={{ width: '100%', justifyContent: 'space-between' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span className="nav-text">Settings</span>
             </div>
-            <div style={{ background: 'rgba(255, 255, 255, 0.04)', borderRadius: 10, padding: 4, display: 'flex', gap: 4, border: '1px solid var(--border-subtle)' }}>
-              <button
-                onClick={() => switchEnvMode('live')}
-                disabled={updatingEnv}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: 7,
-                  border: 'none',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'transparent',
-                  color: envMode === 'live' ? '#4ade80' : 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'live' ? '#4ade80' : 'var(--text-muted)' }} />
-                Live
-              </button>
-              <button
-                onClick={() => switchEnvMode('development')}
-                disabled={updatingEnv}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: 7,
-                  border: 'none',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  background: envMode === 'development' ? 'rgba(251, 146, 60, 0.15)' : 'transparent',
-                  color: envMode === 'development' ? '#fb923c' : 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'development' ? '#fb923c' : 'var(--text-muted)' }} />
-                Dev
-              </button>
-            </div>
-          </div>
+            <span style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.03em',
+              textTransform: 'uppercase',
+              padding: '2px 7px',
+              borderRadius: 10,
+              background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 146, 60, 0.15)',
+              color: envMode === 'live' ? '#4ade80' : '#fb923c',
+              border: `1px solid ${envMode === 'live' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
+            }}>
+              {envMode === 'live' ? 'Live' : 'Dev'}
+            </span>
+          </button>
 
+          {/* Sign Out Button */}
           <button className="nav-item" onClick={logout}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -250,33 +227,18 @@ export default function Dashboard() {
         gap: 14,
         padding: '16px 0 12px 0',
       }}>
-        {/* Brand & Settings Row */}
+        {/* Brand & Action Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
-            <span style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              padding: '2px 8px',
-              borderRadius: 12,
-              background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 146, 60, 0.15)',
-              color: envMode === 'live' ? '#4ade80' : '#fb923c',
-              border: `1px solid ${envMode === 'live' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
-            }}>
-              {envMode}
-            </span>
-          </div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              onClick={() => switchEnvMode(envMode === 'live' ? 'development' : 'live')}
-              disabled={updatingEnv}
-              className="btn btn-secondary"
-              style={{ fontSize: 11, padding: '4px 10px' }}
+              onClick={() => setActiveTab('settings')}
+              className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: 11, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              Mode: {envMode === 'live' ? 'Live' : 'Dev'}
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'live' ? '#4ade80' : '#fb923c' }} />
+              Settings ({envMode === 'live' ? 'Live' : 'Dev'})
             </button>
             <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 13, padding: '4px 10px', color: 'var(--text-secondary)' }}>
               Sign Out
@@ -322,28 +284,8 @@ export default function Dashboard() {
         {/* Desktop Top Header */}
         <header className="desktop-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>
-            {TABS.find(t => t.id === activeTab)?.label}
+            {activeTab === 'settings' ? 'Settings' : TABS.find(t => t.id === activeTab)?.label}
           </h1>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              padding: '4px 12px',
-              borderRadius: 16,
-              background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 146, 60, 0.15)',
-              color: envMode === 'live' ? '#4ade80' : '#fb923c',
-              border: `1px solid ${envMode === 'live' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'live' ? '#4ade80' : '#fb923c' }} />
-              {envMode === 'live' ? 'Live Environment' : 'Development Environment'}
-            </span>
-          </div>
         </header>
 
         {/* Tab Content Component */}
