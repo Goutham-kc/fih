@@ -350,7 +350,13 @@ function parseDebtInput(text, defaultData = {}) {
       const choice = text.trim().toLowerCase();
       const rawText = pending.partialData.rawText;
 
-      if (choice === '1' || choice === 'todo' || choice.includes('to-do')) {
+      // Failsafe override: If user sends a fresh high-confidence statement or command, clear stale prompt!
+      const freshNatural = parseNaturalLanguage(text);
+      if (freshNatural.confidence === 'high' || text.startsWith('>')) {
+        await clearPendingIntent(userId);
+        // Do not return — let execution fall through to process fresh message!
+      } else {
+        if (choice === '1' || choice === 'todo' || choice.includes('to-do')) {
         await clearPendingIntent(userId);
         const todo = await Todo.create({ userId, title: rawText });
         await reply(`✅ To-do added: "${todo.title}"`);
@@ -427,8 +433,9 @@ function parseDebtInput(text, defaultData = {}) {
         return res.status(200).end();
       }
 
-      await reply(`Please reply with 1-5 or type cancel:\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist`);
-      return res.status(200).end();
+        await reply(`Please reply with 1-5 or type cancel:\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist`);
+        return res.status(200).end();
+      }
     }
 
     // Generic field answer
