@@ -67,7 +67,6 @@ export default function TodoList() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: 24, marginBottom: 8 }}>⚡</div>
         <div>Loading tasks...</div>
       </div>
     );
@@ -113,9 +112,9 @@ export default function TodoList() {
                   value={priority}
                   onChange={e => setPriority(e.target.value)}
                 >
-                  <option value="low">🟢 Low</option>
-                  <option value="medium">🟡 Medium</option>
-                  <option value="high">🔴 High</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
                 </select>
               </div>
             </div>
@@ -151,8 +150,7 @@ export default function TodoList() {
       {/* Task List */}
       {open.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No pending tasks!</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No pending tasks</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>All caught up or try clearing your priority filters.</p>
         </div>
       ) : (
@@ -171,18 +169,18 @@ export default function TodoList() {
                 {isOverdue(todo) && <span className="badge badge-overdue">overdue</span>}
               </div>
               {todo.dueDate && (
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span>📅</span> {formatDate(todo.dueDate)}
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                  Due: {formatDate(todo.dueDate)}
                 </div>
               )}
             </div>
             <button
               className="btn btn-ghost btn-icon"
               onClick={() => deleteTodo(todo._id)}
-              style={{ color: 'var(--text-muted)', fontSize: 14 }}
+              style={{ color: 'var(--text-muted)', fontSize: 13 }}
               title="Delete task"
             >
-              🗑️
+              Delete
             </button>
           </div>
         ))
@@ -218,7 +216,7 @@ export default function TodoList() {
                     onClick={() => deleteTodo(todo._id)}
                     style={{ color: 'var(--text-muted)', fontSize: 13 }}
                   >
-                    🗑️
+                    Delete
                   </button>
                 </div>
               ))}

@@ -53,7 +53,6 @@ export default function DeadlineBoard() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
         <div>Loading deadlines...</div>
       </div>
     );
@@ -79,9 +78,9 @@ export default function DeadlineBoard() {
             <div>
               <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>CATEGORY</label>
               <select className="input" value={category} onChange={e => setCategory(e.target.value)}>
-                <option value="personal">👤 Personal</option>
-                <option value="academic">🎓 Academic</option>
-                <option value="internship">💼 Internship</option>
+                <option value="personal">Personal</option>
+                <option value="academic">Academic</option>
+                <option value="internship">Internship</option>
               </select>
             </div>
 
@@ -112,9 +111,8 @@ export default function DeadlineBoard() {
       {/* Deadline Cards */}
       {filtered.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📅</div>
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No deadlines found</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Create a deadline above or text your WhatsApp bot!</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Create a deadline above or text your WhatsApp bot.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -133,8 +131,7 @@ export default function DeadlineBoard() {
                     </div>
 
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>🕒</span>
-                      <span>{new Date(dl.dueDate).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })}</span>
+                      <span>Due: {new Date(dl.dueDate).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })}</span>
                     </div>
 
                     <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -155,8 +152,8 @@ export default function DeadlineBoard() {
                     </div>
                   </div>
 
-                  <button className="btn btn-ghost btn-icon" onClick={() => deleteDeadline(dl._id)} style={{ color: 'var(--text-muted)' }}>
-                    🗑️
+                  <button className="btn btn-ghost btn-icon" onClick={() => deleteDeadline(dl._id)} style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                    Delete
                   </button>
                 </div>
               </div>

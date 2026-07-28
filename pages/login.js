@@ -49,7 +49,7 @@ export default function Login() {
         position: 'relative',
         overflow: 'hidden',
       }}>
-        {/* Glow Spheres */}
+        {/* Ambient Glow Spheres */}
         <div style={{
           position: 'absolute',
           top: '20%',
@@ -81,7 +81,7 @@ export default function Login() {
           zIndex: 10,
           animation: 'fadeIn 0.4s ease forwards'
         }}>
-          {/* Logo */}
+          {/* Brand Logo */}
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
             <div style={{
               fontSize: 52,
@@ -94,7 +94,7 @@ export default function Login() {
               marginBottom: 8,
             }}>fih</div>
             <p style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>
-              Your personal life, organized.
+              Personal Life Dashboard
             </p>
           </div>
 
@@ -153,10 +153,6 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Sign In →'}
             </button>
           </form>
-
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, marginTop: 28 }}>
-            Single-user life dashboard &amp; WhatsApp Bot
-          </div>
         </div>
       </div>
     </>

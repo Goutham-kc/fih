@@ -71,7 +71,6 @@ export default function DebtTracker() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: 24, marginBottom: 8 }}>💸</div>
         <div>Loading debts...</div>
       </div>
     );
@@ -124,8 +123,8 @@ export default function DebtTracker() {
             <div>
               <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>TYPE</label>
               <select className="input" value={direction} onChange={e => setDirection(e.target.value)}>
-                <option value="i_owe">🔴 I owe them</option>
-                <option value="owed_to_me">🟢 They owe me</option>
+                <option value="i_owe">I owe them</option>
+                <option value="owed_to_me">They owe me</option>
               </select>
             </div>
 
@@ -152,7 +151,6 @@ export default function DebtTracker() {
       {/* Cards per Person */}
       {Object.keys(byPerson).length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>💰</div>
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No debts recorded</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Use the form above or text your WhatsApp bot: <code style={{ background: 'var(--bg-elevated)', padding: '2px 6px', borderRadius: 4 }}>{'>debt owe John 500'}</code></p>
         </div>
@@ -217,7 +215,7 @@ export default function DebtTracker() {
                         fontWeight: 700,
                         fontSize: 11
                       }}>
-                        {d.direction === 'i_owe' ? '🔴 YOU OWE' : '🟢 OWES YOU'}
+                        {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
                       </span>
                       <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{d.amount}</span>
                       {d.note && <span style={{ color: 'var(--text-muted)' }}>· {d.note}</span>}

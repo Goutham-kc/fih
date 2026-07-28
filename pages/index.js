@@ -8,11 +8,11 @@ import ImportantDates from '@/components/ImportantDates';
 import Watchlist from '@/components/Watchlist';
 
 const TABS = [
-  { id: 'todos', label: 'Todos', icon: '✅' },
-  { id: 'debts', label: 'Debts', icon: '💰' },
-  { id: 'deadlines', label: 'Deadlines', icon: '📅' },
-  { id: 'dates', label: 'Important Dates', icon: '🎂' },
-  { id: 'watchlist', label: 'Watchlist', icon: '🎬' },
+  { id: 'todos', label: 'Todos' },
+  { id: 'debts', label: 'Debts' },
+  { id: 'deadlines', label: 'Deadlines' },
+  { id: 'dates', label: 'Important Dates' },
+  { id: 'watchlist', label: 'Watchlist' },
 ];
 
 const COMMAND_LIST = [
@@ -61,8 +61,8 @@ export default function Dashboard() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
             border: '3px solid rgba(124, 58, 237, 0.2)',
             borderTopColor: 'var(--accent-violet)',
@@ -97,13 +97,13 @@ export default function Dashboard() {
         <div className="brand-logo">
           fih
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginLeft: 12 }}>
-            <span className="status-dot"></span> WhatsApp Bot Live
+            <span className="status-dot"></span> WhatsApp Bot Active
           </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button className="btn btn-secondary" onClick={() => setWaOpen(true)} style={{ fontSize: 13, padding: '8px 14px' }}>
-            💬 Cheatsheet
+            WhatsApp Commands
           </button>
           <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
             Sign out →
@@ -121,7 +121,6 @@ export default function Dashboard() {
               className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <span>{tab.icon}</span>
               <span>{tab.label}</span>
             </button>
           ))}
@@ -135,7 +134,7 @@ export default function Dashboard() {
       <aside className={`wa-panel ${waOpen ? 'open' : ''}`}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>📱 WhatsApp Commands</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>WhatsApp Commands</h3>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Tap any command to copy</p>
           </div>
           <button className="btn btn-ghost btn-icon" onClick={() => setWaOpen(false)}>✕</button>
@@ -162,7 +161,7 @@ export default function Dashboard() {
                   {item.cmd}
                 </code>
                 <span style={{ fontSize: 11, color: copiedIndex === idx ? 'var(--accent-emerald)' : 'var(--text-muted)' }}>
-                  {copiedIndex === idx ? 'Copied! ✓' : 'Copy'}
+                  {copiedIndex === idx ? 'Copied ✓' : 'Copy'}
                 </span>
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>
@@ -173,9 +172,8 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* Floating Action Toggle for WhatsApp Side Drawer */}
+      {/* Floating Action Toggle */}
       <button className="wa-toggle" onClick={() => setWaOpen(!waOpen)}>
-        <span>📱</span>
         <span>WhatsApp Commands</span>
       </button>
     </>

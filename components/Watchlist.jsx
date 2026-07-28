@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 
-const TYPE_EMOJI = { movie: '🎥', show: '📺', anime: '⚡', book: '📚', paper: '📝' };
-
 export default function Watchlist() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +56,7 @@ export default function Watchlist() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 4 }}>
-              {TYPE_EMOJI[item.type] || '📌'} {item.title}
+              {item.title}
             </div>
             <span className="badge badge-planned" style={{ fontSize: 10, textTransform: 'uppercase' }}>
               {item.type}
@@ -78,17 +76,17 @@ export default function Watchlist() {
         <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {item.status !== 'in_progress' && (
             <button className="btn btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => updateStatus(item._id, 'in_progress')}>
-              ▶ In Progress
+              In Progress
             </button>
           )}
           {item.status !== 'planned' && (
             <button className="btn btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => updateStatus(item._id, 'planned')}>
-              📋 Plan
+              Plan
             </button>
           )}
           {item.status !== 'done' && (
             <button className="btn btn-primary" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => { setRatingFor(item._id); setTempRating(8); }}>
-              ✓ Complete
+              Complete
             </button>
           )}
         </div>
@@ -127,7 +125,6 @@ export default function Watchlist() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: 24, marginBottom: 8 }}>🎬</div>
         <div>Loading watchlist...</div>
       </div>
     );
@@ -148,11 +145,11 @@ export default function Watchlist() {
             <div>
               <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>TYPE</label>
               <select className="input" value={type} onChange={e => setType(e.target.value)}>
-                <option value="movie">🎥 Movie</option>
-                <option value="show">📺 TV Show</option>
-                <option value="anime">⚡ Anime</option>
-                <option value="book">📚 Book</option>
-                <option value="paper">📝 Paper / Article</option>
+                <option value="movie">Movie</option>
+                <option value="show">TV Show</option>
+                <option value="anime">Anime</option>
+                <option value="book">Book</option>
+                <option value="paper">Paper / Article</option>
               </select>
             </div>
 
@@ -167,7 +164,7 @@ export default function Watchlist() {
       <div className="kanban">
         <div className="kanban-col">
           <div className="kanban-header">
-            <h3 style={{ color: 'var(--accent-indigo)' }}>📋 Planned</h3>
+            <h3 style={{ color: 'var(--accent-indigo)' }}>Planned</h3>
             <span className="tab-count">{planned.length}</span>
           </div>
           {planned.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Nothing planned</p> : planned.map(renderItem)}
@@ -175,7 +172,7 @@ export default function Watchlist() {
 
         <div className="kanban-col">
           <div className="kanban-header">
-            <h3 style={{ color: 'var(--accent-amber)' }}>▶ In Progress</h3>
+            <h3 style={{ color: 'var(--accent-amber)' }}>In Progress</h3>
             <span className="tab-count">{inProgress.length}</span>
           </div>
           {inProgress.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Nothing active</p> : inProgress.map(renderItem)}
@@ -183,7 +180,7 @@ export default function Watchlist() {
 
         <div className="kanban-col">
           <div className="kanban-header">
-            <h3 style={{ color: 'var(--accent-emerald)' }}>✅ Completed</h3>
+            <h3 style={{ color: 'var(--accent-emerald)' }}>Completed</h3>
             <span className="tab-count">{done.length}</span>
           </div>
           {done.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Nothing finished yet</p> : done.map(renderItem)}

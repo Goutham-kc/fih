@@ -68,7 +68,6 @@ export default function ImportantDates() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: 24, marginBottom: 8 }}>🎂</div>
         <div>Loading dates...</div>
       </div>
     );
@@ -101,25 +100,12 @@ export default function ImportantDates() {
             return (
               <div key={d._id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 14,
-                    background: 'rgba(124, 58, 237, 0.12)',
-                    border: '1px solid rgba(124, 58, 237, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20
-                  }}>
-                    🎂
-                  </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                       <span style={{ fontWeight: 700, fontSize: 16 }}>{d.title}</span>
                       {d.recurring !== 'none' && (
                         <span className="badge badge-planned" style={{ textTransform: 'capitalize' }}>
-                          🔄 {d.recurring}
+                          {d.recurring}
                         </span>
                       )}
                     </div>
@@ -131,10 +117,10 @@ export default function ImportantDates() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   <span className={`countdown-chip ${days === 0 ? 'today' : days > 0 && days <= 7 ? 'today' : 'upcoming'}`} style={{ fontSize: 13, padding: '6px 14px' }}>
-                    {days === 0 ? '🎉 Today!' : days > 0 ? `In ${days} days` : `${Math.abs(days)} days ago`}
+                    {days === 0 ? 'Today' : days > 0 ? `In ${days} days` : `${Math.abs(days)} days ago`}
                   </span>
-                  <button className="btn btn-ghost btn-icon" onClick={() => deleteDate(d._id)} style={{ color: 'var(--text-muted)' }}>
-                    🗑️
+                  <button className="btn btn-ghost btn-icon" onClick={() => deleteDate(d._id)} style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                    Delete
                   </button>
                 </div>
               </div>
@@ -180,16 +166,15 @@ export default function ImportantDates() {
 
       {dates.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎂</div>
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No important dates saved</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Add birthdays or anniversaries to receive WhatsApp reminders!</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Add birthdays or anniversaries to receive WhatsApp reminders.</p>
         </div>
       ) : (
         <>
-          {renderGroup('🔥 This Week', thisWeek, 'var(--accent-amber)')}
-          {renderGroup('🗓️ This Month', thisMonth, 'var(--accent-cyan)')}
-          {renderGroup('📌 Upcoming Later', later, 'var(--accent-violet)')}
-          {renderGroup('⌛ Past Events', past, 'var(--text-muted)')}
+          {renderGroup('This Week', thisWeek, 'var(--accent-amber)')}
+          {renderGroup('This Month', thisMonth, 'var(--accent-cyan)')}
+          {renderGroup('Upcoming Later', later, 'var(--accent-violet)')}
+          {renderGroup('Past Events', past, 'var(--text-muted)')}
         </>
       )}
     </div>
