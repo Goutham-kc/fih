@@ -542,6 +542,13 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
     return reply(`📋 Open To-Dos:\n\n${todos.map(formatTodo).join('\n')}`);
   }
 
+  if (module === 'reminder') {
+    let reminders = await Reminder.find({ userId, sent: false }).sort({ remindAt: 1 });
+    if (!reminders.length) return reply('No upcoming reminders!');
+    const lines = reminders.map((r, i) => `${i + 1}. ${r.title} — ${new Date(r.remindAt).toLocaleString('en-IN')}`);
+    return reply(`🔔 Upcoming Reminders:\n\n${lines.join('\n')}`);
+  }
+
   if (module === 'deadline') {
     let deadlines = await Deadline.find({ userId }).sort({ dueDate: 1 });
     if (!deadlines.length) return reply('No deadlines!');
