@@ -9,6 +9,7 @@ import Debt from '@/models/Debt';
 import Deadline from '@/models/Deadline';
 import ImportantDate from '@/models/ImportantDate';
 import WatchlistItem from '@/models/WatchlistItem';
+import { parseNaturalLanguage } from '@/lib/naturalParser';
 
 const HELP_TEXT = `Commands:
 >todo <text> [| due-date]
@@ -427,8 +428,51 @@ function parseDebtInput(text, defaultData = {}) {
     return res.status(200).end();
   }
 
-  // Non-command message (e.g. forwarded text without leading >)
+  // Non-command message (e.g. natural language sentence or forwarded text)
   if (!text.startsWith('>')) {
+    const natural = parseNaturalLanguage(text);
+
+    if (natural.confidence === 'high') {
+      if (natural.type === 'debt') {
+        if (natural.action === 'settle') {
+          const debts = await Debt.find({ userId, person: new RegExp(natural.person, 'i'), settled: false });
+          if (!debts.length) return reply(`No unsettled debts found for "${natural.person}".`);
+          await Debt.updateMany({ _id: { $in: debts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
+          return reply(`✅ Settled all debts with ${debts[0].person}. Transaction saved to your Journal.`);
+        }
+        const debt = await Debt.create({
+          userId, person: natural.person, amount: natural.amount,
+          direction: natural.direction, note: natural.note || '',
+        });
+        const dir = natural.direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
+        return reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
+      }
+
+      if (natural.type === 'deadline') {
+        const deadline = await Deadline.create({
+          userId, title: natural.title, dueDate: natural.dueDate, category: natural.category || 'personal'
+        });
+        const dueStr = new Date(deadline.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        return reply(`✅ Deadline set: "${deadline.title}" (due ${dueStr})`);
+      }
+
+      if (natural.type === 'todo') {
+        const todo = await Todo.create({ userId, title: natural.title });
+        return reply(`✅ To-do added: "${todo.title}"`);
+      }
+
+      if (natural.type === 'watch') {
+        const item = await WatchlistItem.create({ userId, title: natural.title, type: natural.watchType || 'show' });
+        return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]`);
+      }
+
+      if (natural.type === 'date') {
+        const record = await ImportantDate.create({ userId, title: natural.title, date: natural.date, recurring: natural.recurring || 'yearly' });
+        return reply(`✅ Important date saved: "${record.title}" (${record.date})`);
+      }
+    }
+
+    // High-confidence intent match was not found — prompt with interactive choice
     await createPendingIntent(userId, {
       module: 'classify_forward',
       partialData: { rawText: text },
