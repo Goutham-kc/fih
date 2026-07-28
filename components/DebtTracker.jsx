@@ -253,26 +253,26 @@ export default function DebtTracker() {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: 8,
+                      gap: 16,
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', flex: 1, minWidth: 160 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
                         <span style={{
                           color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
                           fontWeight: 700,
-                          fontSize: 11
+                          fontSize: 11,
+                          letterSpacing: '0.02em',
                         }}>
                           {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
                         </span>
                         <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{d.amount}</span>
                         {d.note && (
-                          <span style={{ color: 'var(--text-secondary)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
                             · {d.note}
                           </span>
                         )}
                       </div>
 
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                         {formatDate(d.createdAt)}
                       </span>
                     </div>
