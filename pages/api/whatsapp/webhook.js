@@ -446,11 +446,93 @@ function parseDebtInput(text, defaultData = {}) {
     return res.status(200).end();
   }
 
+async function handleListQuery(userId, { module, sortBy = 'default', personFilter = null }, reply) {
+  if (module === 'debt') {
+    let filter = { userId, settled: false };
+    if (personFilter) {
+      filter.person = new RegExp(personFilter, 'i');
+    }
+    let debts = await Debt.find(filter);
+
+    if (!debts.length) {
+      return reply(personFilter ? `No active debts found for "${personFilter}".` : 'No active debts found!');
+    }
+
+    if (sortBy === 'amount') {
+      debts.sort((a, b) => b.amount - a.amount);
+      const lines = debts.map((d, i) => {
+        const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
+        return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${d.note ? ` - ${d.note}` : ''}`;
+      });
+      return reply(`💰 Debts (Sorted by Amount):\n\n${lines.join('\n')}`);
+    }
+
+    if (sortBy === 'person') {
+      const byPerson = {};
+      debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
+      const blocks = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
+      return reply(`💰 Debts (Grouped by Person):\n\n${blocks.join('\n')}`);
+    }
+
+    if (sortBy === 'time') {
+      debts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const lines = debts.map((d, i) => {
+        const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
+        return `${i + 1}. ${d.person} (${dir} ₹${d.amount}) — ${new Date(d.createdAt).toLocaleDateString('en-IN')}`;
+      });
+      return reply(`💰 Debts (Sorted by Time):\n\n${lines.join('\n')}`);
+    }
+
+    const byPerson = {};
+    debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
+    const lines = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
+    return reply(`💰 Debts:\n\n${lines.join('\n')}`);
+  }
+
+  if (module === 'todo') {
+    let todos = await Todo.find({ userId, status: 'open' });
+    if (!todos.length) return reply('No open to-dos!');
+
+    if (sortBy === 'priority') {
+      const pOrder = { high: 1, medium: 2, low: 3 };
+      todos.sort((a, b) => pOrder[a.priority] - pOrder[b.priority]);
+    } else if (sortBy === 'time' || sortBy === 'date') {
+      todos.sort((a, b) => (a.dueDate ? new Date(a.dueDate) : Infinity) - (b.dueDate ? new Date(b.dueDate) : Infinity));
+    }
+
+    return reply(`📋 Open To-Dos:\n\n${todos.map(formatTodo).join('\n')}`);
+  }
+
+  if (module === 'deadline') {
+    let deadlines = await Deadline.find({ userId }).sort({ dueDate: 1 });
+    if (!deadlines.length) return reply('No deadlines!');
+    const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN')} [${d.category}]`);
+    return reply(`⏳ Deadlines:\n\n${lines.join('\n')}`);
+  }
+
+  if (module === 'date') {
+    let dates = await ImportantDate.find({ userId }).sort({ date: 1 });
+    if (!dates.length) return reply('No important dates!');
+    const lines = dates.map((d, i) => `${i + 1}. ${d.title} — ${d.date}${d.recurring !== 'none' ? ` (${d.recurring})` : ''}`);
+    return reply(`⭐ Important Dates:\n\n${lines.join('\n')}`);
+  }
+
+  if (module === 'watch') {
+    let items = await WatchlistItem.find({ userId }).sort({ status: 1 });
+    if (!items.length) return reply('Your watchlist is empty!');
+    const lines = items.map((it, i) => `${i + 1}. ${it.title} [${it.type}] — ${it.status}${it.rating ? ` ★${it.rating}` : ''}`);
+    return reply(`🎬 Watchlist:\n\n${lines.join('\n')}`);
+  }
+}
+
   // Non-command message (e.g. natural language sentence or forwarded text)
   if (!text.startsWith('>')) {
     const natural = parseNaturalLanguage(text);
 
     if (natural.confidence === 'high') {
+      if (natural.type === 'list') {
+        return handleListQuery(userId, natural, reply);
+      }
       if (natural.type === 'debt') {
         if (natural.action === 'settle') {
           const debts = await Debt.find({ userId, person: new RegExp(natural.person, 'i'), settled: false });
