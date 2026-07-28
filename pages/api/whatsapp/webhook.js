@@ -13,16 +13,9 @@ import ProcessedMessage from '@/models/ProcessedMessage';
 import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 
-const HELP_TEXT = `🤖 FIH Assistant Menu
+const HELP_TEXT = `*FIH Assistant Menu*
 
-Natural Messages (No > needed):
-• "ticket book tmr 4pm" → Sets Reminder
-• "Hanan +100" → Hanan owes you ₹100
-• "Amir -50 for coffee" → You owe Amir ₹50
-• "how much i owe Amir" → Balance check
-• "show my debts" / "show my reminders" / "show to-dos"
-
-Direct Commands:
+*Direct Commands:*
 >todo <text> [| due-date]
 >done <title>
 >debt owe <person> <amount> [note]
@@ -33,7 +26,7 @@ Direct Commands:
 >watch <title> [| type]
 >list <todo|debt|reminder|deadline|date|watch>
 
-Quick Controls:
+*Quick Controls:*
 undo — revert last item
 cancel — clear active question`;
 
