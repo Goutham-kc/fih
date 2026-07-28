@@ -438,19 +438,25 @@ function parseDebtInput(text, defaultData = {}) {
       }
     }
 
-    // Generic field answer
-    const newPartial = { ...pending.partialData, [pending.missingField]: text };
-    const syntheticCommand = buildSyntheticCommand(pending.module, newPartial);
-    const reParsed = parseCommand(syntheticCommand);
-    await clearPendingIntent(userId);
-
-    if (reParsed.type === 'missing') {
-      await createPendingIntent(userId, reParsed);
-      await reply(reParsed.question);
+    // Meta / internal intent modules (do not run synthetic command)
+    if (['classify_forward', 'undo_last', 'done_pick', 'watch_done_pick'].includes(pending.module)) {
+      await clearPendingIntent(userId);
+      // Fall through to main message processing
     } else {
-      await handleCommand(reParsed, userId, reply);
+      // Generic field answer for multi-step prompts (e.g. missing amount/person)
+      const newPartial = { ...pending.partialData, [pending.missingField]: text };
+      const syntheticCommand = buildSyntheticCommand(pending.module, newPartial);
+      const reParsed = parseCommand(syntheticCommand);
+      await clearPendingIntent(userId);
+
+      if (reParsed.type === 'missing') {
+        await createPendingIntent(userId, reParsed);
+        await reply(reParsed.question);
+      } else {
+        await handleCommand(reParsed, userId, reply);
+      }
+      return res.status(200).end();
     }
-    return res.status(200).end();
   }
 
 async function handleListQuery(userId, { module, sortBy = 'default', personFilter = null }, reply) {
