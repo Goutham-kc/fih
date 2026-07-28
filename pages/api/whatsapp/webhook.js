@@ -380,77 +380,84 @@ function parseDebtInput(text, defaultData = {}) {
         return res.status(200).end();
       }
 
-      if (choice === '2' || choice === 'debt') {
-        await clearPendingIntent(userId);
-        const parsedData = parseDebtInput(rawText);
-        if (parsedData.person && parsedData.amount && parsedData.action) {
-          const direction = parsedData.action === 'owe' ? 'i_owe' : 'owed_to_me';
-          const debt = await Debt.create({
-            userId, person: parsedData.person, amount: parsedData.amount,
-            direction, note: parsedData.note,
+        if (choice === '2' || choice === 'reminder' || choice.includes('remind')) {
+          await clearPendingIntent(userId);
+          const reminder = await Reminder.create({ userId, title: rawText, remindAt: new Date(Date.now() + 60 * 60 * 1000) });
+          await reply(`🔔 Reminder set: "${reminder.title}"`);
+          return res.status(200).end();
+        }
+
+        if (choice === '3' || choice === 'debt') {
+          await clearPendingIntent(userId);
+          const parsedData = parseDebtInput(rawText);
+          if (parsedData.person && parsedData.amount && parsedData.action) {
+            const direction = parsedData.action === 'owe' ? 'i_owe' : 'owed_to_me';
+            const debt = await Debt.create({
+              userId, person: parsedData.person, amount: parsedData.amount,
+              direction, note: parsedData.note,
+            });
+            const dir = direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
+            await reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
+            return res.status(200).end();
+          }
+
+          await createPendingIntent(userId, {
+            module: 'debt',
+            partialData: parsedData,
+            missingField: 'details',
+            question: !parsedData.person ? `Who is this debt with?` : `How much is the amount?`
           });
-          const dir = direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
-          await reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
+
+          const promptMsg = !parsedData.person && !parsedData.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
+            : !parsedData.person ? `Who is this debt of ₹${parsedData.amount} with?\n(Reply e.g.: Andrew owed OR Alex owe)`
+            : !parsedData.amount ? `How much is the debt with ${parsedData.person}?\n(Reply e.g.: 500)`
+            : `Did you owe ${parsedData.person} or do they owe you?\n(Reply owe OR owed)`;
+          await reply(promptMsg);
           return res.status(200).end();
         }
 
-        await createPendingIntent(userId, {
-          module: 'debt',
-          partialData: parsedData,
-          missingField: 'details',
-          question: !parsedData.person ? `Who is this debt with?` : `How much is the amount?`
-        });
-
-        const promptMsg = !parsedData.person && !parsedData.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
-          : !parsedData.person ? `Who is this debt of ₹${parsedData.amount} with?\n(Reply e.g.: Andrew owed OR Alex owe)`
-          : !parsedData.amount ? `How much is the debt with ${parsedData.person}?\n(Reply e.g.: 500)`
-          : `Did you owe ${parsedData.person} or do they owe you?\n(Reply owe OR owed)`;
-        await reply(promptMsg);
-        return res.status(200).end();
-      }
-
-      if (choice === '3' || choice === 'deadline') {
-        await clearPendingIntent(userId);
-        const parsedDl = parseCommand(`>deadline ${rawText}`);
-        if (parsedDl.type === 'deadline') {
-          await handleCommand(parsedDl, userId, reply);
+        if (choice === '4' || choice === 'deadline') {
+          await clearPendingIntent(userId);
+          const parsedDl = parseCommand(`>deadline ${rawText}`);
+          if (parsedDl.type === 'deadline') {
+            await handleCommand(parsedDl, userId, reply);
+            return res.status(200).end();
+          }
+          await createPendingIntent(userId, {
+            module: 'deadline',
+            partialData: { title: rawText },
+            missingField: 'dueDate',
+            question: `When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`
+          });
+          await reply(`When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`);
           return res.status(200).end();
         }
-        await createPendingIntent(userId, {
-          module: 'deadline',
-          partialData: { title: rawText },
-          missingField: 'dueDate',
-          question: `When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`
-        });
-        await reply(`When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`);
-        return res.status(200).end();
-      }
 
-      if (choice === '4' || choice === 'date') {
-        await clearPendingIntent(userId);
-        const parsedDate = parseCommand(`>date ${rawText}`);
-        if (parsedDate.type === 'date') {
-          await handleCommand(parsedDate, userId, reply);
+        if (choice === '5' || choice === 'date') {
+          await clearPendingIntent(userId);
+          const parsedDate = parseCommand(`>date ${rawText}`);
+          if (parsedDate.type === 'date') {
+            await handleCommand(parsedDate, userId, reply);
+            return res.status(200).end();
+          }
+          await createPendingIntent(userId, {
+            module: 'date',
+            partialData: { title: rawText },
+            missingField: 'date',
+            question: `What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`
+          });
+          await reply(`What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`);
           return res.status(200).end();
         }
-        await createPendingIntent(userId, {
-          module: 'date',
-          partialData: { title: rawText },
-          missingField: 'date',
-          question: `What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`
-        });
-        await reply(`What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`);
-        return res.status(200).end();
-      }
 
-      if (choice === '5' || choice === 'watch' || choice.includes('watchlist')) {
-        await clearPendingIntent(userId);
-        const item = await WatchlistItem.create({ userId, title: rawText, type: 'show' });
-        await reply(`✅ Added to watchlist: "${item.title}" [show]`);
-        return res.status(200).end();
-      }
+        if (choice === '6' || choice === 'watch' || choice.includes('watchlist')) {
+          await clearPendingIntent(userId);
+          const item = await WatchlistItem.create({ userId, title: rawText, type: 'show' });
+          await reply(`✅ Added to watchlist: "${item.title}" [show]`);
+          return res.status(200).end();
+        }
 
-        await reply(`Please reply with 1-5 or type cancel:\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist`);
+        await reply(`Please reply with 1-6 or type cancel:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`);
         return res.status(200).end();
       }
     }
