@@ -327,6 +327,24 @@ function parseDebtInput(text, defaultData = {}) {
       return res.status(200).end();
     }
 
+    // Handle undo_last failsafe intent
+    if (pending.module === 'undo_last') {
+      const lower = text.trim().toLowerCase();
+      if (['undo', 'cancel', 'wrong', 'revert', 'delete'].includes(lower)) {
+        const { targetModule, targetId, label } = pending.partialData;
+        await clearPendingIntent(userId);
+
+        if (targetModule === 'debt') await Debt.deleteOne({ _id: targetId, userId });
+        if (targetModule === 'todo') await Todo.deleteOne({ _id: targetId, userId });
+        if (targetModule === 'deadline') await Deadline.deleteOne({ _id: targetId, userId });
+        if (targetModule === 'date') await ImportantDate.deleteOne({ _id: targetId, userId });
+        if (targetModule === 'watch') await WatchlistItem.deleteOne({ _id: targetId, userId });
+
+        await reply(`🗑️ Undone! Removed "${label}".`);
+        return res.status(200).end();
+      }
+    }
+
     // Handle classify_forward pending intent for forwarded / plain text messages
     if (pending.module === 'classify_forward') {
       const choice = text.trim().toLowerCase();
@@ -445,7 +463,15 @@ function parseDebtInput(text, defaultData = {}) {
           direction: natural.direction, note: natural.note || '',
         });
         const dir = natural.direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
-        return reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
+        const label = `${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`;
+
+        await createPendingIntent(userId, {
+          module: 'undo_last',
+          partialData: { targetModule: 'debt', targetId: debt._id, label },
+          missingField: 'undo_action',
+          question: `Reply 'undo' to revert.`
+        });
+        return reply(`✅ Recorded: ${label}\n\n(Wrong? Reply 'undo' to revert)`);
       }
 
       if (natural.type === 'deadline') {
@@ -453,22 +479,54 @@ function parseDebtInput(text, defaultData = {}) {
           userId, title: natural.title, dueDate: natural.dueDate, category: natural.category || 'personal'
         });
         const dueStr = new Date(deadline.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-        return reply(`✅ Deadline set: "${deadline.title}" (due ${dueStr})`);
+        const label = `${deadline.title} (due ${dueStr})`;
+
+        await createPendingIntent(userId, {
+          module: 'undo_last',
+          partialData: { targetModule: 'deadline', targetId: deadline._id, label },
+          missingField: 'undo_action',
+          question: `Reply 'undo' to revert.`
+        });
+        return reply(`✅ Deadline set: "${deadline.title}" (due ${dueStr})\n\n(Wrong? Reply 'undo' to revert)`);
       }
 
       if (natural.type === 'todo') {
         const todo = await Todo.create({ userId, title: natural.title });
-        return reply(`✅ To-do added: "${todo.title}"`);
+        const label = todo.title;
+
+        await createPendingIntent(userId, {
+          module: 'undo_last',
+          partialData: { targetModule: 'todo', targetId: todo._id, label },
+          missingField: 'undo_action',
+          question: `Reply 'undo' to revert.`
+        });
+        return reply(`✅ To-do added: "${todo.title}"\n\n(Wrong? Reply 'undo' to revert)`);
       }
 
       if (natural.type === 'watch') {
         const item = await WatchlistItem.create({ userId, title: natural.title, type: natural.watchType || 'show' });
-        return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]`);
+        const label = item.title;
+
+        await createPendingIntent(userId, {
+          module: 'undo_last',
+          partialData: { targetModule: 'watch', targetId: item._id, label },
+          missingField: 'undo_action',
+          question: `Reply 'undo' to revert.`
+        });
+        return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]\n\n(Wrong? Reply 'undo' to revert)`);
       }
 
       if (natural.type === 'date') {
         const record = await ImportantDate.create({ userId, title: natural.title, date: natural.date, recurring: natural.recurring || 'yearly' });
-        return reply(`✅ Important date saved: "${record.title}" (${record.date})`);
+        const label = `${record.title} (${record.date})`;
+
+        await createPendingIntent(userId, {
+          module: 'undo_last',
+          partialData: { targetModule: 'date', targetId: record._id, label },
+          missingField: 'undo_action',
+          question: `Reply 'undo' to revert.`
+        });
+        return reply(`✅ Important date saved: "${record.title}" (${record.date})\n\n(Wrong? Reply 'undo' to revert)`);
       }
     }
 
