@@ -126,6 +126,9 @@ export default function TodoList() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700 }}>Open Tasks ({open.length})</h2>
+          <button className="btn btn-secondary" onClick={fetchTodos} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh tasks">
+            ↻ Refresh
+          </button>
           {filterPriority !== 'all' && (
             <button className="btn btn-ghost" onClick={() => setFilterPriority('all')} style={{ fontSize: 12, padding: '2px 8px' }}>
               Reset filter

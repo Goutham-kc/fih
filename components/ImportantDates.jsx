@@ -135,7 +135,12 @@ export default function ImportantDates() {
     <div className="animate-fade">
       {/* Create Form */}
       <div className="card" style={{ marginBottom: 24 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Track Important Date / Birthday</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700 }}>Track Important Date / Birthday</h3>
+          <button className="btn btn-secondary" onClick={fetchDates} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh dates">
+            ↻ Refresh
+          </button>
+        </div>
         <form onSubmit={addDate}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end' }}>
             <div>

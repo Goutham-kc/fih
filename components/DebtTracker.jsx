@@ -157,20 +157,26 @@ export default function DebtTracker() {
 
       {/* View Switcher: Active Balances vs Transaction Journal */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 8, background: 'rgba(255, 255, 255, 0.03)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-          <button
-            className={`btn ${activeTab === 'balances' ? 'btn-secondary' : 'btn-ghost'}`}
-            onClick={() => setActiveTab('balances')}
-            style={{ fontSize: 13, padding: '6px 16px' }}
-          >
-            Active Balances ({activeDebts.length})
-          </button>
-          <button
-            className={`btn ${activeTab === 'journal' ? 'btn-secondary' : 'btn-ghost'}`}
-            onClick={() => setActiveTab('journal')}
-            style={{ fontSize: 13, padding: '6px 16px' }}
-          >
-            Transaction Journal ({debts.length})
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, background: 'rgba(255, 255, 255, 0.03)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+            <button
+              className={`btn ${activeTab === 'balances' ? 'btn-secondary' : 'btn-ghost'}`}
+              onClick={() => setActiveTab('balances')}
+              style={{ fontSize: 13, padding: '6px 16px' }}
+            >
+              Active Balances ({activeDebts.length})
+            </button>
+            <button
+              className={`btn ${activeTab === 'journal' ? 'btn-secondary' : 'btn-ghost'}`}
+              onClick={() => setActiveTab('journal')}
+              style={{ fontSize: 13, padding: '6px 16px' }}
+            >
+              Transaction Journal ({debts.length})
+            </button>
+          </div>
+
+          <button className="btn btn-secondary" onClick={fetchDebts} style={{ fontSize: 12, padding: '6px 12px' }} title="Refresh ledger">
+            ↻ Refresh
           </button>
         </div>
 

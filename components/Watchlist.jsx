@@ -134,7 +134,12 @@ export default function Watchlist() {
     <div className="animate-fade">
       {/* Create Form */}
       <div className="card" style={{ marginBottom: 24 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Add to Watch / Read List</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700 }}>Add to Watch / Read List</h3>
+          <button className="btn btn-secondary" onClick={fetchItems} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh watchlist">
+            ↻ Refresh
+          </button>
+        </div>
         <form onSubmit={addItem}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, alignItems: 'end' }}>
             <div>

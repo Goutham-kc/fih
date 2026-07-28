@@ -93,7 +93,12 @@ export default function DeadlineBoard() {
 
       {/* Filter Tabs */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Upcoming Deadlines ({filtered.length})</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700 }}>Upcoming Deadlines ({filtered.length})</h2>
+          <button className="btn btn-secondary" onClick={fetchDeadlines} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh deadlines">
+            ↻ Refresh
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {['all', 'personal', 'academic', 'internship'].map(cat => (
             <button
