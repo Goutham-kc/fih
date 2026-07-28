@@ -3,16 +3,20 @@ import { useState } from 'react';
 export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) {
   const [wiping, setWiping] = useState(false);
   const [wipeMessage, setWipeMessage] = useState('');
+  const [confirmTarget, setConfirmTarget] = useState(null); // 'live' | 'development' | null
 
-  async function handleWipeLive() {
-    if (!confirm('Are you sure you want to wipe all Live data? This cannot be undone.')) return;
+  async function executeWipe(targetMode) {
     setWiping(true);
     setWipeMessage('');
     try {
-      const res = await fetch('/api/user/wipe-live', { method: 'POST' });
+      const res = await fetch('/api/user/wipe-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetMode }),
+      });
       const data = await res.json();
       if (res.ok) {
-        setWipeMessage('✅ Live database wiped clean successfully!');
+        setWipeMessage(`✅ ${targetMode === 'live' ? 'Live' : 'Development'} database wiped clean successfully!`);
       } else {
         setWipeMessage(`❌ Error: ${data.error || 'Failed to wipe'}`);
       }
@@ -20,6 +24,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
       setWipeMessage('❌ Network error when wiping database.');
     } finally {
       setWiping(false);
+      setConfirmTarget(null);
     }
   }
 
@@ -33,7 +38,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         </p>
       </div>
 
-      {/* Environment Mode Setting Card */}
+      {/* 1. Environment Mode Setting Card */}
       <div style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-subtle)',
@@ -45,7 +50,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
-              Active Environment Mode
+              1. Active Environment Mode
             </h3>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
               Select which database collection is active for your web dashboard and WhatsApp bot.
@@ -113,7 +118,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         </div>
       </div>
 
-      {/* Danger Zone: Wipe Live Database */}
+      {/* 2. Reset & Wipe Settings */}
       <div style={{
         background: 'var(--bg-surface)',
         border: '1px solid rgba(239, 68, 68, 0.3)',
@@ -122,31 +127,91 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         boxShadow: 'var(--shadow-card)',
       }}>
         <h3 style={{ fontSize: 16, fontWeight: 600, color: '#f87171', marginBottom: 4 }}>
-          Danger Zone
+          2. Database Reset & Wipe
         </h3>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
-          Permanently clear all items (todos, debts, deadlines, dates, watchlist, reminders) from your Live database.
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
+          Select an environment to permanently delete all stored items (todos, debts, deadlines, dates, watchlist, reminders).
         </p>
 
-        <button
-          onClick={handleWipeLive}
-          disabled={wiping}
-          className="btn"
-          style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            color: '#f87171',
-            border: '1px solid rgba(239, 68, 68, 0.4)',
-            padding: '8px 16px',
-            fontSize: 13,
-            fontWeight: 600,
-            borderRadius: 8,
-          }}
-        >
-          {wiping ? 'Wiping Live Database...' : 'Wipe Live Database'}
-        </button>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setConfirmTarget('live')}
+            disabled={wiping}
+            className="btn"
+            style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              color: '#f87171',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              padding: '10px 16px',
+              fontSize: 13,
+              fontWeight: 600,
+              borderRadius: 10,
+            }}
+          >
+            Wipe Live Database
+          </button>
+
+          <button
+            onClick={() => setConfirmTarget('development')}
+            disabled={wiping}
+            className="btn"
+            style={{
+              background: 'rgba(251, 146, 60, 0.15)',
+              color: '#fb923c',
+              border: '1px solid rgba(251, 146, 60, 0.4)',
+              padding: '10px 16px',
+              fontSize: 13,
+              fontWeight: 600,
+              borderRadius: 10,
+            }}
+          >
+            Wipe Development Database
+          </button>
+        </div>
+
+        {/* Confirmation Card */}
+        {confirmTarget && (
+          <div style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 12,
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+          }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#f87171', marginBottom: 12 }}>
+              ⚠️ Are you sure you want to permanently delete all items in the <u>{confirmTarget.toUpperCase()}</u> database? This cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => executeWipe(confirmTarget)}
+                disabled={wiping}
+                className="btn"
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '6px 14px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  borderRadius: 6,
+                }}
+              >
+                {wiping ? 'Wiping...' : `Yes, Wipe ${confirmTarget.toUpperCase()}`}
+              </button>
+              <button
+                onClick={() => setConfirmTarget(null)}
+                disabled={wiping}
+                className="btn btn-secondary"
+                style={{ fontSize: 12, padding: '6px 14px' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {wipeMessage && (
-          <div style={{ marginTop: 12, fontSize: 13, color: wipeMessage.includes('✅') ? '#4ade80' : '#f87171' }}>
+          <div style={{ marginTop: 16, fontSize: 13, fontWeight: 600, color: wipeMessage.includes('✅') ? '#4ade80' : '#f87171' }}>
             {wipeMessage}
           </div>
         )}
