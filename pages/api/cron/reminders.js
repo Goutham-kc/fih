@@ -26,10 +26,14 @@ export default async function handler(req, res) {
   for (const user of users) {
     const userId = user._id;
     const waNumber = user.whatsappNumber;
+    const mode = user.environmentMode || 'live';
+    const envQuery = mode === 'live'
+      ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
+      : { userId, environmentMode: 'development' };
 
     // --- Timed Reminders (Atomic claim lock prevents duplicates) ---
     const dueReminders = await Reminder.find({
-      userId,
+      ...envQuery,
       sent: false,
       remindAt: { $lte: new Date() },
     });
@@ -40,13 +44,13 @@ export default async function handler(req, res) {
         { new: true }
       );
       if (claimed) {
-        await sendWhatsAppMessage(waNumber, `🔔 Reminder: "${r.title}"`);
+        await sendWhatsAppMessage(waNumber, `🔔 Reminder [${mode.toUpperCase()}]: "${r.title}"`);
         sent++;
       }
     }
 
     // --- Deadlines ---
-    const deadlines = await Deadline.find({ userId });
+    const deadlines = await Deadline.find(envQuery);
     for (const dl of deadlines) {
       const minsLeft = minutesUntil(dl.dueDate);
       for (const offset of dl.reminderOffsets) {
@@ -57,7 +61,7 @@ export default async function handler(req, res) {
             : offset >= 60
             ? `${Math.round(offset / 60)} hour(s)`
             : `${offset} minute(s)`;
-          await sendWhatsAppMessage(waNumber, `⏰ Reminder: "${dl.title}" is due in ${humanTime}.`);
+          await sendWhatsAppMessage(waNumber, `⏰ Deadline Alert [${mode.toUpperCase()}]: "${dl.title}" is due in ${humanTime}!`);
           dl.remindersSent.push(offset);
           await dl.save();
           sent++;
@@ -67,7 +71,7 @@ export default async function handler(req, res) {
 
     // --- Todos with due date in next hour (Atomic claim lock) ---
     const soonTodos = await Todo.find({
-      userId,
+      ...envQuery,
       status: 'open',
       reminderSent: { $ne: true },
       dueDate: { $gt: new Date(), $lt: new Date(Date.now() + 65 * 60 * 1000) },
@@ -79,7 +83,7 @@ export default async function handler(req, res) {
         { new: true }
       );
       if (claimed) {
-        await sendWhatsAppMessage(waNumber, `⏰ Reminder: To-do "${todo.title}" is due soon.`);
+        await sendWhatsAppMessage(waNumber, `⏰ Reminder [${mode.toUpperCase()}]: To-do "${todo.title}" is due soon.`);
         sent++;
       }
     }
@@ -91,7 +95,7 @@ export default async function handler(req, res) {
     const today = `${now.getFullYear()}-${mm}-${dd}`;
     const mmdd = `${mm}-${dd}`;
 
-    const allDates = await ImportantDate.find({ userId });
+    const allDates = await ImportantDate.find(envQuery);
     for (const d of allDates) {
       const matches =
         (d.recurring === 'yearly' && d.date === mmdd) ||

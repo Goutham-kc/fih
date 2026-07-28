@@ -6,6 +6,7 @@ const PendingIntentSchema = new Schema({
   partialData: { type: Schema.Types.Mixed, default: {} },
   missingField: { type: String, required: true },
   question: { type: String, required: true },
+  environmentMode: { type: String, enum: ['live', 'development'], default: 'live', index: true },
   createdAt: { type: Date, default: Date.now },
   expiresAt: { type: Date, required: true, index: { expires: 0 } },
 });

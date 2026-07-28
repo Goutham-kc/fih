@@ -76,15 +76,42 @@ export default function Dashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('todos');
   const [authChecked, setAuthChecked] = useState(false);
+  const [envMode, setEnvMode] = useState('live');
+  const [updatingEnv, setUpdatingEnv] = useState(false);
 
   useEffect(() => {
     fetch('/api/todos')
       .then(res => {
         if (res.status === 401) router.push('/login');
-        else setAuthChecked(true);
+        else {
+          setAuthChecked(true);
+          fetch('/api/user/settings')
+            .then(r => r.json())
+            .then(data => { if (data.environmentMode) setEnvMode(data.environmentMode); });
+        }
       })
       .catch(() => router.push('/login'));
   }, []);
+
+  async function switchEnvMode(newMode) {
+    if (newMode === envMode || updatingEnv) return;
+    setUpdatingEnv(true);
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ environmentMode: newMode }),
+      });
+      const data = await res.json();
+      if (data.environmentMode) {
+        setEnvMode(data.environmentMode);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdatingEnv(false);
+    }
+  }
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -101,12 +128,12 @@ export default function Dashboard() {
 
   function renderTab() {
     switch (activeTab) {
-      case 'todos': return <TodoList key="todos" />;
-      case 'reminders': return <ReminderBoard key="reminders" />;
-      case 'debts': return <DebtTracker key="debts" />;
-      case 'deadlines': return <DeadlineBoard key="deadlines" />;
-      case 'dates': return <ImportantDates key="dates" />;
-      case 'watchlist': return <Watchlist key="watchlist" />;
+      case 'todos': return <TodoList key={`todos-${envMode}`} />;
+      case 'reminders': return <ReminderBoard key={`reminders-${envMode}`} />;
+      case 'debts': return <DebtTracker key={`debts-${envMode}`} />;
+      case 'deadlines': return <DeadlineBoard key={`deadlines-${envMode}`} />;
+      case 'dates': return <ImportantDates key={`dates-${envMode}`} />;
+      case 'watchlist': return <Watchlist key={`watchlist-${envMode}`} />;
       default: return null;
     }
   }
@@ -124,7 +151,7 @@ export default function Dashboard() {
 
       {/* Desktop Left Sidebar Navigation */}
       <nav className="sidebar">
-        <div style={{ marginBottom: 32, paddingLeft: 8 }}>
+        <div style={{ marginBottom: 32, paddingLeft: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>fih</h2>
         </div>
 
@@ -143,7 +170,62 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)' }}>
+        {/* Settings & Environment Switcher JUST ABOVE Sign Out */}
+        <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ padding: '0 8px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
+              Settings
+            </div>
+            <div style={{ background: 'rgba(255, 255, 255, 0.04)', borderRadius: 10, padding: 4, display: 'flex', gap: 4, border: '1px solid var(--border-subtle)' }}>
+              <button
+                onClick={() => switchEnvMode('live')}
+                disabled={updatingEnv}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  borderRadius: 7,
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'transparent',
+                  color: envMode === 'live' ? '#4ade80' : 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'live' ? '#4ade80' : 'var(--text-muted)' }} />
+                Live
+              </button>
+              <button
+                onClick={() => switchEnvMode('development')}
+                disabled={updatingEnv}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  borderRadius: 7,
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: envMode === 'development' ? 'rgba(251, 146, 60, 0.15)' : 'transparent',
+                  color: envMode === 'development' ? '#fb923c' : 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'development' ? '#fb923c' : 'var(--text-muted)' }} />
+                Dev
+              </button>
+            </div>
+          </div>
+
           <button className="nav-item" onClick={logout}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -168,12 +250,38 @@ export default function Dashboard() {
         gap: 14,
         padding: '16px 0 12px 0',
       }}>
-        {/* Brand Row */}
+        {/* Brand & Settings Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
-          <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 13, padding: '4px 10px', color: 'var(--text-secondary)' }}>
-            Sign Out
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
+            <span style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              padding: '2px 8px',
+              borderRadius: 12,
+              background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 146, 60, 0.15)',
+              color: envMode === 'live' ? '#4ade80' : '#fb923c',
+              border: `1px solid ${envMode === 'live' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
+            }}>
+              {envMode}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => switchEnvMode(envMode === 'live' ? 'development' : 'live')}
+              disabled={updatingEnv}
+              className="btn btn-secondary"
+              style={{ fontSize: 11, padding: '4px 10px' }}
+            >
+              Mode: {envMode === 'live' ? 'Live' : 'Dev'}
+            </button>
+            <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 13, padding: '4px 10px', color: 'var(--text-secondary)' }}>
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {/* Natural Scrollable Horizontal Pills */}
@@ -216,6 +324,26 @@ export default function Dashboard() {
           <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>
             {TABS.find(t => t.id === activeTab)?.label}
           </h1>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              padding: '4px 12px',
+              borderRadius: 16,
+              background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 146, 60, 0.15)',
+              color: envMode === 'live' ? '#4ade80' : '#fb923c',
+              border: `1px solid ${envMode === 'live' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'live' ? '#4ade80' : '#fb923c' }} />
+              {envMode === 'live' ? 'Live Environment' : 'Development Environment'}
+            </span>
+          </div>
         </header>
 
         {/* Tab Content Component */}

@@ -5,8 +5,9 @@ const DeadlineSchema = new Schema({
   title: { type: String, required: true, trim: true },
   dueDate: { type: Date, required: true },
   category: { type: String, enum: ['academic', 'personal'], default: 'personal' },
-  reminderOffsets: { type: [Number], default: [2880, 1440, 60] }, // 2880 mins (2 days), 1440 mins (1 day), 60 mins (1 hr)
+  reminderOffsets: { type: [Number], default: [2880, 1440, 60] },
   remindersSent: { type: [Number], default: [] },
+  environmentMode: { type: String, enum: ['live', 'development'], default: 'live', index: true },
   createdAt: { type: Date, default: Date.now },
 });
 

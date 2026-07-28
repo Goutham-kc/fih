@@ -7,6 +7,7 @@ const WatchlistItemSchema = new Schema({
   status: { type: String, enum: ['planned', 'in_progress', 'done'], default: 'planned' },
   rating: { type: Number, min: 1, max: 10, default: null },
   notes: { type: String, default: '' },
+  environmentMode: { type: String, enum: ['live', 'development'], default: 'live', index: true },
   createdAt: { type: Date, default: Date.now },
 });
 

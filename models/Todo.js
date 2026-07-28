@@ -8,6 +8,7 @@ const TodoSchema = new Schema({
   priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
   status: { type: String, enum: ['open', 'done'], default: 'open' },
   reminderSent: { type: Boolean, default: false },
+  environmentMode: { type: String, enum: ['live', 'development'], default: 'live', index: true },
   createdAt: { type: Date, default: Date.now },
   completedAt: { type: Date, default: null },
 });

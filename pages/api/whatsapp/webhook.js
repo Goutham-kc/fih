@@ -61,7 +61,11 @@ function formatDebt(person, debts) {
   return `${person}: ${label}`;
 }
 
-async function handleCommand(parsed, userId, reply) {
+async function handleCommand(parsed, userId, reply, envMode = 'live') {
+  const envQuery = envMode === 'live'
+    ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
+    : { userId, environmentMode: 'development' };
+
   switch (parsed.type) {
     case 'help':
       return reply(HELP_TEXT);
@@ -73,13 +77,13 @@ async function handleCommand(parsed, userId, reply) {
       return reply(parsed.message);
 
     case 'todo': {
-      const todo = await Todo.create({ userId, title: parsed.title, dueDate: parsed.dueDate });
+      const todo = await Todo.create({ userId, title: parsed.title, dueDate: parsed.dueDate, environmentMode: envMode });
       const due = todo.dueDate ? ` — due ${new Date(todo.dueDate).toLocaleDateString('en-IN')}` : '';
       return reply(`✅ To-do added: "${todo.title}"${due}`);
     }
 
     case 'done': {
-      const openTodos = await Todo.find({ userId, status: 'open' });
+      const openTodos = await Todo.find({ ...envQuery, status: 'open' });
       const { match, ambiguous, candidates } = fuzzyMatch(parsed.query, openTodos);
       if (!match && !ambiguous)
         return reply(`Couldn't find an open to-do matching that. Try \`>list todo\`.`);
@@ -90,6 +94,7 @@ async function handleCommand(parsed, userId, reply) {
           partialData: { candidates: candidates.slice(0, 5).map(c => c.item._id.toString()) },
           missingField: 'pick',
           question: `Which one?\n${list}`,
+          environmentMode: envMode,
         });
         return reply(`Which one?\n${list}`);
       }
@@ -101,7 +106,7 @@ async function handleCommand(parsed, userId, reply) {
 
     case 'debt': {
       if (parsed.action === 'history' || parsed.action === 'journal') {
-        const debts = await Debt.find({ userId }).sort({ createdAt: -1 }).limit(10);
+        const debts = await Debt.find(envQuery).sort({ createdAt: -1 }).limit(10);
         if (!debts.length) return reply('Your transaction journal is empty.');
         const lines = debts.map((d, i) => {
           const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
@@ -112,14 +117,14 @@ async function handleCommand(parsed, userId, reply) {
       }
 
       if (parsed.action === 'settle') {
-        const debts = await Debt.find({ userId, person: new RegExp(parsed.person, 'i'), settled: false });
+        const debts = await Debt.find({ ...envQuery, person: new RegExp(parsed.person, 'i'), settled: false });
         if (!debts.length) return reply(`No unsettled debts found for "${parsed.person}".`);
         await Debt.updateMany({ _id: { $in: debts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
         return reply(`✅ Settled all debts with ${debts[0].person}. Transaction saved to your Journal.`);
       }
       const debt = await Debt.create({
         userId, person: parsed.person, amount: parsed.amount,
-        direction: parsed.direction, note: parsed.note,
+        direction: parsed.direction, note: parsed.note, environmentMode: envMode,
       });
       const dir = parsed.direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
       return reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
@@ -127,25 +132,25 @@ async function handleCommand(parsed, userId, reply) {
 
     case 'deadline': {
       const dl = await Deadline.create({
-        userId, title: parsed.title, dueDate: parsed.dueDate, category: parsed.category,
+        userId, title: parsed.title, dueDate: parsed.dueDate, category: parsed.category, environmentMode: envMode,
       });
       return reply(`✅ Deadline added: "${dl.title}" — due ${new Date(dl.dueDate).toLocaleString('en-IN')} (${dl.category})`);
     }
 
     case 'date': {
       const d = await ImportantDate.create({
-        userId, title: parsed.title, date: parsed.date, recurring: parsed.recurring,
+        userId, title: parsed.title, date: parsed.date, recurring: parsed.recurring, environmentMode: envMode,
       });
       return reply(`✅ Date saved: "${d.title}" on ${d.date}${d.recurring !== 'none' ? ` (${d.recurring})` : ''}`);
     }
 
     case 'watch': {
       if (parsed.watchAction === 'add') {
-        const item = await WatchlistItem.create({ userId, title: parsed.title, type: parsed.watchType });
+        const item = await WatchlistItem.create({ userId, title: parsed.title, type: parsed.watchType, environmentMode: envMode });
         return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]`);
       }
       // done
-      const items = await WatchlistItem.find({ userId, status: { $ne: 'done' } });
+      const items = await WatchlistItem.find({ ...envQuery, status: { $ne: 'done' } });
       const { match, ambiguous, candidates } = fuzzyMatch(parsed.query, items);
       if (!match && !ambiguous) return reply(`Couldn't find "${parsed.query}" in your watchlist.`);
       if (ambiguous) {
@@ -155,6 +160,7 @@ async function handleCommand(parsed, userId, reply) {
           partialData: { candidates: candidates.slice(0, 5).map(c => c.item._id.toString()), rating: parsed.rating },
           missingField: 'pick',
           question: `Which one?\n${list}`,
+          environmentMode: envMode,
         });
         return reply(`Which one?\n${list}`);
       }
@@ -167,12 +173,12 @@ async function handleCommand(parsed, userId, reply) {
     case 'list': {
       const mod = parsed.module;
       if (mod === 'todo') {
-        const todos = await Todo.find({ userId, status: 'open' }).sort({ dueDate: 1 });
+        const todos = await Todo.find({ ...envQuery, status: 'open' }).sort({ dueDate: 1 });
         if (!todos.length) return reply('No open to-dos!');
         return reply(`Open to-dos:\n${todos.map(formatTodo).join('\n')}`);
       }
       if (mod === 'debt') {
-        const debts = await Debt.find({ userId, settled: false });
+        const debts = await Debt.find({ ...envQuery, settled: false });
         if (!debts.length) return reply('No unsettled debts!');
         const byPerson = {};
         debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
@@ -180,19 +186,19 @@ async function handleCommand(parsed, userId, reply) {
         return reply(`Debts:\n${lines.join('\n')}`);
       }
       if (mod === 'deadline') {
-        const deadlines = await Deadline.find({ userId }).sort({ dueDate: 1 });
+        const deadlines = await Deadline.find(envQuery).sort({ dueDate: 1 });
         if (!deadlines.length) return reply('No deadlines!');
         const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN')} [${d.category}]`);
         return reply(`Deadlines:\n${lines.join('\n')}`);
       }
       if (mod === 'date') {
-        const dates = await ImportantDate.find({ userId });
+        const dates = await ImportantDate.find(envQuery).sort({ date: 1 });
         if (!dates.length) return reply('No important dates!');
         const lines = dates.map((d, i) => `${i + 1}. ${d.title} — ${d.date}${d.recurring !== 'none' ? ` (${d.recurring})` : ''}`);
         return reply(`Important dates:\n${lines.join('\n')}`);
       }
       if (mod === 'watch') {
-        const items = await WatchlistItem.find({ userId }).sort({ status: 1 });
+        const items = await WatchlistItem.find(envQuery).sort({ status: 1 });
         if (!items.length) return reply('Your watchlist is empty!');
         const lines = items.map((it, i) => `${i + 1}. ${it.title} [${it.type}] — ${it.status}${it.rating ? ` ★${it.rating}` : ''}`);
         return reply(`Watchlist:\n${lines.join('\n')}`);
@@ -503,9 +509,16 @@ function parseDebtInput(text, defaultData = {}) {
     }
   }
 
-async function handleListQuery(userId, { module, sortBy = 'default', personFilter = null }, reply) {
+  return res.status(200).end();
+}
+
+async function handleListQuery(userId, { module, sortBy = 'default', personFilter = null }, reply, envMode = 'live') {
+  const envQuery = envMode === 'live'
+    ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
+    : { userId, environmentMode: 'development' };
+
   if (module === 'debt') {
-    let filter = { userId, settled: false };
+    let filter = { ...envQuery, settled: false };
     if (personFilter) {
       filter.person = new RegExp(personFilter, 'i');
     }
@@ -547,7 +560,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
   }
 
   if (module === 'todo') {
-    let todos = await Todo.find({ userId, status: 'open' });
+    let todos = await Todo.find({ ...envQuery, status: 'open' });
     if (!todos.length) return reply('No open to-dos!');
 
     if (sortBy === 'priority') {
@@ -561,256 +574,32 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
   }
 
   if (module === 'reminder') {
-    let reminders = await Reminder.find({ userId, sent: false }).sort({ remindAt: 1 });
+    let reminders = await Reminder.find({ ...envQuery, sent: false }).sort({ remindAt: 1 });
     if (!reminders.length) return reply('No upcoming reminders!');
     const lines = reminders.map((r, i) => `${i + 1}. ${r.title} — ${new Date(r.remindAt).toLocaleString('en-IN')}`);
     return reply(`🔔 Upcoming Reminders:\n\n${lines.join('\n')}`);
   }
 
   if (module === 'deadline') {
-    let deadlines = await Deadline.find({ userId }).sort({ dueDate: 1 });
+    let deadlines = await Deadline.find(envQuery).sort({ dueDate: 1 });
     if (!deadlines.length) return reply('No deadlines!');
     const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN')} [${d.category}]`);
     return reply(`⏳ Deadlines:\n\n${lines.join('\n')}`);
   }
 
   if (module === 'date') {
-    let dates = await ImportantDate.find({ userId }).sort({ date: 1 });
+    let dates = await ImportantDate.find(envQuery).sort({ date: 1 });
     if (!dates.length) return reply('No important dates!');
     const lines = dates.map((d, i) => `${i + 1}. ${d.title} — ${d.date}${d.recurring !== 'none' ? ` (${d.recurring})` : ''}`);
     return reply(`⭐ Important Dates:\n\n${lines.join('\n')}`);
   }
 
   if (module === 'watch') {
-    let items = await WatchlistItem.find({ userId }).sort({ status: 1 });
+    let items = await WatchlistItem.find(envQuery).sort({ status: 1 });
     if (!items.length) return reply('Your watchlist is empty!');
     const lines = items.map((it, i) => `${i + 1}. ${it.title} [${it.type}] — ${it.status}${it.rating ? ` ★${it.rating}` : ''}`);
     return reply(`🎬 Watchlist:\n\n${lines.join('\n')}`);
   }
-}
-
-  // Non-command message (e.g. natural language sentence or forwarded text)
-  if (!text.startsWith('>')) {
-    const natural = parseNaturalLanguage(text);
-
-    if (natural.confidence === 'high') {
-      if (natural.type === 'announcement') {
-        const summaryLines = [];
-        let firstCreated = null;
-
-        for (const item of natural.items) {
-          if (item.type === 'deadline') {
-            const dl = await Deadline.create({ userId, title: item.title, dueDate: item.dueDate, category: item.category || 'academic' });
-            const dueStr = new Date(dl.dueDate).toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
-            summaryLines.push(`⏳ Deadline: "${dl.title}" (due ${dueStr})`);
-            if (!firstCreated) firstCreated = { module: 'deadline', id: dl._id, label: dl.title };
-          }
-          if (item.type === 'todo') {
-            const td = await Todo.create({ userId, title: item.title });
-            summaryLines.push(`📋 To-do: "${td.title}"`);
-            if (!firstCreated) firstCreated = { module: 'todo', id: td._id, label: td.title };
-          }
-        }
-
-        if (firstCreated) {
-          await createPendingIntent(userId, {
-            module: 'undo_last',
-            partialData: { targetModule: firstCreated.module, targetId: firstCreated.id, label: firstCreated.label },
-            missingField: 'undo_action',
-            question: `Reply 'undo' to revert.`
-          });
-        }
-
-        return reply(`📌 Extracted from announcement:\n\n${summaryLines.join('\n')}`);
-      }
-
-      if (natural.type === 'help') {
-        return reply(HELP_TEXT);
-      }
-
-      if (natural.type === 'list') {
-        return handleListQuery(userId, natural, reply);
-      }
-      if (natural.type === 'balance_query') {
-        const { person } = natural;
-        if (person) {
-          const debts = await Debt.find({ userId, person: new RegExp(`^${person}$`, 'i'), settled: false });
-          if (!debts.length) {
-            return reply(`💰 Balance with ${person}: No active debts! (₹0 balance)`);
-          }
-          let iOwe = 0, owedToMe = 0;
-          debts.forEach(d => {
-            if (d.direction === 'i_owe') iOwe += d.amount;
-            else owedToMe += d.amount;
-          });
-          const net = owedToMe - iOwe;
-          let summaryStr = `💰 Balance with ${person}:\n`;
-          if (iOwe > 0) summaryStr += `• You owe ${person}: ₹${iOwe}\n`;
-          if (owedToMe > 0) summaryStr += `• ${person} owes you: ₹${owedToMe}\n`;
-          if (net > 0) summaryStr += `\n👉 Net Position: ${person} owes you ₹${net}`;
-          else if (net < 0) summaryStr += `\n👉 Net Position: You owe ${person} ₹${Math.abs(net)}`;
-          else summaryStr += `\n👉 Net Position: Even / Settled (₹0 balance)`;
-
-          return reply(summaryStr);
-        } else {
-          const debts = await Debt.find({ userId, settled: false });
-          let iOwe = 0, owedToMe = 0;
-          debts.forEach(d => {
-            if (d.direction === 'i_owe') iOwe += d.amount;
-            else owedToMe += d.amount;
-          });
-          const net = owedToMe - iOwe;
-          let summaryStr = `💰 Total Debt Summary:\n`;
-          summaryStr += `• Total You Owe: ₹${iOwe}\n`;
-          summaryStr += `• Total Owed To You: ₹${owedToMe}\n`;
-          if (net >= 0) summaryStr += `\n👉 Net Position: +₹${net}`;
-          else summaryStr += `\n👉 Net Position: -₹${Math.abs(net)}`;
-
-          return reply(summaryStr);
-        }
-      }
-      if (natural.type === 'multi_reminder') {
-        const summaryLines = [];
-        let firstCreated = null;
-
-        for (const item of natural.items) {
-          const rem = await Reminder.create({ userId, title: item.title, remindAt: item.remindAt });
-          const timeStr = new Date(rem.remindAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-          summaryLines.push(`🔔 Reminder: "${rem.title}" (${timeStr})`);
-          if (!firstCreated) firstCreated = { module: 'reminder', id: rem._id, label: rem.title };
-        }
-
-        if (firstCreated) {
-          await createPendingIntent(userId, {
-            module: 'undo_last',
-            partialData: { targetModule: firstCreated.module, targetId: firstCreated.id, label: firstCreated.label },
-            missingField: 'undo_action',
-            question: `Reply 'undo' to revert.`
-          });
-        }
-
-        return reply(`📌 Scheduled Reminders:\n\n${summaryLines.join('\n')}`);
-      }
-
-      if (natural.type === 'reminder') {
-        const reminder = await Reminder.create({ userId, title: natural.title, remindAt: natural.remindAt });
-        const timeStr = new Date(reminder.remindAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-        const label = `${reminder.title} at ${timeStr}`;
-
-        await createPendingIntent(userId, {
-          module: 'undo_last',
-          partialData: { targetModule: 'reminder', targetId: reminder._id, label },
-          missingField: 'undo_action',
-          question: `Reply 'undo' to revert.`
-        });
-        return reply(`🔔 Reminder set: "${reminder.title}" (for ${timeStr})`);
-      }
-
-      if (natural.type === 'debt') {
-        if (natural.action === 'settle') {
-          const debts = await Debt.find({ userId, person: new RegExp(natural.person, 'i'), settled: false });
-          if (!debts.length) return reply(`No unsettled debts found for "${natural.person}".`);
-          await Debt.updateMany({ _id: { $in: debts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
-          return reply(`✅ Settled all debts with ${debts[0].person}. Transaction saved to your Journal.`);
-        }
-        const debt = await Debt.create({
-          userId, person: natural.person, amount: natural.amount,
-          direction: natural.direction, note: natural.note || '',
-        });
-        const dir = natural.direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
-        const label = `${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`;
-
-        await createPendingIntent(userId, {
-          module: 'undo_last',
-          partialData: { targetModule: 'debt', targetId: debt._id, label },
-          missingField: 'undo_action',
-          question: `Reply 'undo' to revert.`
-        });
-        return reply(`✅ Recorded: ${label}`);
-      }
-
-      if (natural.type === 'deadline') {
-        const deadline = await Deadline.create({
-          userId, title: natural.title, dueDate: natural.dueDate, category: natural.category || 'personal'
-        });
-        const dueStr = new Date(deadline.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-        const label = `${deadline.title} (due ${dueStr})`;
-
-        await createPendingIntent(userId, {
-          module: 'undo_last',
-          partialData: { targetModule: 'deadline', targetId: deadline._id, label },
-          missingField: 'undo_action',
-          question: `Reply 'undo' to revert.`
-        });
-        return reply(`✅ Deadline set: "${deadline.title}" (due ${dueStr})`);
-      }
-
-      if (natural.type === 'todo') {
-        const todo = await Todo.create({ userId, title: natural.title });
-        const label = todo.title;
-
-        await createPendingIntent(userId, {
-          module: 'undo_last',
-          partialData: { targetModule: 'todo', targetId: todo._id, label },
-          missingField: 'undo_action',
-          question: `Reply 'undo' to revert.`
-        });
-        return reply(`✅ To-do added: "${todo.title}"`);
-      }
-
-      if (natural.type === 'watch') {
-        const item = await WatchlistItem.create({ userId, title: natural.title, type: natural.watchType || 'show' });
-        const label = item.title;
-
-        await createPendingIntent(userId, {
-          module: 'undo_last',
-          partialData: { targetModule: 'watch', targetId: item._id, label },
-          missingField: 'undo_action',
-          question: `Reply 'undo' to revert.`
-        });
-        return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]`);
-      }
-
-      if (natural.type === 'date') {
-        const record = await ImportantDate.create({ userId, title: natural.title, date: natural.date, recurring: natural.recurring || 'yearly' });
-        const label = `${record.title} (${record.date})`;
-
-        await createPendingIntent(userId, {
-          module: 'undo_last',
-          partialData: { targetModule: 'date', targetId: record._id, label },
-          missingField: 'undo_action',
-          question: `Reply 'undo' to revert.`
-        });
-        return reply(`✅ Important date saved: "${record.title}" (${record.date})`);
-      }
-    }
-
-    // High-confidence intent match was not found — prompt with interactive choice
-    await createPendingIntent(userId, {
-      module: 'classify_forward',
-      partialData: { rawText: text },
-      missingField: 'choice',
-      question: `What should I save this as?\n\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist\n\nReply 1-5 or type cancel.`
-    });
-    await reply(`What should I save this as?\n\n1. To-do\n2. Debt\n3. Deadline\n4. Important Date\n5. Watchlist\n\nReply 1-5 or type cancel.`);
-    return res.status(200).end();
-  }
-
-  // Fresh command starting with >
-  const parsed = parseCommand(text);
-  if (parsed.type === 'missing') {
-    await createPendingIntent(userId, {
-      module: parsed.module,
-      partialData: parsed.partialData,
-      missingField: parsed.missingField,
-      question: parsed.question,
-    });
-    await reply(parsed.question);
-    return res.status(200).end();
-  }
-
-  await handleCommand(parsed, userId, reply);
-  return res.status(200).end();
 }
 
 // Rebuild a synthetic command string from partial data + new answer

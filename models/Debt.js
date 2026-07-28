@@ -9,6 +9,7 @@ const DebtSchema = new Schema({
   note: { type: String, default: '' },
   settled: { type: Boolean, default: false },
   settledDate: { type: Date, default: null },
+  environmentMode: { type: String, enum: ['live', 'development'], default: 'live', index: true },
   createdAt: { type: Date, default: Date.now },
 });
 
