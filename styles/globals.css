@@ -355,6 +355,14 @@ select.input option {
   color: #121319;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ── Responsive Mobile Overrides ───────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
@@ -363,15 +371,11 @@ select.input option {
 
   .main-content {
     margin-left: 0 !important;
-    padding: 16px 16px 88px 16px !important;
+    padding: 20px 16px !important;
     width: 100% !important;
   }
 
-  .mobile-topbar {
-    display: flex !important;
-  }
-
-  .mobile-bottom-nav {
+  .mobile-header {
     display: flex !important;
   }
 
@@ -393,10 +397,7 @@ select.input option {
 }
 
 @media (min-width: 769px) {
-  .mobile-topbar {
-    display: none !important;
-  }
-  .mobile-bottom-nav {
+  .mobile-header {
     display: none !important;
   }
 }
