@@ -607,6 +607,10 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
         return reply(`📌 Extracted from announcement:\n\n${summaryLines.join('\n')}`);
       }
 
+      if (natural.type === 'help') {
+        return reply(HELP_TEXT);
+      }
+
       if (natural.type === 'list') {
         return handleListQuery(userId, natural, reply);
       }
