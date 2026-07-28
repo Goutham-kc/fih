@@ -24,6 +24,7 @@ const HELP_TEXT = `Commands:
 >watch <title> [| type]
 >watch <title> done [rating]
 >list <todo|debt|deadline|date|watch>
+undo — revert the last created item
 cancel — cancel a pending question`;
 
 function formatTodo(t, i) {
@@ -603,7 +604,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           });
         }
 
-        return reply(`📌 Extracted from announcement:\n\n${summaryLines.join('\n')}\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`📌 Extracted from announcement:\n\n${summaryLines.join('\n')}`);
       }
 
       if (natural.type === 'list') {
@@ -667,7 +668,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           });
         }
 
-        return reply(`📌 Scheduled Reminders:\n\n${summaryLines.join('\n')}\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`📌 Scheduled Reminders:\n\n${summaryLines.join('\n')}`);
       }
 
       if (natural.type === 'reminder') {
@@ -681,7 +682,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           missingField: 'undo_action',
           question: `Reply 'undo' to revert.`
         });
-        return reply(`🔔 Reminder set: "${reminder.title}" (for ${timeStr})\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`🔔 Reminder set: "${reminder.title}" (for ${timeStr})`);
       }
 
       if (natural.type === 'debt') {
@@ -704,7 +705,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           missingField: 'undo_action',
           question: `Reply 'undo' to revert.`
         });
-        return reply(`✅ Recorded: ${label}\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`✅ Recorded: ${label}`);
       }
 
       if (natural.type === 'deadline') {
@@ -720,7 +721,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           missingField: 'undo_action',
           question: `Reply 'undo' to revert.`
         });
-        return reply(`✅ Deadline set: "${deadline.title}" (due ${dueStr})\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`✅ Deadline set: "${deadline.title}" (due ${dueStr})`);
       }
 
       if (natural.type === 'todo') {
@@ -733,7 +734,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           missingField: 'undo_action',
           question: `Reply 'undo' to revert.`
         });
-        return reply(`✅ To-do added: "${todo.title}"\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`✅ To-do added: "${todo.title}"`);
       }
 
       if (natural.type === 'watch') {
@@ -746,7 +747,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           missingField: 'undo_action',
           question: `Reply 'undo' to revert.`
         });
-        return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`✅ Added to watchlist: "${item.title}" [${item.type}]`);
       }
 
       if (natural.type === 'date') {
@@ -759,7 +760,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
           missingField: 'undo_action',
           question: `Reply 'undo' to revert.`
         });
-        return reply(`✅ Important date saved: "${record.title}" (${record.date})\n\n(Wrong? Reply 'undo' to revert)`);
+        return reply(`✅ Important date saved: "${record.title}" (${record.date})`);
       }
     }
 
