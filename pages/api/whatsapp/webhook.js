@@ -307,8 +307,9 @@ function parseDebtInput(text, defaultData = {}) {
         question: !merged.person ? `Who is this debt with?` : !merged.amount ? `How much is the amount?` : `Do you owe ${merged.person} or do they owe you?`
       });
 
-      const promptMsg = !merged.person ? `Who is this debt with?\n(Reply e.g.: Andrew owed OR Alex owe)`
-        : !merged.amount ? `How much is the amount for ${merged.person}?\n(Reply e.g.: 500)`
+      const promptMsg = !merged.person && !merged.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
+        : !merged.person ? `Who is this debt of ₹${merged.amount} with?\n(Reply e.g.: Andrew owed OR Alex owe)`
+        : !merged.amount ? `How much is the debt with ${merged.person}?\n(Reply e.g.: 500)`
         : `Did you owe ${merged.person} or do they owe you?\n(Reply owe OR owed)`;
       await reply(promptMsg);
       return res.status(200).end();
@@ -348,8 +349,8 @@ function parseDebtInput(text, defaultData = {}) {
         });
 
         const promptMsg = !parsedData.person && !parsedData.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
-          : !parsedData.person ? `Who is this debt with?\n(Reply e.g.: Andrew owed OR Alex owe)`
-          : !parsedData.amount ? `How much is the amount for ${parsedData.person}?\n(Reply e.g.: 500)`
+          : !parsedData.person ? `Who is this debt of ₹${parsedData.amount} with?\n(Reply e.g.: Andrew owed OR Alex owe)`
+          : !parsedData.amount ? `How much is the debt with ${parsedData.person}?\n(Reply e.g.: 500)`
           : `Did you owe ${parsedData.person} or do they owe you?\n(Reply owe OR owed)`;
         await reply(promptMsg);
         return res.status(200).end();
