@@ -13,19 +13,29 @@ import ProcessedMessage from '@/models/ProcessedMessage';
 import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 
-const HELP_TEXT = `Commands:
+const HELP_TEXT = `🤖 FIH Assistant Menu
+
+Natural Messages (No > needed):
+• "ticket book tmr 4pm" → Sets Reminder
+• "Hanan +100" → Hanan owes you ₹100
+• "Amir -50 for coffee" → You owe Amir ₹50
+• "how much i owe Amir" → Balance check
+• "show my debts" / "show my reminders" / "show to-dos"
+
+Direct Commands:
 >todo <text> [| due-date]
->done <fuzzy-title>
+>done <title>
 >debt owe <person> <amount> [note]
 >debt owed <person> <amount> [note]
 >debt settle <person>
->deadline <title> | <date> [time] [| category]
->date <title> | <MM-DD or YYYY-MM-DD> [| yearly|monthly]
+>deadline <title> | <date> [time]
+>date <title> | <MM-DD or YYYY-MM-DD>
 >watch <title> [| type]
->watch <title> done [rating]
->list <todo|debt|deadline|date|watch>
-undo — revert the last created item
-cancel — cancel a pending question`;
+>list <todo|debt|reminder|deadline|date|watch>
+
+Quick Controls:
+undo — revert last item
+cancel — clear active question`;
 
 function formatTodo(t, i) {
   const due = t.dueDate ? ` (due ${new Date(t.dueDate).toLocaleDateString('en-IN')})` : '';
