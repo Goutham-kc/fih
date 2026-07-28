@@ -9,6 +9,7 @@ import Debt from '@/models/Debt';
 import Deadline from '@/models/Deadline';
 import ImportantDate from '@/models/ImportantDate';
 import WatchlistItem from '@/models/WatchlistItem';
+import ProcessedMessage from '@/models/ProcessedMessage';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 
 const HELP_TEXT = `Commands:
@@ -210,11 +211,25 @@ export default async function handler(req, res) {
   const messageObj = change?.value?.messages?.[0];
   if (!messageObj) return res.status(200).end(); // ACK non-message events
 
+  const messageId = messageObj.id;
   const from = messageObj.from; // E.164 without '+'
   const text = messageObj.text?.body?.trim();
-  if (!text) return res.status(200).end();
+  if (!text || !messageId) return res.status(200).end();
 
   await connectDB();
+
+  // Deduplicate message processing via ProcessedMessage TTL collection
+  try {
+    const existing = await ProcessedMessage.findOne({ messageId });
+    if (existing) {
+      return res.status(200).end();
+    }
+    await ProcessedMessage.create({ messageId });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(200).end();
+    }
+  }
 
   // Find user by WhatsApp number (flexible with or without '+' prefix)
   const waNumberWithPlus = from.startsWith('+') ? from : `+${from}`;
