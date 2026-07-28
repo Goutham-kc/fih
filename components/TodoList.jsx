@@ -123,8 +123,8 @@ export default function TodoList() {
       </div>
 
       {/* Header & Filter Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700 }}>Open Tasks ({open.length})</h2>
           <button className="btn btn-secondary" onClick={fetchTodos} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh tasks">
             ↻ Refresh
@@ -136,7 +136,7 @@ export default function TodoList() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {['all', 'high', 'medium', 'low'].map(p => (
             <button
               key={p}

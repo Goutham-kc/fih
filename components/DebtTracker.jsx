@@ -52,7 +52,6 @@ export default function DebtTracker() {
   }
 
   const activeDebts = debts.filter(d => !d.settled);
-  const settledDebts = debts.filter(d => d.settled);
 
   // Group active debts by person
   const byPerson = {};
@@ -155,21 +154,21 @@ export default function DebtTracker() {
         </form>
       </div>
 
-      {/* View Switcher: Active Balances vs Transaction Journal */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 8, background: 'rgba(255, 255, 255, 0.03)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+      {/* View Switcher Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(255, 255, 255, 0.03)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
             <button
               className={`btn ${activeTab === 'balances' ? 'btn-secondary' : 'btn-ghost'}`}
               onClick={() => setActiveTab('balances')}
-              style={{ fontSize: 13, padding: '6px 16px' }}
+              style={{ fontSize: 12, padding: '6px 12px' }}
             >
               Active Balances ({activeDebts.length})
             </button>
             <button
               className={`btn ${activeTab === 'journal' ? 'btn-secondary' : 'btn-ghost'}`}
               onClick={() => setActiveTab('journal')}
-              style={{ fontSize: 13, padding: '6px 16px' }}
+              style={{ fontSize: 12, padding: '6px 12px' }}
             >
               Transaction Journal ({debts.length})
             </button>
@@ -201,7 +200,7 @@ export default function DebtTracker() {
         Object.keys(byPerson).length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No active debts</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>All balances are settled! Check the Transaction Journal below for past history.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>All balances are settled! Check the Transaction Journal for past history.</p>
           </div>
         ) : (
           Object.entries(byPerson).map(([name, ds]) => {
@@ -209,7 +208,7 @@ export default function DebtTracker() {
 
             return (
               <div key={name} className="card" style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
                       width: 40,
@@ -244,7 +243,7 @@ export default function DebtTracker() {
                 </div>
 
                 {/* Debt Entries */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
                   {ds.map(d => (
                     <div key={d._id} style={{
                       fontSize: 13,
@@ -252,10 +251,12 @@ export default function DebtTracker() {
                       borderRadius: 10,
                       padding: '10px 14px',
                       display: 'flex',
-                      justify: 'space-between',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 8,
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', flex: 1, minWidth: 160 }}>
                         <span style={{
                           color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
                           fontWeight: 700,
@@ -264,10 +265,14 @@ export default function DebtTracker() {
                           {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
                         </span>
                         <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{d.amount}</span>
-                        {d.note && <span style={{ color: 'var(--text-muted)' }}>· {d.note}</span>}
+                        {d.note && (
+                          <span style={{ color: 'var(--text-secondary)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>
+                            · {d.note}
+                          </span>
+                        )}
                       </div>
 
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
                         {formatDate(d.createdAt)}
                       </span>
                     </div>

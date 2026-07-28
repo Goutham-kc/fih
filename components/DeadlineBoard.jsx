@@ -92,20 +92,20 @@ export default function DeadlineBoard() {
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700 }}>Upcoming Deadlines ({filtered.length})</h2>
           <button className="btn btn-secondary" onClick={fetchDeadlines} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh deadlines">
             ↻ Refresh
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {['all', 'personal', 'academic', 'internship'].map(cat => (
             <button
               key={cat}
               className={`btn ${filterCategory === cat ? 'btn-secondary' : 'btn-ghost'}`}
               onClick={() => setFilterCategory(cat)}
-              style={{ fontSize: 12, padding: '4px 12px', textTransform: 'capitalize' }}
+              style={{ fontSize: 12, padding: '4px 10px', textTransform: 'capitalize' }}
             >
               {cat}
             </button>
