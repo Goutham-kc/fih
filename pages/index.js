@@ -8,11 +8,57 @@ import ImportantDates from '@/components/ImportantDates';
 import Watchlist from '@/components/Watchlist';
 
 const TABS = [
-  { id: 'todos', label: 'Todos', icon: 'checklist' },
-  { id: 'debts', label: 'Debts', icon: 'account_balance_wallet' },
-  { id: 'deadlines', label: 'Deadlines', icon: 'event_busy' },
-  { id: 'dates', label: 'Important Dates', icon: 'cake' },
-  { id: 'watchlist', label: 'Watchlist', icon: 'menu_book' },
+  {
+    id: 'todos',
+    label: 'Todos',
+    svg: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 11l3 3L22 4" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      </svg>
+    ),
+  },
+  {
+    id: 'debts',
+    label: 'Debts',
+    svg: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+      </svg>
+    ),
+  },
+  {
+    id: 'deadlines',
+    label: 'Deadlines',
+    svg: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    ),
+  },
+  {
+    id: 'dates',
+    label: 'Important Dates',
+    svg: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'watchlist',
+    label: 'Watchlist',
+    svg: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      </svg>
+    ),
+  },
 ];
 
 const COMMAND_LIST = [
@@ -99,7 +145,9 @@ export default function Dashboard() {
               className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <span className="material-symbols-outlined">{tab.icon}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', opacity: activeTab === tab.id ? 1 : 0.7 }}>
+                {tab.svg}
+              </span>
               <span className="nav-text">{tab.label}</span>
             </button>
           ))}
@@ -107,7 +155,11 @@ export default function Dashboard() {
 
         <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)' }}>
           <button className="nav-item" onClick={logout}>
-            <span className="material-symbols-outlined">logout</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
             <span className="nav-text">Sign Out</span>
           </button>
         </div>
@@ -122,7 +174,9 @@ export default function Dashboard() {
           </h1>
 
           <button className="btn btn-secondary" onClick={() => setWaOpen(true)}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chat</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             WhatsApp Commands
           </button>
         </header>
@@ -173,7 +227,9 @@ export default function Dashboard() {
 
       {/* Floating Action Toggle */}
       <button className="wa-toggle" onClick={() => setWaOpen(!waOpen)}>
-        <span className="material-symbols-outlined">chat</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
         <span>Bot Commands</span>
       </button>
     </>
