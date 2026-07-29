@@ -289,22 +289,9 @@ export default async function handler(req, res) {
   const messageId = messageObj.id;
   const from = messageObj.from; // E.164 without '+'
   const text = messageObj.text?.body?.trim();
-  if (!text || !messageId) return res.status(200).end();
+  if (!messageId || !from) return res.status(200).end();
 
   await connectDB();
-
-  // Deduplicate message processing via ProcessedMessage TTL collection
-  try {
-    const existing = await ProcessedMessage.findOne({ messageId });
-    if (existing) {
-      return res.status(200).end();
-    }
-    await ProcessedMessage.create({ messageId });
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(200).end();
-    }
-  }
 
   // Find user by WhatsApp number (flexible digit matching & single-user fallback)
   const cleanFrom = from.replace(/\D/g, '');
@@ -325,6 +312,20 @@ export default async function handler(req, res) {
 
   const userId = user._id;
   const reply = (msg) => sendWhatsAppMessage(from, msg);
+
+  if (!text) {
+    await reply("💬 Send your note, command, or deadline as a text message.");
+    return res.status(200).end();
+  }
+
+  // Deduplicate message processing via ProcessedMessage TTL collection
+  try {
+    const existing = await ProcessedMessage.findOne({ messageId });
+    if (existing) {
+      return res.status(200).end();
+    }
+    await ProcessedMessage.create({ messageId });
+  } catch (err) {}
 
   // Check for pending intent
   const pending = await getPendingIntent(userId);
