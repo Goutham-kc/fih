@@ -237,6 +237,25 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       return reply(`Unknown module. Try >list todo|debt|deadline|date|watch`);
     }
 
+    case 'announcement': {
+      const createdLines = [];
+      for (const item of parsed.items) {
+        if (item.type === 'deadline') {
+          const dl = await Deadline.create({
+            userId, title: item.title, dueDate: item.dueDate, category: item.category || 'academic', environmentMode: envMode,
+          });
+          createdLines.push(`⏳ Deadline added: "${dl.title}" — due ${new Date(dl.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
+        } else if (item.type === 'todo') {
+          const t = await Todo.create({ userId, title: item.title, environmentMode: envMode });
+          createdLines.push(`📋 To-do added: "${t.title}"`);
+        } else if (item.type === 'reminder') {
+          const r = await Reminder.create({ userId, title: item.title, remindAt: item.remindAt, environmentMode: envMode });
+          createdLines.push(`⏰ Reminder set: "${r.title}" — ${new Date(r.remindAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
+        }
+      }
+      return reply(`📢 Announcement Processed!\n\n${createdLines.join('\n')}`);
+    }
+
     default:
       return reply(`Sorry, I couldn't process that command. Try \`>help\`.`);
   }
