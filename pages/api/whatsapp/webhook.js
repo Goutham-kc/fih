@@ -165,7 +165,7 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       const dl = await Deadline.create({
         userId, title: parsed.title, dueDate: parsed.dueDate, category: parsed.category, environmentMode: envMode,
       });
-      return reply(`✅ Deadline added: "${dl.title}" — due ${new Date(dl.dueDate).toLocaleString('en-IN')} (${dl.category})`);
+      return reply(`✅ Deadline added: "${dl.title}" — due ${new Date(dl.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })} (${dl.category})`);
     }
 
     case 'date': {
