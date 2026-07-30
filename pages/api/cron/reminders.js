@@ -6,7 +6,7 @@ import ImportantDate from '@/models/ImportantDate';
 import Reminder from '@/models/Reminder';
 import User from '@/models/User';
 
-const TOLERANCE_MINUTES = 10;
+const TOLERANCE_MINUTES = 15;
 
 function minutesUntil(date) {
   return (new Date(date) - Date.now()) / 60000;
@@ -14,7 +14,8 @@ function minutesUntil(date) {
 
 export default async function handler(req, res) {
   const secret = req.headers['x-cron-secret'] || req.query.secret;
-  if (secret !== process.env.CRON_SECRET) {
+  const isVercelCron = req.headers['x-vercel-cron'] === '1' || req.headers['user-agent']?.includes('vercel-cron');
+  if (!isVercelCron && secret !== process.env.CRON_SECRET && process.env.NODE_ENV === 'production') {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
