@@ -209,12 +209,16 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
         return reply(`Open to-dos:\n${todos.map(formatTodo).join('\n')}`);
       }
       if (mod === 'debt') {
-        const debts = await Debt.find({ ...envQuery, settled: false });
-        if (!debts.length) return reply('No unsettled debts!');
+        let debts = await Debt.find({ ...envQuery, settled: false });
+        if (parsed.personFilter) {
+          const filter = parsed.personFilter.toLowerCase();
+          debts = debts.filter(d => d.person.toLowerCase().includes(filter));
+        }
+        if (!debts.length) return reply(parsed.personFilter ? `No unsettled debts with ${parsed.personFilter}!` : 'No unsettled debts!');
         const byPerson = {};
         debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
         const lines = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
-        return reply(`Debts:\n${lines.join('\n')}`);
+        return reply(`Debts${parsed.personFilter ? ` (${parsed.personFilter})` : ''}:\n${lines.join('\n')}`);
       }
       if (mod === 'deadline') {
         const deadlines = await Deadline.find(envQuery).sort({ dueDate: 1 });
