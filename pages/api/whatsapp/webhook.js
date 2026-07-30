@@ -43,12 +43,32 @@ const HELP_TEXT = `fih 🥀
 ───────────────
 *NATURAL LANGUAGE* (No prefix needed!)
 
-Just type naturally:
-• _"Amir owes me 500 for lunch"_ → Debt
-• _"Submit report before Friday"_ → Deadline
-• _"Spiderman on Aug 1"_ → Important Date
-• _"Harikesh +100"_ → Debt shorthand
-• Paste a syllabus with deadlines → Bulk add
+• *Debts:*
+_"Amir owes me 500 for lunch"_
+_"Harikesh +100"_ or _"Ravi -50"_
+
+• *Deadlines:*
+_"Submit report before Friday"_
+_"Iv 5000 before August 5"_
+
+• *Important Dates:*
+_"Spiderman Brand New Day on Aug 1"_
+_"Mom birthday on Dec 25"_
+
+• *Reminders:*
+_"Class at 3pm tomorrow"_
+_"Meeting at 10am"_
+
+• *To-dos:*
+_"Buy groceries"_
+_"Call the librarian"_
+
+• *Watchlist:*
+_"Watch Interstellar"_
+_"Read Atomic Habits"_
+
+• *Bulk:*
+Paste a syllabus with WEEK/Deadline headers → auto-creates all
 
 ───────────────
 *CONTROLS*
