@@ -35,8 +35,20 @@ const HELP_TEXT = `fih 🥀
 \`>date <title> | <MM-DD or YYYY-MM-DD>\`
 \`>watch <title> | <movie|show|book>\`
 
-• *List Items:*
-\`>list <todo|debt|reminder|deadline|date|watch>\`
+• *List & Filter:*
+\`>list <todo|debt|deadline|date|watch>\`
+\`sort debts by <person>\`
+\`show debts for <person>\`
+
+───────────────
+*NATURAL LANGUAGE* (No prefix needed!)
+
+Just type naturally:
+• _"Amir owes me 500 for lunch"_ → Debt
+• _"Submit report before Friday"_ → Deadline
+• _"Spiderman on Aug 1"_ → Important Date
+• _"Harikesh +100"_ → Debt shorthand
+• Paste a syllabus with deadlines → Bulk add
 
 ───────────────
 *CONTROLS*
