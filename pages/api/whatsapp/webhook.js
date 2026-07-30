@@ -36,9 +36,11 @@ const HELP_TEXT = `fih 🥀
 \`>watch <title> | <movie|show|book>\`
 
 • *List & Filter:*
-\`>list <todo|debt|deadline|date|watch>\`
-\`sort debts by <person>\`
-\`show debts for <person>\`
+\`>list <todo|debt|reminder|deadline|date|watch>\`
+\`show <module> by <person/keyword>\`
+\`sort todos by priority\`
+\`sort debts by amount\`
+\`show deadlines for academic\`
 
 ───────────────
 *NATURAL LANGUAGE* (No prefix needed!)
@@ -235,42 +237,91 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
 
     case 'list': {
       const mod = parsed.module;
+      const sort = parsed.sortBy || 'default';
+      const pf = parsed.personFilter;
+
       if (mod === 'todo') {
-        const todos = await Todo.find({ ...envQuery, status: 'open' }).sort({ dueDate: 1 });
+        let todos = await Todo.find({ ...envQuery, status: 'open' });
+        if (sort === 'priority') {
+          const pOrder = { high: 0, medium: 1, low: 2 };
+          todos.sort((a, b) => (pOrder[a.priority] || 1) - (pOrder[b.priority] || 1));
+        } else if (sort === 'time') {
+          todos.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        } else {
+          todos.sort((a, b) => (a.dueDate || Infinity) - (b.dueDate || Infinity));
+        }
         if (!todos.length) return reply('No open to-dos!');
-        return reply(`Open to-dos:\n${todos.map(formatTodo).join('\n')}`);
+        return reply(`📋 Open to-dos${sort !== 'default' ? ` (sorted by ${sort})` : ''}:\n${todos.map(formatTodo).join('\n')}`);
       }
+
       if (mod === 'debt') {
         let debts = await Debt.find({ ...envQuery, settled: false });
-        if (parsed.personFilter) {
-          const filter = parsed.personFilter.toLowerCase();
+        if (pf) {
+          const filter = pf.toLowerCase();
           debts = debts.filter(d => d.person.toLowerCase().includes(filter));
         }
-        if (!debts.length) return reply(parsed.personFilter ? `No unsettled debts with ${parsed.personFilter}!` : 'No unsettled debts!');
+        if (sort === 'amount') {
+          debts.sort((a, b) => b.amount - a.amount);
+        } else if (sort === 'time') {
+          debts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+        if (!debts.length) return reply(pf ? `No unsettled debts with ${pf}!` : 'No unsettled debts!');
         const byPerson = {};
         debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
         const lines = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
-        return reply(`Debts${parsed.personFilter ? ` (${parsed.personFilter})` : ''}:\n${lines.join('\n')}`);
+        return reply(`💰 Debts${pf ? ` (${pf})` : ''}${sort !== 'default' ? ` (sorted by ${sort})` : ''}:\n${lines.join('\n')}`);
       }
+
       if (mod === 'deadline') {
-        const deadlines = await Deadline.find(envQuery).sort({ dueDate: 1 });
-        if (!deadlines.length) return reply('No deadlines!');
-        const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN')} [${d.category}]`);
-        return reply(`Deadlines:\n${lines.join('\n')}`);
+        let deadlines = await Deadline.find(envQuery);
+        if (pf) {
+          const filter = pf.toLowerCase();
+          deadlines = deadlines.filter(d => d.category.toLowerCase().includes(filter) || d.title.toLowerCase().includes(filter));
+        }
+        if (sort === 'time' || sort === 'default') {
+          deadlines.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        }
+        if (!deadlines.length) return reply(pf ? `No deadlines matching "${pf}"!` : 'No deadlines!');
+        const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })} [${d.category}]`);
+        return reply(`⏳ Deadlines${pf ? ` (${pf})` : ''}:\n${lines.join('\n')}`);
       }
+
+      if (mod === 'reminder') {
+        let reminders = await Reminder.find({ ...envQuery, sent: false });
+        if (sort === 'time' || sort === 'default') {
+          reminders.sort((a, b) => new Date(a.remindAt) - new Date(b.remindAt));
+        }
+        if (!reminders.length) return reply('No pending reminders!');
+        const lines = reminders.map((r, i) => `${i + 1}. ${r.title} — ${new Date(r.remindAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
+        return reply(`⏰ Reminders:\n${lines.join('\n')}`);
+      }
+
       if (mod === 'date') {
-        const dates = await ImportantDate.find(envQuery).sort({ date: 1 });
-        if (!dates.length) return reply('No important dates!');
+        let dates = await ImportantDate.find(envQuery).sort({ date: 1 });
+        if (pf) {
+          const filter = pf.toLowerCase();
+          dates = dates.filter(d => d.title.toLowerCase().includes(filter));
+        }
+        if (!dates.length) return reply(pf ? `No dates matching "${pf}"!` : 'No important dates!');
         const lines = dates.map((d, i) => `${i + 1}. ${d.title} — ${d.date}${d.recurring !== 'none' ? ` (${d.recurring})` : ''}`);
-        return reply(`Important dates:\n${lines.join('\n')}`);
+        return reply(`📅 Important dates${pf ? ` (${pf})` : ''}:\n${lines.join('\n')}`);
       }
+
       if (mod === 'watch') {
-        const items = await WatchlistItem.find(envQuery).sort({ status: 1 });
-        if (!items.length) return reply('Your watchlist is empty!');
+        let items = await WatchlistItem.find(envQuery);
+        if (pf) {
+          const filter = pf.toLowerCase();
+          items = items.filter(it => it.type.toLowerCase().includes(filter) || it.title.toLowerCase().includes(filter));
+        }
+        if (sort === 'default') {
+          items.sort((a, b) => (a.status === 'done' ? 1 : 0) - (b.status === 'done' ? 1 : 0));
+        }
+        if (!items.length) return reply(pf ? `No watchlist items matching "${pf}"!` : 'Your watchlist is empty!');
         const lines = items.map((it, i) => `${i + 1}. ${it.title} [${it.type}] — ${it.status}${it.rating ? ` ★${it.rating}` : ''}`);
-        return reply(`Watchlist:\n${lines.join('\n')}`);
+        return reply(`🎬 Watchlist${pf ? ` (${pf})` : ''}:\n${lines.join('\n')}`);
       }
-      return reply(`Unknown module. Try >list todo|debt|deadline|date|watch`);
+
+      return reply(`Unknown module. Try >list todo|debt|reminder|deadline|date|watch`);
     }
 
     case 'announcement': {
