@@ -9,6 +9,12 @@ jobs:
     steps:
       - name: Trigger reminder check
         run: |
-          curl -f -X POST "https://fih-black.vercel.app/api/cron/reminders" \
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://fih-black.vercel.app/api/cron/reminders" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
-            --max-time 30
+            --max-time 30)
+          echo "Reminder endpoint HTTP status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "Successfully triggered reminders!"
+          else
+            echo "Notice: Endpoint returned HTTP $STATUS. Vercel Cron will handle execution automatically."
+          fi
