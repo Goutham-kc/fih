@@ -15,7 +15,9 @@ function minutesUntil(date) {
 export default async function handler(req, res) {
   const secret = req.headers['x-cron-secret'] || req.query.secret;
   const isVercelCron = req.headers['x-vercel-cron'] === '1' || req.headers['user-agent']?.includes('vercel-cron');
-  if (!isVercelCron && secret !== process.env.CRON_SECRET && process.env.NODE_ENV === 'production') {
+
+  // If CRON_SECRET is defined in env, enforce it unless triggered by Vercel Cron
+  if (process.env.CRON_SECRET && !isVercelCron && secret !== process.env.CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
