@@ -36,10 +36,11 @@ export default function ReminderBoard() {
     setSubmitting(true);
 
     try {
+      const isoRemindAt = new Date(remindAt).toISOString();
       const res = await fetch('/api/reminders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), remindAt }),
+        body: JSON.stringify({ title: title.trim(), remindAt: isoRemindAt }),
       });
 
       if (res.ok) {

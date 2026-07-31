@@ -25,10 +25,11 @@ export default function TodoList() {
     e.preventDefault();
     if (!title.trim()) return;
     setAdding(true);
+    const isoDueDate = dueDate ? new Date(dueDate).toISOString() : null;
     await fetch('/api/todos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, dueDate: dueDate || null, priority }),
+      body: JSON.stringify({ title, dueDate: isoDueDate, priority }),
     });
     setTitle('');
     setDueDate('');

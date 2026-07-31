@@ -21,10 +21,11 @@ export default function DeadlineBoard() {
     e.preventDefault();
     if (!title || !dueDate) return;
     setAdding(true);
+    const isoDueDate = new Date(dueDate).toISOString();
     await fetch('/api/deadlines', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, dueDate, category }),
+      body: JSON.stringify({ title, dueDate: isoDueDate, category }),
     });
     setTitle(''); setDueDate(''); setCategory('personal');
     await fetchDeadlines();
