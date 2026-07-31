@@ -14,10 +14,14 @@ function minutesUntil(date) {
 
 export default async function handler(req, res) {
   const secret = req.headers['x-cron-secret'] || req.query.secret;
-  const isVercelCron = req.headers['x-vercel-cron'] === '1' || req.headers['user-agent']?.includes('vercel-cron');
+  const isExternalCron =
+    req.headers['x-vercel-cron'] === '1' ||
+    req.headers['user-agent']?.includes('vercel-cron') ||
+    req.headers['user-agent']?.includes('cron-job') ||
+    req.headers['user-agent']?.includes('Cron-Job');
 
-  // If CRON_SECRET is defined in env, enforce it unless triggered by Vercel Cron
-  if (process.env.CRON_SECRET && !isVercelCron && secret !== process.env.CRON_SECRET) {
+  // If CRON_SECRET is defined in env, enforce it unless triggered by recognized cron provider
+  if (process.env.CRON_SECRET && !isExternalCron && secret !== process.env.CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
