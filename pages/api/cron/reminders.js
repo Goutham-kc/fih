@@ -56,18 +56,42 @@ export default async function handler(req, res) {
     const deadlines = await Deadline.find(envQuery);
     for (const dl of deadlines) {
       const minsLeft = minutesUntil(dl.dueDate);
-      for (const offset of dl.reminderOffsets) {
+
+      // Overdue alert (if not completed and not yet notified as overdue)
+      if (minsLeft < 0) {
+        if (!dl.remindersSent.includes(-1)) {
+          const dueTimeStr = new Date(dl.dueDate).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+          await sendWhatsAppMessage(waNumber, `⚠️ Overdue Deadline [${mode.toUpperCase()}]: "${dl.title}" was due at ${dueTimeStr}!`);
+          dl.remindersSent.push(-1);
+          await dl.save();
+          sent++;
+        }
+        continue;
+      }
+
+      // Check offsets in descending order (largest time remaining to smallest)
+      const offsets = [...(dl.reminderOffsets || [2880, 1440, 60])].sort((a, b) => b - a);
+
+      for (let i = 0; i < offsets.length; i++) {
+        const offset = offsets[i];
         if (dl.remindersSent.includes(offset)) continue;
-        if (Math.abs(minsLeft - offset) <= TOLERANCE_MINUTES) {
+
+        // Next smaller offset boundary (or 0 if smallest offset)
+        const nextOffset = offsets[i + 1] || 0;
+
+        // If time remaining has crossed this offset threshold
+        if (minsLeft <= offset && minsLeft > nextOffset) {
           const humanTime = offset >= 1440
             ? `${Math.round(offset / 1440)} day(s)`
             : offset >= 60
             ? `${Math.round(offset / 60)} hour(s)`
             : `${offset} minute(s)`;
+
           await sendWhatsAppMessage(waNumber, `⏰ Deadline Alert [${mode.toUpperCase()}]: "${dl.title}" is due in ${humanTime}!`);
           dl.remindersSent.push(offset);
           await dl.save();
           sent++;
+          break; // Fire one offset notification per execution
         }
       }
     }
