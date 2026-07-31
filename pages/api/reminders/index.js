@@ -2,6 +2,34 @@ import { connectDB } from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import Reminder from '@/models/Reminder';
 import User from '@/models/User';
+import { sendWhatsAppMessage } from '@/lib/whatsapp';
+
+async function checkAndSendDueReminders(user) {
+  if (!user || !user.whatsappNumber) return;
+  const userId = user._id;
+  const waNumber = user.whatsappNumber;
+  const mode = user.environmentMode || 'live';
+  const queryFilter = mode === 'live'
+    ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
+    : { userId, environmentMode: 'development' };
+
+  const dueReminders = await Reminder.find({
+    ...queryFilter,
+    sent: false,
+    remindAt: { $lte: new Date() },
+  });
+
+  for (const r of dueReminders) {
+    const claimed = await Reminder.findOneAndUpdate(
+      { _id: r._id, sent: false },
+      { sent: true, sentAt: new Date() },
+      { new: true }
+    );
+    if (claimed) {
+      await sendWhatsAppMessage(waNumber, `🔔 Reminder [${mode.toUpperCase()}]: "${r.title}"`);
+    }
+  }
+}
 
 async function handler(req, res) {
   await connectDB();
@@ -11,6 +39,9 @@ async function handler(req, res) {
   const queryFilter = mode === 'live'
     ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
     : { userId, environmentMode: 'development' };
+
+  // Instantly process any due reminders when fetching/saving reminders
+  await checkAndSendDueReminders(user);
 
   if (req.method === 'GET') {
     const reminders = await Reminder.find(queryFilter).sort({ remindAt: 1 });
@@ -28,6 +59,7 @@ async function handler(req, res) {
       remindAt,
       environmentMode: mode,
     });
+    await checkAndSendDueReminders(user);
     return res.status(201).json({ reminder });
   }
 
