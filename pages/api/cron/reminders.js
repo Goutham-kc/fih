@@ -119,22 +119,32 @@ export default async function handler(req, res) {
       }
     }
 
-    // --- Important dates today ---
+    // --- Important dates today (IST) ---
     const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const today = `${now.getFullYear()}-${mm}-${dd}`;
+    const istOffsetMs = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffsetMs);
+    const mm = String(istNow.getMonth() + 1).padStart(2, '0');
+    const dd = String(istNow.getDate()).padStart(2, '0');
+    const todayStr = `${istNow.getFullYear()}-${mm}-${dd}`;
     const mmdd = `${mm}-${dd}`;
 
     const allDates = await ImportantDate.find(envQuery);
     for (const d of allDates) {
       const matches =
-        (d.recurring === 'yearly' && d.date === mmdd) ||
+        (d.recurring === 'yearly' && d.date.endsWith(`-${mmdd}`)) ||
         (d.recurring === 'monthly' && d.date.endsWith(`-${dd}`)) ||
-        (d.recurring === 'none' && d.date === today);
-      if (matches) {
-        await sendWhatsAppMessage(waNumber, `📅 Today is: ${d.title}!`);
-        sent++;
+        (d.recurring === 'none' && d.date === todayStr);
+      
+      if (matches && d.lastNotifiedDate !== todayStr) {
+        const claimedDate = await ImportantDate.findOneAndUpdate(
+          { _id: d._id, lastNotifiedDate: { $ne: todayStr } },
+          { lastNotifiedDate: todayStr },
+          { new: true }
+        );
+        if (claimedDate) {
+          await sendWhatsAppMessage(waNumber, `📅 Today is: ${d.title}!`);
+          sent++;
+        }
       }
     }
   }

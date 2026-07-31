@@ -6,6 +6,7 @@ const ImportantDateSchema = new Schema({
   date: { type: String, required: true },
   recurring: { type: String, enum: ['yearly', 'monthly', 'none'], default: 'none' },
   notes: { type: String, default: '' },
+  lastNotifiedDate: { type: String, default: null },
   environmentMode: { type: String, enum: ['live', 'development'], default: 'live', index: true },
   createdAt: { type: Date, default: Date.now },
 });

@@ -382,9 +382,12 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
     await ProcessedMessage.create({ messageId });
-  } catch (err) {}
+  } catch (err) {
+    if (err.code === 11000) return res.status(200).end();
+  }
 
-  // Check for pending intent
+  try {
+    // Check for pending intent
   const pending = await getPendingIntent(userId);
 
   // Handle 'cancel'
@@ -624,6 +627,12 @@ export default async function handler(req, res) {
   });
   await reply(`I wasn't sure how to save "${text}". Reply with 1-6:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`);
   return res.status(200).end();
+
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+    await ProcessedMessage.deleteOne({ messageId });
+    return res.status(500).end();
+  }
 }
 
 async function handleListQuery(userId, { module, sortBy = 'default', personFilter = null }, reply, envMode = 'live') {
