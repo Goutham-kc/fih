@@ -112,21 +112,19 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       return reply(parsed.message);
 
     case 'mode': {
-      const crypto = require('crypto');
-      const token = crypto.randomBytes(32).toString('hex');
-      const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
       const userDoc = await User.findById(userId);
       if (!userDoc) return reply('User not found.');
       
-      userDoc.modeSwitchToken = token;
-      userDoc.modeSwitchExpires = expires;
+      const bcrypt = require('bcryptjs');
+      const isValid = await bcrypt.compare(parsed.password, userDoc.passwordHash);
+      if (!isValid) {
+        return reply('❌ Incorrect password. Mode switch failed.');
+      }
+
+      userDoc.environmentMode = parsed.targetMode;
       await userDoc.save();
 
-      // Assuming NEXT_PUBLIC_BASE_URL is set or we construct it.
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://fih-app.com';
-      const switchUrl = `${baseUrl}/switch-mode?token=${token}&mode=${parsed.targetMode}`;
-      
-      return reply(`To switch to ${parsed.targetMode.toUpperCase()} mode, please enter your password securely here (link expires in 10 minutes):\n${switchUrl}`);
+      return reply(`✅ Switched to ${parsed.targetMode.toUpperCase()} mode.\n\n(⚠️ *Please 'Delete for Everyone' your previous message to keep your password safe!*)`);
     }
 
     case 'todo': {
