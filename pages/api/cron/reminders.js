@@ -80,6 +80,11 @@ export default async function handler(req, res) {
         const offset = offsets[i];
         if (dl.remindersSent.includes(offset)) continue;
 
+        // Skip offsets that had already passed by the time this deadline was created.
+        // (e.g. don't send a 48h warning for a deadline created 26h away)
+        const createdMinsBeforeDue = (new Date(dl.dueDate) - new Date(dl.createdAt)) / 60000;
+        if (createdMinsBeforeDue < offset) continue;
+
         // Next smaller offset boundary (or 0 if smallest offset)
         const nextOffset = offsets[i + 1] || 0;
 
