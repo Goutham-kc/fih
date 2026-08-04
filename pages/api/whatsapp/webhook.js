@@ -1,5 +1,5 @@
 import { connectDB } from '@/lib/db';
-import { sendWhatsAppMessage } from '@/lib/whatsapp';
+import { sendWhatsAppMessage, sendWhatsAppInteractiveList } from '@/lib/whatsapp';
 import { parseCommand } from '@/lib/commandParser';
 import { getPendingIntent, createPendingIntent, clearPendingIntent } from '@/lib/pendingIntent';
 import { fuzzyMatch } from '@/lib/fuzzyMatch';
@@ -345,7 +345,14 @@ export default async function handler(req, res) {
 
   const messageId = messageObj.id;
   const from = messageObj.from; // E.164 without '+'
-  const text = messageObj.text?.body?.trim();
+  
+  let text = messageObj.text?.body?.trim();
+  if (messageObj.type === 'interactive' && messageObj.interactive?.type === 'list_reply') {
+    text = messageObj.interactive.list_reply.id;
+  } else if (messageObj.type === 'interactive' && messageObj.interactive?.type === 'button_reply') {
+    text = messageObj.interactive.button_reply.id;
+  }
+  
   if (!messageId || !from) return res.status(200).end();
 
   await connectDB();
@@ -623,9 +630,29 @@ export default async function handler(req, res) {
     module: 'classify_forward',
     partialData: { rawText: text },
     missingField: 'module',
-    question: `I wasn't sure how to save that. Reply with 1-6:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`,
+    question: `I wasn't sure how to save that. Select a category:`,
   });
-  await reply(`I wasn't sure how to save "${text}". Reply with 1-6:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`);
+  
+  const sections = [
+    {
+      title: 'Categories',
+      rows: [
+        { id: '1', title: 'To-do', description: 'Tasks and action items' },
+        { id: '2', title: 'Reminder', description: 'Time-specific alerts' },
+        { id: '3', title: 'Debt', description: 'Money owed/borrowed' },
+        { id: '4', title: 'Deadline', description: 'Due dates' },
+        { id: '5', title: 'Important Date', description: 'Birthdays & Anniversaries' },
+        { id: '6', title: 'Watchlist', description: 'Movies, shows, books' }
+      ]
+    }
+  ];
+
+  await sendWhatsAppInteractiveList(
+    from, 
+    `I wasn't sure how to save "${text}".\nPlease select a category:`, 
+    'Select Category', 
+    sections
+  );
   return res.status(200).end();
 
   } catch (error) {
