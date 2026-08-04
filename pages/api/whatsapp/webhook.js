@@ -111,6 +111,24 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
     case 'error':
       return reply(parsed.message);
 
+    case 'mode': {
+      const crypto = require('crypto');
+      const token = crypto.randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const userDoc = await User.findById(userId);
+      if (!userDoc) return reply('User not found.');
+      
+      userDoc.modeSwitchToken = token;
+      userDoc.modeSwitchExpires = expires;
+      await userDoc.save();
+
+      // Assuming NEXT_PUBLIC_BASE_URL is set or we construct it.
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://fih-app.com';
+      const switchUrl = `${baseUrl}/switch-mode?token=${token}&mode=${parsed.targetMode}`;
+      
+      return reply(`To switch to ${parsed.targetMode.toUpperCase()} mode, please enter your password securely here (link expires in 10 minutes):\n${switchUrl}`);
+    }
+
     case 'todo': {
       const todo = await Todo.create({ userId, title: parsed.title, dueDate: parsed.dueDate, environmentMode: envMode });
       const due = todo.dueDate ? ` — due ${new Date(todo.dueDate).toLocaleDateString('en-IN')}` : '';
