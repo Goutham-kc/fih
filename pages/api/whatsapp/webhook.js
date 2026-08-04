@@ -182,8 +182,7 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
     case 'watch': {
       if (parsed.watchAction === 'add') {
         const item = await WatchlistItem.create({ userId, title: parsed.title, type: parsed.watchType, environmentMode: envMode });
-        const typeEmoji = { movie: '🎬', show: '📺', anime: '🎌', book: '📖', paper: '📄' };
-        return reply(`✅ Added to watchlist: "${item.title}" ${typeEmoji[item.type] || '📺'}`);
+        return reply(`✅ Added to watchlist: "${item.title}"`);
       }
       // done
       const items = await WatchlistItem.find({ ...envQuery, status: { $ne: 'done' } });
