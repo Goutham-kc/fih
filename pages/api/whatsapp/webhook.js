@@ -190,6 +190,13 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       return reply(`✅ Deadline added: "${dl.title}" — due ${new Date(dl.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })} (${dl.category})`);
     }
 
+    case 'reminder': {
+      const r = await Reminder.create({
+        userId, title: parsed.title, remindAt: parsed.remindAt, environmentMode: envMode,
+      });
+      return reply(`⏰ Reminder set: "${r.title}" — ${new Date(r.remindAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
+    }
+
     case 'date': {
       const d = await ImportantDate.create({
         userId, title: parsed.title, date: parsed.date, recurring: parsed.recurring, environmentMode: envMode,
