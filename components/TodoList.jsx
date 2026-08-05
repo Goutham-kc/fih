@@ -59,7 +59,7 @@ export default function TodoList() {
 
   function formatDate(d) {
     if (!d) return null;
-    return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(d).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
   const open = todos.filter(t => t.status === 'open' && (filterPriority === 'all' || t.priority === filterPriority));

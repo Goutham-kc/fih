@@ -83,6 +83,7 @@ export default function DebtTracker() {
   function formatDate(dateStr) {
     if (!dateStr) return '';
     return new Date(dateStr).toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   }
@@ -243,7 +244,7 @@ export default function DebtTracker() {
                         color: net > 0 ? 'var(--accent-emerald)' : net < 0 ? 'var(--accent-rose)' : 'var(--text-muted)',
                         marginTop: 2
                       }}>
-                        {net > 0 ? `owes you ₹${net.toLocaleString('en-IN')}` : net < 0 ? `you owe ₹${Math.abs(net).toLocaleString('en-IN')}` : 'All settled'}
+                        {net > 0 ? `owes you ₹${net.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}` : net < 0 ? `you owe ₹${Math.abs(net).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}` : 'All settled'}
                       </div>
                     </div>
                   </div>
@@ -330,7 +331,7 @@ export default function DebtTracker() {
                         </span>
                       </td>
                       <td style={{ padding: '14px 20px', fontWeight: 700, color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)' }}>
-                        ₹{d.amount.toLocaleString('en-IN')}
+                        ₹{d.amount.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}
                       </td>
                       <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>
                         {d.note || '—'}
@@ -338,7 +339,7 @@ export default function DebtTracker() {
                       <td style={{ padding: '14px 20px' }}>
                         {d.settled ? (
                           <span className="badge badge-done" style={{ fontSize: 11 }}>
-                            Settled {d.settledDate ? `(${new Date(d.settledDate).toLocaleDateString('en-IN')})` : ''}
+                            Settled {d.settledDate ? `(${new Date(d.settledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })})` : ''}
                           </span>
                         ) : (
                           <span className="badge badge-medium" style={{ fontSize: 11 }}>

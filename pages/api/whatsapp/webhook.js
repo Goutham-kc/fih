@@ -49,7 +49,7 @@ const HELP_TEXT = `fih 🥀
 • \`cancel\` — Clear active prompt`;
 
 function formatTodo(t, i) {
-  const due = t.dueDate ? ` (due ${new Date(t.dueDate).toLocaleDateString('en-IN')})` : '';
+  const due = t.dueDate ? ` (due ${new Date(t.dueDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })})` : '';
   const priority = t.priority !== 'medium' ? ` [${t.priority}]` : '';
   return `${i + 1}. ${t.title}${due}${priority}`;
 }
@@ -131,7 +131,7 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
 
     case 'todo': {
       const todo = await Todo.create({ userId, title: parsed.title, dueDate: parsed.dueDate, environmentMode: envMode });
-      const due = todo.dueDate ? ` — due ${new Date(todo.dueDate).toLocaleDateString('en-IN')}` : '';
+      const due = todo.dueDate ? ` — due ${new Date(todo.dueDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}` : '';
       return reply(`✅ To-do added: "${todo.title}"${due}`);
     }
 
@@ -163,7 +163,7 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
         if (!debts.length) return reply('Your transaction journal is empty.');
         const lines = debts.map((d, i) => {
           const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
-          const status = d.settled ? ` [Settled ${d.settledDate ? new Date(d.settledDate).toLocaleDateString('en-IN') : ''}]` : ' [Active]';
+          const status = d.settled ? ` [Settled ${d.settledDate ? new Date(d.settledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) : ''}]` : ' [Active]';
           return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${d.note ? ` - ${d.note}` : ''}${status}`;
         });
         return reply(`📜 Transaction Journal (Last 10):\n\n${lines.join('\n')}`);
@@ -723,7 +723,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
       debts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       const lines = debts.map((d, i) => {
         const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
-        return `${i + 1}. ${d.person} (${dir} ₹${d.amount}) — ${new Date(d.createdAt).toLocaleDateString('en-IN')}`;
+        return `${i + 1}. ${d.person} (${dir} ₹${d.amount}) — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
       });
       return reply(`💰 Debts (Sorted by Time):\n\n${lines.join('\n')}`);
     }
@@ -751,14 +751,14 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
   if (module === 'reminder') {
     let reminders = await Reminder.find({ ...envQuery, sent: false }).sort({ remindAt: 1 });
     if (!reminders.length) return reply('No upcoming reminders!');
-    const lines = reminders.map((r, i) => `${i + 1}. ${r.title} — ${new Date(r.remindAt).toLocaleString('en-IN')}`);
+    const lines = reminders.map((r, i) => `${i + 1}. ${r.title} — ${new Date(r.remindAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
     return reply(`🔔 Upcoming Reminders:\n\n${lines.join('\n')}`);
   }
 
   if (module === 'deadline') {
     let deadlines = await Deadline.find(envQuery).sort({ dueDate: 1 });
     if (!deadlines.length) return reply('No deadlines!');
-    const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN')} [${d.category}]`);
+    const lines = deadlines.map((d, i) => `${i + 1}. ${d.title} — ${new Date(d.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })} [${d.category}]`);
     return reply(`⏳ Deadlines:\n\n${lines.join('\n')}`);
   }
 
