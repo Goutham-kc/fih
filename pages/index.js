@@ -81,6 +81,17 @@ export default function Dashboard() {
   const [updatingEnv, setUpdatingEnv] = useState(false);
 
   useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+  }, [router.isReady, router.query.tab]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    router.replace({ query: { ...router.query, tab: tabId } }, undefined, { shallow: true });
+  };
+
+  useEffect(() => {
     fetch('/api/todos')
       .then(res => {
         if (res.status === 401) router.push('/login');
@@ -162,7 +173,7 @@ export default function Dashboard() {
             <button
               key={tab.id}
               className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
             >
               <span style={{ display: 'inline-flex', alignItems: 'center', opacity: activeTab === tab.id ? 1 : 0.7 }}>
                 {tab.svg}
@@ -177,7 +188,7 @@ export default function Dashboard() {
           {/* Settings Button with Mode Badge */}
           <button
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
+            onClick={() => handleTabChange('settings')}
             style={{ width: '100%', justifyContent: 'space-between' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -233,7 +244,7 @@ export default function Dashboard() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={() => handleTabChange('settings')}
               className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: 11, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 6 }}
             >
@@ -260,7 +271,7 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 className={`btn ${isActive ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 style={{
                   fontSize: 13,
                   fontWeight: isActive ? 600 : 500,
