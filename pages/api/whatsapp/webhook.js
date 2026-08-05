@@ -682,6 +682,7 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Webhook processing error:', error);
+    try { await sendWhatsAppMessage(req.body.entry[0].changes[0].value.messages[0].from, "❌ Sorry, I encountered an internal error. Please try again."); } catch(e) {}
     await ProcessedMessage.deleteOne({ messageId });
     return res.status(500).end();
   }

@@ -1,0 +1,1 @@
+import { parseNaturalLanguage } from '../../lib/naturalParser'; export default function handler(req, res) { try { const parsed = parseNaturalLanguage(req.query.q); res.status(200).json(parsed); } catch(e) { res.status(500).json({ error: e.message }); } }
