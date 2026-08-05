@@ -32,11 +32,19 @@ export default function Watchlist() {
   }
 
   async function updateStatus(id, status, rating) {
-    await fetch(`/api/watchlist/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, ...(rating != null ? { rating } : {}) }),
-    });
+    try {
+      const res = await fetch(`/api/watchlist/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, ...(rating != null ? { rating } : {}) }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Error updating watchlist: ${errData.error?.message || res.statusText}`);
+      }
+    } catch (error) {
+      alert(`Network error: ${error.message}`);
+    }
     fetchItems();
   }
 
