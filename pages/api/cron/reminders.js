@@ -5,6 +5,7 @@ import Todo from '@/models/Todo';
 import ImportantDate from '@/models/ImportantDate';
 import Reminder from '@/models/Reminder';
 import User from '@/models/User';
+import { logAudit } from '@/lib/audit';
 
 
 
@@ -52,6 +53,12 @@ export default async function handler(req, res) {
       );
       if (claimed) {
         await sendWhatsAppMessage(waNumber, `🔔 Reminder [${mode.toUpperCase()}]: "${r.title}"`);
+        await logAudit(userId, {
+          action: 'NOTIFICATION',
+          module: 'reminder',
+          description: `Dispatched WhatsApp reminder: "${r.title}"`,
+          environmentMode: mode
+        });
         sent++;
       }
     }
@@ -72,6 +79,12 @@ export default async function handler(req, res) {
         if (claimed) {
           const dueTimeStr = new Date(dl.dueDate).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
           await sendWhatsAppMessage(waNumber, `⚠️ Overdue Deadline [${mode.toUpperCase()}]: "${dl.title}" was due at ${dueTimeStr}!`);
+          await logAudit(userId, {
+            action: 'NOTIFICATION',
+            module: 'deadline',
+            description: `Sent overdue alert for deadline: "${dl.title}"`,
+            environmentMode: mode
+          });
           sent++;
         }
         continue;
@@ -108,6 +121,12 @@ export default async function handler(req, res) {
               : `${offset} minute(s)`;
 
             await sendWhatsAppMessage(waNumber, `⏰ Deadline Alert [${mode.toUpperCase()}]: "${dl.title}" is due in ${humanTime}!`);
+            await logAudit(userId, {
+              action: 'NOTIFICATION',
+              module: 'deadline',
+              description: `Sent ${humanTime} reminder for deadline: "${dl.title}"`,
+              environmentMode: mode
+            });
             sent++;
           }
           break; // Fire one offset notification per execution
@@ -130,6 +149,12 @@ export default async function handler(req, res) {
       );
       if (claimed) {
         await sendWhatsAppMessage(waNumber, `⏰ Reminder [${mode.toUpperCase()}]: To-do "${todo.title}" is due soon.`);
+        await logAudit(userId, {
+          action: 'NOTIFICATION',
+          module: 'todo',
+          description: `Sent soon-due reminder for to-do: "${todo.title}"`,
+          environmentMode: mode
+        });
         sent++;
       }
     }
@@ -158,6 +183,12 @@ export default async function handler(req, res) {
         );
         if (claimedDate) {
           await sendWhatsAppMessage(waNumber, `📅 Today is: ${d.title}!`);
+          await logAudit(userId, {
+            action: 'NOTIFICATION',
+            module: 'date',
+            description: `Sent important date alert: "${d.title}"`,
+            environmentMode: mode
+          });
           sent++;
         }
       }

@@ -9,6 +9,7 @@ import ImportantDates from '@/components/ImportantDates';
 import Watchlist from '@/components/Watchlist';
 import ReminderBoard from '@/components/ReminderBoard';
 import SettingsView from '@/components/SettingsView';
+import AuditLogView from '@/components/AuditLogView';
 
 const TABS = [
   {
@@ -69,6 +70,16 @@ const TABS = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'audit',
+    label: 'Audit Log',
+    svg: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5" />
       </svg>
     ),
   },
@@ -147,6 +158,7 @@ export default function Dashboard() {
       case 'deadlines': return <DeadlineBoard key={`deadlines-${envMode}`} />;
       case 'dates': return <ImportantDates key={`dates-${envMode}`} />;
       case 'watchlist': return <Watchlist key={`watchlist-${envMode}`} />;
+      case 'audit': return <AuditLogView key={`audit-${envMode}`} />;
       case 'settings': return <SettingsView key="settings" envMode={envMode} onSwitchEnvMode={switchEnvMode} updatingEnv={updatingEnv} />;
       default: return null;
     }

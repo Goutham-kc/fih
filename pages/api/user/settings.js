@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import User from '@/models/User';
+import { logAudit } from '@/lib/audit';
 
 async function handler(req, res) {
   await connectDB();
@@ -22,6 +23,12 @@ async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid environmentMode. Must be live or development' });
       }
       user.environmentMode = environmentMode;
+      await logAudit(userId, {
+        action: 'SYSTEM',
+        module: 'system',
+        description: `Switched environment mode to: ${environmentMode.toUpperCase()} (via UI setting)`,
+        environmentMode: environmentMode
+      });
     }
     if (theme) {
       if (!['dark', 'light', 'system'].includes(theme)) {

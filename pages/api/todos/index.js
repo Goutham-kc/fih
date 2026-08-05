@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import Todo from '@/models/Todo';
 import User from '@/models/User';
+import { logAudit } from '@/lib/audit';
 
 async function handler(req, res) {
   await connectDB();
@@ -21,6 +22,12 @@ async function handler(req, res) {
     const { title, description, dueDate, priority } = req.body || {};
     if (!title) return res.status(400).json({ error: { message: 'Title required', code: 'MISSING_FIELDS' } });
     const todo = await Todo.create({ userId, title, description, dueDate: dueDate || null, priority, environmentMode: mode });
+    await logAudit(userId, {
+      action: 'CREATE',
+      module: 'todo',
+      description: `Created to-do: "${todo.title}"`,
+      environmentMode: mode
+    });
     return res.status(201).json({ todo });
   }
 

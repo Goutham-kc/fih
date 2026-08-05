@@ -12,6 +12,7 @@ import WatchlistItem from '@/models/WatchlistItem';
 import ProcessedMessage from '@/models/ProcessedMessage';
 import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
+import { logAudit } from '@/lib/audit';
 
 const HELP_TEXT = `fih 🥀
 ───────────────
@@ -131,6 +132,12 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
 
     case 'todo': {
       const todo = await Todo.create({ userId, title: parsed.title, dueDate: parsed.dueDate, environmentMode: envMode });
+      await logAudit(userId, {
+        action: 'CREATE',
+        module: 'todo',
+        description: `Created to-do via WhatsApp: "${todo.title}"`,
+        environmentMode: envMode
+      });
       const due = todo.dueDate ? ` — due ${new Date(todo.dueDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}` : '';
       return reply(`✅ To-do added: "${todo.title}"${due}`);
     }
@@ -154,6 +161,12 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       match.status = 'done';
       match.completedAt = new Date();
       await match.save();
+      await logAudit(userId, {
+        action: 'UPDATE',
+        module: 'todo',
+        description: `Completed to-do via WhatsApp: "${match.title}"`,
+        environmentMode: envMode
+      });
       return reply(`✅ Marked done: "${match.title}"`);
     }
 
@@ -173,11 +186,23 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
         const debts = await Debt.find({ ...envQuery, person: new RegExp(parsed.person, 'i'), settled: false });
         if (!debts.length) return reply(`No unsettled debts found for "${parsed.person}".`);
         await Debt.updateMany({ _id: { $in: debts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
+        await logAudit(userId, {
+          action: 'UPDATE',
+          module: 'debt',
+          description: `Settled all debts with ${debts[0].person} via WhatsApp`,
+          environmentMode: envMode
+        });
         return reply(`✅ Settled all debts with ${debts[0].person}. Transaction saved to your Journal.`);
       }
       const debt = await Debt.create({
         userId, person: parsed.person, amount: parsed.amount,
         direction: parsed.direction, note: parsed.note, environmentMode: envMode,
+      });
+      await logAudit(userId, {
+        action: 'CREATE',
+        module: 'debt',
+        description: `Recorded debt via WhatsApp: ${parsed.direction === 'i_owe' ? 'owe' : 'owed'} ${debt.person} ₹${debt.amount}`,
+        environmentMode: envMode
       });
       const dir = parsed.direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
       return reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
@@ -187,12 +212,24 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       const dl = await Deadline.create({
         userId, title: parsed.title, dueDate: parsed.dueDate, category: parsed.category, environmentMode: envMode,
       });
+      await logAudit(userId, {
+        action: 'CREATE',
+        module: 'deadline',
+        description: `Created deadline via WhatsApp: "${dl.title}"`,
+        environmentMode: envMode
+      });
       return reply(`✅ Deadline added: "${dl.title}" — due ${new Date(dl.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })} (${dl.category})`);
     }
 
     case 'reminder': {
       const r = await Reminder.create({
         userId, title: parsed.title, remindAt: parsed.remindAt, environmentMode: envMode,
+      });
+      await logAudit(userId, {
+        action: 'CREATE',
+        module: 'reminder',
+        description: `Created reminder via WhatsApp: "${r.title}"`,
+        environmentMode: envMode
       });
       return reply(`⏰ Reminder set: "${r.title}" — ${new Date(r.remindAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
     }
@@ -201,12 +238,24 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       const d = await ImportantDate.create({
         userId, title: parsed.title, date: parsed.date, recurring: parsed.recurring, environmentMode: envMode,
       });
+      await logAudit(userId, {
+        action: 'CREATE',
+        module: 'date',
+        description: `Saved important date via WhatsApp: "${d.title}"`,
+        environmentMode: envMode
+      });
       return reply(`✅ Date saved: "${d.title}" on ${d.date}${d.recurring !== 'none' ? ` (${d.recurring})` : ''}`);
     }
 
     case 'watch': {
       if (parsed.watchAction === 'add') {
         const item = await WatchlistItem.create({ userId, title: parsed.title, type: parsed.watchType, environmentMode: envMode });
+        await logAudit(userId, {
+          action: 'CREATE',
+          module: 'watch',
+          description: `Added "${item.title}" to watchlist via WhatsApp [${parsed.watchType}]`,
+          environmentMode: envMode
+        });
         return reply(`✅ Added to watchlist: "${item.title}"`);
       }
       // done
@@ -227,6 +276,12 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       match.status = 'done';
       if (parsed.rating) match.rating = parsed.rating;
       await match.save();
+      await logAudit(userId, {
+        action: 'UPDATE',
+        module: 'watch',
+        description: `Completed watching/reading via WhatsApp: "${match.title}"${parsed.rating ? ` (rated ${parsed.rating}/10)` : ''}`,
+        environmentMode: envMode
+      });
       return reply(`✅ Marked as watched: "${match.title}"${parsed.rating ? ` — rated ${parsed.rating}/10` : ''}`);
     }
 
@@ -453,12 +508,24 @@ export default async function handler(req, res) {
         const todo = await Todo.findById(chosenId);
         todo.status = 'done'; todo.completedAt = new Date();
         await todo.save();
+        await logAudit(userId, {
+          action: 'UPDATE',
+          module: 'todo',
+          description: `Completed to-do via WhatsApp selection: "${todo.title}"`,
+          environmentMode: envMode
+        });
         await reply(`✅ Marked done: "${todo.title}"`);
       } else {
         const item = await WatchlistItem.findById(chosenId);
         item.status = 'done';
         if (pending.partialData.rating) item.rating = pending.partialData.rating;
         await item.save();
+        await logAudit(userId, {
+          action: 'UPDATE',
+          module: 'watch',
+          description: `Completed watching/reading via WhatsApp selection: "${item.title}"${pending.partialData.rating ? ` (rated ${pending.partialData.rating}/10)` : ''}`,
+          environmentMode: envMode
+        });
         await reply(`✅ Marked as watched: "${item.title}"${pending.partialData.rating ? ` — rated ${pending.partialData.rating}/10` : ''}`);
       }
       return res.status(200).end();

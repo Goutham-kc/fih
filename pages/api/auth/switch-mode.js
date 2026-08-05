@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
+import { logAudit } from '@/lib/audit';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -37,6 +38,13 @@ export default async function handler(req, res) {
     user.modeSwitchToken = undefined;
     user.modeSwitchExpires = undefined;
     await user.save();
+
+    await logAudit(user._id, {
+      action: 'SYSTEM',
+      module: 'system',
+      description: `Switched environment mode to: ${mode.toUpperCase()} (via secure link verification)`,
+      environmentMode: mode
+    });
 
     // Notify user via WhatsApp
     await sendWhatsAppMessage(user.whatsappNumber, `✅ Your account is now in *${mode.toUpperCase()}* mode.`);
