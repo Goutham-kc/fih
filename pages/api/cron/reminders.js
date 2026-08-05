@@ -66,8 +66,7 @@ export default async function handler(req, res) {
         if (!dl.remindersSent.includes(-1)) {
           const dueTimeStr = new Date(dl.dueDate).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
           await sendWhatsAppMessage(waNumber, `⚠️ Overdue Deadline [${mode.toUpperCase()}]: "${dl.title}" was due at ${dueTimeStr}!`);
-          dl.remindersSent.push(-1);
-          await dl.save();
+          await Deadline.updateOne({ _id: dl._id }, { $addToSet: { remindersSent: -1 } });
           sent++;
         }
         continue;
@@ -97,8 +96,7 @@ export default async function handler(req, res) {
             : `${offset} minute(s)`;
 
           await sendWhatsAppMessage(waNumber, `⏰ Deadline Alert [${mode.toUpperCase()}]: "${dl.title}" is due in ${humanTime}!`);
-          dl.remindersSent.push(offset);
-          await dl.save();
+          await Deadline.updateOne({ _id: dl._id }, { $addToSet: { remindersSent: offset } });
           sent++;
           break; // Fire one offset notification per execution
         }
