@@ -319,6 +319,7 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       return reply(`Unknown module. Try >list todo|debt|reminder|deadline|date|watch`);
     }
 
+    case 'multi_reminder':
     case 'announcement': {
       const createdLines = [];
       for (const item of parsed.items) {
@@ -335,7 +336,17 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
           createdLines.push(`⏰ Reminder set: "${r.title}" — ${new Date(r.remindAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}`);
         }
       }
-      return reply(`📢 Announcement Processed!\n\n${createdLines.join('\n')}`);
+      const header = parsed.type === 'multi_reminder' ? '⏰ Reminders Scheduled!' : '📢 Announcement Processed!';
+      return reply(`${header}\n\n${createdLines.join('\n')}`);
+    }
+
+    case 'balance_query': {
+      const listParams = {
+        module: 'debt',
+        sortBy: 'default',
+        personFilter: parsed.person || null
+      };
+      return handleListQuery(userId, listParams, reply, envMode);
     }
 
     default:
@@ -402,20 +413,17 @@ export default async function handler(req, res) {
   const userId = user._id;
   const reply = (msg) => sendWhatsAppMessage(from, msg);
 
+  // Deduplicate message processing via ProcessedMessage TTL collection (atomic create-first)
+  try {
+    await ProcessedMessage.create({ messageId });
+  } catch (err) {
+    if (err.code === 11000) return res.status(200).end(); // Already processed
+    console.error('Dedup check error:', err);
+  }
+
   if (!text) {
     await reply("💬 Send your note, command, or deadline as a text message.");
     return res.status(200).end();
-  }
-
-  // Deduplicate message processing via ProcessedMessage TTL collection
-  try {
-    const existing = await ProcessedMessage.findOne({ messageId });
-    if (existing) {
-      return res.status(200).end();
-    }
-    await ProcessedMessage.create({ messageId });
-  } catch (err) {
-    if (err.code === 11000) return res.status(200).end();
   }
 
   try {
@@ -464,7 +472,7 @@ export default async function handler(req, res) {
         const direction = merged.action === 'owe' ? 'i_owe' : 'owed_to_me';
         const debt = await Debt.create({
           userId, person: merged.person, amount: merged.amount,
-          direction, note: merged.note,
+          direction, note: merged.note, environmentMode: user.environmentMode || 'live',
         });
         const dir = direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
         await reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
@@ -475,7 +483,8 @@ export default async function handler(req, res) {
         module: 'debt',
         partialData: merged,
         missingField: 'details',
-        question: !merged.person ? `Who is this debt with?` : !merged.amount ? `How much is the amount?` : `Do you owe ${merged.person} or do they owe you?`
+        question: !merged.person ? `Who is this debt with?` : !merged.amount ? `How much is the amount?` : `Do you owe ${merged.person} or do they owe you?`,
+        environmentMode: user.environmentMode || 'live'
       });
 
       const promptMsg = !merged.person && !merged.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
@@ -518,14 +527,14 @@ export default async function handler(req, res) {
       } else {
         if (choice === '1' || choice === 'todo' || choice.includes('to-do')) {
         await clearPendingIntent(userId);
-        const todo = await Todo.create({ userId, title: rawText });
+        const todo = await Todo.create({ userId, title: rawText, environmentMode: user.environmentMode || 'live' });
         await reply(`✅ To-do added: "${todo.title}"`);
         return res.status(200).end();
       }
 
         if (choice === '2' || choice === 'reminder' || choice.includes('remind')) {
           await clearPendingIntent(userId);
-          const reminder = await Reminder.create({ userId, title: rawText, remindAt: new Date(Date.now() + 60 * 60 * 1000) });
+          const reminder = await Reminder.create({ userId, title: rawText, remindAt: new Date(Date.now() + 60 * 60 * 1000), environmentMode: user.environmentMode || 'live' });
           await reply(`🔔 Reminder set: "${reminder.title}"`);
           return res.status(200).end();
         }
@@ -537,7 +546,7 @@ export default async function handler(req, res) {
             const direction = parsedData.action === 'owe' ? 'i_owe' : 'owed_to_me';
             const debt = await Debt.create({
               userId, person: parsedData.person, amount: parsedData.amount,
-              direction, note: parsedData.note,
+              direction, note: parsedData.note, environmentMode: user.environmentMode || 'live',
             });
             const dir = direction === 'i_owe' ? `you owe ${debt.person}` : `${debt.person} owes you`;
             await reply(`✅ Recorded: ${dir} ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}`);
@@ -548,7 +557,8 @@ export default async function handler(req, res) {
             module: 'debt',
             partialData: parsedData,
             missingField: 'details',
-            question: !parsedData.person ? `Who is this debt with?` : `How much is the amount?`
+            question: !parsedData.person ? `Who is this debt with?` : `How much is the amount?`,
+            environmentMode: user.environmentMode || 'live'
           });
 
           const promptMsg = !parsedData.person && !parsedData.amount ? `Who is this debt with and what is the amount?\n(Reply e.g.: Andrew 177 owed OR Alex 500 owe)`
@@ -563,14 +573,15 @@ export default async function handler(req, res) {
           await clearPendingIntent(userId);
           const parsedDl = parseCommand(`>deadline ${rawText}`);
           if (parsedDl.type === 'deadline') {
-            await handleCommand(parsedDl, userId, reply);
+            await handleCommand(parsedDl, userId, reply, user.environmentMode || 'live');
             return res.status(200).end();
           }
           await createPendingIntent(userId, {
             module: 'deadline',
             partialData: { title: rawText },
             missingField: 'dueDate',
-            question: `When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`
+            question: `When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`,
+            environmentMode: user.environmentMode || 'live'
           });
           await reply(`When is "${rawText}" due?\n(Reply e.g.: 2026-08-15 18:00)`);
           return res.status(200).end();
@@ -580,14 +591,15 @@ export default async function handler(req, res) {
           await clearPendingIntent(userId);
           const parsedDate = parseCommand(`>date ${rawText}`);
           if (parsedDate.type === 'date') {
-            await handleCommand(parsedDate, userId, reply);
+            await handleCommand(parsedDate, userId, reply, user.environmentMode || 'live');
             return res.status(200).end();
           }
           await createPendingIntent(userId, {
             module: 'date',
             partialData: { title: rawText },
             missingField: 'date',
-            question: `What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`
+            question: `What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`,
+            environmentMode: user.environmentMode || 'live'
           });
           await reply(`What is the date for "${rawText}"?\n(Reply e.g.: 09-14 for birthday or 2026-11-01)`);
           return res.status(200).end();
@@ -595,7 +607,7 @@ export default async function handler(req, res) {
 
         if (choice === '6' || choice === 'watch' || choice.includes('watchlist')) {
           await clearPendingIntent(userId);
-          const item = await WatchlistItem.create({ userId, title: rawText, type: 'show' });
+          const item = await WatchlistItem.create({ userId, title: rawText, type: 'show', environmentMode: user.environmentMode || 'live' });
           await reply(`✅ Added to watchlist: "${item.title}" [show]`);
           return res.status(200).end();
         }
@@ -617,10 +629,10 @@ export default async function handler(req, res) {
       await clearPendingIntent(userId);
 
       if (reParsed.type === 'missing') {
-        await createPendingIntent(userId, reParsed);
+        await createPendingIntent(userId, { ...reParsed, environmentMode: user.environmentMode || 'live' });
         await reply(reParsed.question);
       } else {
-        await handleCommand(reParsed, userId, reply);
+        await handleCommand(reParsed, userId, reply, user.environmentMode || 'live');
       }
       return res.status(200).end();
     }
@@ -630,15 +642,10 @@ export default async function handler(req, res) {
   if (text.startsWith('>')) {
     const parsed = parseCommand(text);
     if (parsed.type === 'missing') {
-      await createPendingIntent(userId, parsed);
+      await createPendingIntent(userId, { ...parsed, environmentMode: user.environmentMode || 'live' });
       await reply(parsed.question);
     } else {
-      try {
-        await handleCommand(parsed, userId, reply, user.environmentMode || 'live');
-      } catch (e) {
-        await reply(`❌ Error in handleCommand: ${e.message}\nStack: ${e.stack}`);
-        throw e;
-      }
+      await handleCommand(parsed, userId, reply, user.environmentMode || 'live');
     }
     return res.status(200).end();
   }
@@ -651,12 +658,7 @@ export default async function handler(req, res) {
   }
 
   if (naturalResult.confidence === 'high') {
-    try {
       await handleCommand(naturalResult, userId, reply, user.environmentMode || 'live');
-    } catch (e) {
-      await reply(`❌ Error in NLP handleCommand: ${e.message}\nStack: ${e.stack}`);
-      throw e;
-    }
     return res.status(200).end();
   }
 
@@ -666,6 +668,7 @@ export default async function handler(req, res) {
     partialData: { rawText: text },
     missingField: 'module',
     question: `I wasn't sure how to save that. Select a category:`,
+    environmentMode: user.environmentMode || 'live'
   });
   
   const sections = [
@@ -692,7 +695,7 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Webhook processing error:', error);
-    try { await sendWhatsAppMessage(req.body.entry[0].changes[0].value.messages[0].from, "❌ Sorry, I encountered an internal error. Please try again."); } catch(e) {}
+    try { await sendWhatsAppMessage(from, "❌ Sorry, I encountered an internal error. Please try again."); } catch(e2) { console.error('Failed to send error message:', e2); }
     await ProcessedMessage.deleteOne({ messageId });
     return res.status(500).end();
   }
@@ -786,6 +789,7 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
     const lines = items.map((it, i) => `${i + 1}. ${it.title} [${it.type}] — ${it.status}${it.rating ? ` ★${it.rating}` : ''}`);
     return reply(`🎬 Watchlist:\n\n${lines.join('\n')}`);
   }
+  return reply(`Unknown module list request. Try listing: todo, debt, reminder, deadline, date, or watch.`);
 }
 
 // Rebuild a synthetic command string from partial data + new answer

@@ -6,7 +6,7 @@ import ImportantDate from '@/models/ImportantDate';
 import Reminder from '@/models/Reminder';
 import User from '@/models/User';
 
-const TOLERANCE_MINUTES = 15;
+
 
 function minutesUntil(date) {
   return (new Date(date) - Date.now()) / 60000;
@@ -63,10 +63,15 @@ export default async function handler(req, res) {
 
       // Overdue alert (if not completed and not yet notified as overdue)
       if (minsLeft < 0) {
-        if (!dl.remindersSent.includes(-1)) {
+        // Atomic claim for overdue notification
+        const claimed = await Deadline.findOneAndUpdate(
+          { _id: dl._id, remindersSent: { $ne: -1 } },
+          { $addToSet: { remindersSent: -1 } },
+          { new: true }
+        );
+        if (claimed) {
           const dueTimeStr = new Date(dl.dueDate).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
           await sendWhatsAppMessage(waNumber, `⚠️ Overdue Deadline [${mode.toUpperCase()}]: "${dl.title}" was due at ${dueTimeStr}!`);
-          await Deadline.updateOne({ _id: dl._id }, { $addToSet: { remindersSent: -1 } });
           sent++;
         }
         continue;
@@ -89,15 +94,22 @@ export default async function handler(req, res) {
 
         // If time remaining has crossed this offset threshold
         if (minsLeft <= offset && minsLeft > nextOffset) {
-          const humanTime = offset >= 1440
-            ? `${Math.round(offset / 1440)} day(s)`
-            : offset >= 60
-            ? `${Math.round(offset / 60)} hour(s)`
-            : `${offset} minute(s)`;
+          // Atomic claim: only one cron instance can claim this offset
+          const claimed = await Deadline.findOneAndUpdate(
+            { _id: dl._id, remindersSent: { $ne: offset } },
+            { $addToSet: { remindersSent: offset } },
+            { new: true }
+          );
+          if (claimed) {
+            const humanTime = offset >= 1440
+              ? `${Math.round(offset / 1440)} day(s)`
+              : offset >= 60
+              ? `${Math.round(offset / 60)} hour(s)`
+              : `${offset} minute(s)`;
 
-          await sendWhatsAppMessage(waNumber, `⏰ Deadline Alert [${mode.toUpperCase()}]: "${dl.title}" is due in ${humanTime}!`);
-          await Deadline.updateOne({ _id: dl._id }, { $addToSet: { remindersSent: offset } });
-          sent++;
+            await sendWhatsAppMessage(waNumber, `⏰ Deadline Alert [${mode.toUpperCase()}]: "${dl.title}" is due in ${humanTime}!`);
+            sent++;
+          }
           break; // Fire one offset notification per execution
         }
       }
