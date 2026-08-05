@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { ThemeToggle } from '@/lib/theme';
 
 export default function Login() {
   const router = useRouter();
@@ -44,11 +45,16 @@ export default function Login() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-dark)',
+        background: 'var(--bg-canvas)',
         padding: '24px',
         position: 'relative',
         overflow: 'hidden',
       }}>
+        {/* Top-right theme toggle */}
+        <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 20 }}>
+          <ThemeToggle size={18} />
+        </div>
+
         {/* Ambient Glow Spheres */}
         <div style={{
           position: 'absolute',
@@ -56,7 +62,7 @@ export default function Login() {
           left: '30%',
           width: 400,
           height: 400,
-          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, var(--accent-violet-glow) 0%, rgba(0,0,0,0) 70%)',
           pointerEvents: 'none',
           filter: 'blur(60px)',
         }} />
@@ -67,7 +73,7 @@ export default function Login() {
           right: '30%',
           width: 400,
           height: 400,
-          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(0,0,0,0) 70%)',
+          background: 'radial-gradient(circle, var(--accent-primary-glow) 0%, rgba(0,0,0,0) 70%)',
           pointerEvents: 'none',
           filter: 'blur(60px)',
         }} />
@@ -76,7 +82,7 @@ export default function Login() {
           width: '100%',
           maxWidth: '420px',
           padding: '44px 36px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          boxShadow: 'var(--shadow-modal)',
           position: 'relative',
           zIndex: 10,
           animation: 'fadeIn 0.4s ease forwards'
@@ -93,7 +99,7 @@ export default function Login() {
                 margin: '0 auto 20px',
                 display: 'block',
                 objectFit: 'cover',
-                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.4), 0 0 0 2px rgba(192, 193, 255, 0.3)',
+                boxShadow: '0 8px 24px var(--accent-primary-glow), 0 0 0 2px var(--border-subtle)',
               }}
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />

@@ -5,6 +5,7 @@ const UserSchema = new Schema({
   passwordHash: { type: String, required: true },
   whatsappNumber: { type: String, required: true, unique: true },
   environmentMode: { type: String, enum: ['live', 'development'], default: 'live' },
+  theme: { type: String, enum: ['dark', 'light', 'system'], default: 'dark' },
   modeSwitchToken: { type: String },
   modeSwitchExpires: { type: Date },
   createdAt: { type: Date, default: Date.now },

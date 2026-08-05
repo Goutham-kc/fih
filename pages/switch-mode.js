@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { ThemeToggle } from '@/lib/theme';
 
 export default function SwitchMode() {
   const router = useRouter();
@@ -53,78 +54,123 @@ export default function SwitchMode() {
   if (!router.isReady) return null;
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--bg-canvas)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      position: 'relative'
+    }}>
       <Head>
         <title>Switch Mode - FIH</title>
       </Head>
 
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
-          <div className="flex justify-center mb-6">
-            <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
-              <span className="text-xl">🥀</span>
-            </div>
+      <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 20 }}>
+        <ThemeToggle size={18} />
+      </div>
+
+      <div className="card" style={{
+        width: '100%',
+        maxWidth: 440,
+        padding: 32,
+        boxShadow: 'var(--shadow-modal)',
+        borderRadius: 20,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'var(--bg-sunken)',
+            border: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 20
+          }}>
+            🥀
           </div>
-          
-          <h1 className="text-2xl font-semibold text-white text-center mb-2">Switch Environment</h1>
-          
-          {status === 'success' ? (
-            <div className="text-center mt-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 text-green-500 mb-4">
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <p className="text-zinc-300 mb-6">
-                Your account is now in <strong className="text-white">{mode.toUpperCase()}</strong> mode. You can return to WhatsApp.
-              </p>
-              <Link href="/" className="text-sm text-zinc-500 hover:text-white transition-colors">
-                Go to Dashboard
-              </Link>
-            </div>
-          ) : (
-            <>
-              <p className="text-zinc-400 text-center mb-8 text-sm">
-                Enter your password to switch to <strong className="text-white">{mode?.toUpperCase()}</strong> mode.
-              </p>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Account Password
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-                    placeholder="Enter your password"
-                    autoFocus
-                  />
-                </div>
-
-                {status === 'error' && errorMessage && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
-                    {errorMessage}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={status === 'loading' || status === 'error' && !password}
-                  className="w-full py-3 px-4 bg-white text-black font-medium rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {status === 'loading' ? (
-                    <span className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                  ) : (
-                    'Confirm Switch'
-                  )}
-                </button>
-              </form>
-            </>
-          )}
         </div>
+        
+        <h1 style={{ fontSize: 22, fontWeight: 700, textAlign: 'center', marginBottom: 8, color: 'var(--text-primary)' }}>
+          Switch Environment
+        </h1>
+        
+        {status === 'success' ? (
+          <div style={{ textAlign: 'center', marginTop: 24 }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'rgba(74, 222, 128, 0.15)',
+              color: 'var(--accent-emerald)',
+              marginBottom: 16
+            }}>
+              <svg style={{ width: 32, height: 32 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: 24, fontSize: 14 }}>
+              Your account is now in <strong style={{ color: 'var(--text-primary)' }}>{mode?.toUpperCase()}</strong> mode. You can return to WhatsApp.
+            </p>
+            <Link href="/" className="btn btn-secondary" style={{ display: 'inline-block', padding: '8px 20px', fontSize: 13 }}>
+              Go to Dashboard
+            </Link>
+          </div>
+        ) : (
+          <>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 24, fontSize: 13 }}>
+              Enter your password to switch to <strong style={{ color: 'var(--text-primary)' }}>{mode?.toUpperCase()}</strong> mode.
+            </p>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+                  Account Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="input"
+                  placeholder="Enter your password"
+                  autoFocus
+                />
+              </div>
+
+              {status === 'error' && errorMessage && (
+                <div style={{
+                  padding: 12,
+                  background: 'rgba(244, 63, 94, 0.1)',
+                  border: '1px solid rgba(244, 63, 94, 0.25)',
+                  borderRadius: 10,
+                  fontSize: 13,
+                  color: 'var(--accent-rose)',
+                  textAlign: 'center',
+                  fontWeight: 600
+                }}>
+                  {errorMessage}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={status === 'loading' || (status === 'error' && !password)}
+                className="btn btn-primary"
+                style={{ height: 44, width: '100%', fontSize: 14 }}
+              >
+                {status === 'loading' ? 'Switching...' : 'Confirm Switch'}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
