@@ -633,7 +633,12 @@ export default async function handler(req, res) {
       await createPendingIntent(userId, parsed);
       await reply(parsed.question);
     } else {
-      await handleCommand(parsed, userId, reply, user.environmentMode || 'live');
+      try {
+        await handleCommand(parsed, userId, reply, user.environmentMode || 'live');
+      } catch (e) {
+        await reply(`❌ Error in handleCommand: ${e.message}\nStack: ${e.stack}`);
+        throw e;
+      }
     }
     return res.status(200).end();
   }
@@ -646,7 +651,12 @@ export default async function handler(req, res) {
   }
 
   if (naturalResult.confidence === 'high') {
-    await handleCommand(naturalResult, userId, reply, user.environmentMode || 'live');
+    try {
+      await handleCommand(naturalResult, userId, reply, user.environmentMode || 'live');
+    } catch (e) {
+      await reply(`❌ Error in NLP handleCommand: ${e.message}\nStack: ${e.stack}`);
+      throw e;
+    }
     return res.status(200).end();
   }
 
