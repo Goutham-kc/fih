@@ -11,7 +11,7 @@ const DeadlineSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-DeadlineSchema.pre('save', function (next) {
+DeadlineSchema.pre('save', function () {
   if (this.isNew || this.isModified('dueDate') || this.isModified('reminderOffsets')) {
     const now = new Date();
     this.reminderOffsets = this.reminderOffsets.filter(offset => {
@@ -19,7 +19,6 @@ DeadlineSchema.pre('save', function (next) {
       return reminderTime > now;
     });
   }
-  next();
 });
 
 export default mongoose.models.Deadline || mongoose.model('Deadline', DeadlineSchema);
