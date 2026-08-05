@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { ThemeToggle } from '@/lib/theme';
 import TodoList from '@/components/TodoList';
 import DebtTracker from '@/components/DebtTracker';
 import DeadlineBoard from '@/components/DeadlineBoard';
@@ -164,8 +165,9 @@ export default function Dashboard() {
 
       {/* Desktop Left Sidebar Navigation */}
       <nav className="sidebar">
-        <div style={{ marginBottom: 32, paddingLeft: 8 }}>
+        <div style={{ marginBottom: 32, paddingLeft: 8, paddingRight: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>fih</h2>
+          <ThemeToggle size={18} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
@@ -230,7 +232,7 @@ export default function Dashboard() {
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        background: 'rgba(18, 19, 25, 0.95)',
+        background: 'var(--bg-mobile-header)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         borderBottom: '1px solid var(--border-subtle)',
@@ -240,7 +242,10 @@ export default function Dashboard() {
       }}>
         {/* Brand & Action Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
+            <ThemeToggle size={16} style={{ width: 32, height: 32 }} />
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
@@ -279,7 +284,7 @@ export default function Dashboard() {
                   borderRadius: 24,
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
-                  boxShadow: isActive ? '0 4px 14px rgba(192, 193, 255, 0.25)' : 'none',
+                  boxShadow: isActive ? '0 4px 14px var(--accent-primary-glow)' : 'none',
                 }}
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center', marginRight: 6 }}>{tab.svg}</span>

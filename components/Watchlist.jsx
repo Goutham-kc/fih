@@ -93,7 +93,7 @@ export default function Watchlist() {
 
         {/* Rating Prompt Drawer */}
         {ratingFor === item._id && (
-          <div style={{ marginTop: 12, padding: 12, background: 'rgba(14, 15, 26, 0.9)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+          <div style={{ marginTop: 12, padding: 12, background: 'var(--bg-sunken)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>Rate this item (1-10):</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <input

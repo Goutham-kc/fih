@@ -9,17 +9,31 @@ async function handler(req, res) {
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   if (req.method === 'GET') {
-    return res.status(200).json({ environmentMode: user.environmentMode || 'live' });
+    return res.status(200).json({
+      environmentMode: user.environmentMode || 'live',
+      theme: user.theme || 'dark'
+    });
   }
 
   if (req.method === 'PATCH') {
-    const { environmentMode } = req.body || {};
-    if (!['live', 'development'].includes(environmentMode)) {
-      return res.status(400).json({ error: 'Invalid environmentMode. Must be live or development' });
+    const { environmentMode, theme } = req.body || {};
+    if (environmentMode) {
+      if (!['live', 'development'].includes(environmentMode)) {
+        return res.status(400).json({ error: 'Invalid environmentMode. Must be live or development' });
+      }
+      user.environmentMode = environmentMode;
     }
-    user.environmentMode = environmentMode;
+    if (theme) {
+      if (!['dark', 'light', 'system'].includes(theme)) {
+        return res.status(400).json({ error: 'Invalid theme. Must be dark, light, or system' });
+      }
+      user.theme = theme;
+    }
     await user.save();
-    return res.status(200).json({ environmentMode: user.environmentMode });
+    return res.status(200).json({
+      environmentMode: user.environmentMode,
+      theme: user.theme
+    });
   }
 
   return res.status(405).end();

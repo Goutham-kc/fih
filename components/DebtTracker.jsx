@@ -169,7 +169,7 @@ export default function DebtTracker() {
       {/* View Switcher Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: 4, background: 'rgba(255, 255, 255, 0.03)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', gap: 4, background: 'var(--bg-sunken)', padding: 4, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
             <button
               className={`btn ${activeTab === 'balances' ? 'btn-secondary' : 'btn-ghost'}`}
               onClick={() => setActiveTab('balances')}
@@ -232,7 +232,7 @@ export default function DebtTracker() {
                       justifyContent: 'center',
                       fontWeight: 800,
                       fontSize: 16,
-                      color: '#1000a9'
+                      color: 'var(--accent-primary-text)'
                     }}>
                       {name.charAt(0).toUpperCase()}
                     </div>
@@ -259,7 +259,8 @@ export default function DebtTracker() {
                   {ds.map(d => (
                     <div key={d._id} style={{
                       fontSize: 13,
-                      background: 'rgba(14, 15, 26, 0.6)',
+                      background: 'var(--bg-sunken)',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: 10,
                       padding: '10px 14px',
                       display: 'flex',
@@ -307,7 +308,7 @@ export default function DebtTracker() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <tr style={{ background: 'var(--bg-sunken)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     <th style={{ padding: '14px 20px' }}>Date</th>
                     <th style={{ padding: '14px 20px' }}>Person</th>
                     <th style={{ padding: '14px 20px' }}>Direction</th>

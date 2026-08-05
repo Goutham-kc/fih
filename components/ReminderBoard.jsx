@@ -112,7 +112,7 @@ export default function ReminderBoard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header with Refresh & Tabs */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 8, background: 'rgba(255, 255, 255, 0.05)', padding: 4, borderRadius: 12 }}>
+        <div style={{ display: 'flex', gap: 8, background: 'var(--bg-sunken)', border: '1px solid var(--border-subtle)', padding: 4, borderRadius: 12 }}>
           <button
             onClick={() => setActiveTab('upcoming')}
             style={{
@@ -123,7 +123,7 @@ export default function ReminderBoard() {
               fontWeight: 600,
               cursor: 'pointer',
               background: activeTab === 'upcoming' ? 'var(--gradient-primary)' : 'transparent',
-              color: activeTab === 'upcoming' ? '#fff' : 'var(--text-secondary)',
+              color: activeTab === 'upcoming' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
               transition: 'all 0.2s ease',
             }}
           >
@@ -139,7 +139,7 @@ export default function ReminderBoard() {
               fontWeight: 600,
               cursor: 'pointer',
               background: activeTab === 'history' ? 'var(--gradient-primary)' : 'transparent',
-              color: activeTab === 'history' ? '#fff' : 'var(--text-secondary)',
+              color: activeTab === 'history' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
               transition: 'all 0.2s ease',
             }}
           >

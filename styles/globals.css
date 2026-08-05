@@ -1,19 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-/* ── Stitch Material Design Tokens ────────────────────────────────────────── */
-:root {
+/* ── Material Design Tokens ────────────────────────────────────────── */
+:root, [data-theme="dark"] {
+  color-scheme: dark;
+
   --bg-dark:                 #121319;
-  --bg-surface:              #121319;
+  --bg-surface:              #181922;
   --bg-card:                 rgba(255, 255, 255, 0.03);
   --bg-card-heavy:           rgba(255, 255, 255, 0.06);
   --bg-elevated:             rgba(30, 31, 38, 0.7);
   --bg-hover:                rgba(255, 255, 255, 0.06);
+  --bg-sunken:               rgba(14, 15, 26, 0.6);
+  --surface-sunken:          rgba(14, 15, 26, 0.6);
+  --bg-sidebar:              rgba(18, 19, 25, 0.85);
+  --bg-mobile-header:        rgba(18, 19, 25, 0.95);
 
   --accent-primary:          #c0c1ff;
+  --accent-primary-text:     #1000a9;
   --accent-primary-glow:     rgba(192, 193, 255, 0.2);
   --accent-indigo:           #6366f1;
+  --accent-violet:           #c084fc;
   --accent-secondary:        #ddb7ff;
   --accent-tertiary:         #4fdbc8;
+  --accent-cyan:             #22d3ee;
+  --accent-rose:             #f43f5e;
   --accent-error:            #ffb4ab;
   --accent-amber:            #ffd166;
   --accent-emerald:          #34d399;
@@ -27,6 +37,122 @@
 
   --border-subtle:           rgba(255, 255, 255, 0.08);
   --border-active:           #c0c1ff;
+
+  --shadow-card:             0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-hover:            0 8px 30px rgba(0, 0, 0, 0.6);
+
+  --input-bg:                rgba(255, 255, 255, 0.03);
+  --input-bg-focus:          rgba(255, 255, 255, 0.06);
+  --input-option-bg:         #1e1f26;
+
+  --btn-secondary-bg:        rgba(255, 255, 255, 0.06);
+  --btn-secondary-hover:     rgba(255, 255, 255, 0.1);
+  --btn-ghost-hover:         rgba(255, 255, 255, 0.05);
+
+  --badge-high-bg:           rgba(255, 180, 171, 0.15);
+  --badge-high-color:        #ffb4ab;
+  --badge-high-border:       rgba(255, 180, 171, 0.3);
+
+  --badge-medium-bg:         rgba(255, 209, 102, 0.15);
+  --badge-medium-color:      #ffd166;
+  --badge-medium-border:     rgba(255, 209, 102, 0.3);
+
+  --badge-low-bg:            rgba(52, 211, 153, 0.15);
+  --badge-low-color:         #34d399;
+  --badge-low-border:        rgba(52, 211, 153, 0.3);
+
+  --badge-overdue-bg:        rgba(255, 180, 171, 0.25);
+  --badge-overdue-color:     #ffb4ab;
+  --badge-overdue-border:    rgba(255, 180, 171, 0.4);
+
+  --badge-academic-bg:       rgba(221, 183, 255, 0.15);
+  --badge-academic-color:    #ddb7ff;
+
+  --badge-internship-bg:     rgba(255, 209, 102, 0.15);
+  --badge-internship-color:  #ffd166;
+
+  --badge-personal-bg:       rgba(79, 219, 200, 0.15);
+  --badge-personal-color:    #4fdbc8;
+
+  --badge-planned-bg:        rgba(192, 193, 255, 0.15);
+  --badge-planned-color:     #c0c1ff;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-dark:                 #f4f5f9;
+  --bg-surface:              #ffffff;
+  --bg-card:                 #ffffff;
+  --bg-card-heavy:           #f8fafc;
+  --bg-elevated:             #ffffff;
+  --bg-hover:                rgba(0, 0, 0, 0.04);
+  --bg-sunken:               #f1f5f9;
+  --surface-sunken:          #f1f5f9;
+  --bg-sidebar:              rgba(255, 255, 255, 0.92);
+  --bg-mobile-header:        rgba(255, 255, 255, 0.95);
+
+  --accent-primary:          #4f46e5;
+  --accent-primary-text:     #ffffff;
+  --accent-primary-glow:     rgba(79, 70, 229, 0.2);
+  --accent-indigo:           #4f46e5;
+  --accent-violet:           #7c3aed;
+  --accent-secondary:        #7c3aed;
+  --accent-tertiary:         #0d9488;
+  --accent-cyan:             #0284c7;
+  --accent-rose:             #e11d48;
+  --accent-error:            #dc2626;
+  --accent-amber:            #d97706;
+  --accent-emerald:          #059669;
+
+  --gradient-primary:        linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  --gradient-glow:           radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, rgba(244, 245, 249, 0) 70%);
+
+  --text-primary:            #0f172a;
+  --text-secondary:          #475569;
+  --text-muted:              #64748b;
+
+  --border-subtle:           rgba(0, 0, 0, 0.08);
+  --border-active:           #4f46e5;
+
+  --shadow-card:             0 2px 12px -1px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-hover:            0 8px 24px -2px rgba(0, 0, 0, 0.09);
+
+  --input-bg:                #ffffff;
+  --input-bg-focus:          #ffffff;
+  --input-option-bg:         #ffffff;
+
+  --btn-secondary-bg:        rgba(0, 0, 0, 0.04);
+  --btn-secondary-hover:     rgba(0, 0, 0, 0.08);
+  --btn-ghost-hover:         rgba(0, 0, 0, 0.04);
+
+  --badge-high-bg:           #fee2e2;
+  --badge-high-color:        #dc2626;
+  --badge-high-border:       #fca5a5;
+
+  --badge-medium-bg:         #fef3c7;
+  --badge-medium-color:      #b45309;
+  --badge-medium-border:     #fde68a;
+
+  --badge-low-bg:            #d1fae5;
+  --badge-low-color:         #047857;
+  --badge-low-border:        #a7f3d0;
+
+  --badge-overdue-bg:        #fee2e2;
+  --badge-overdue-color:     #b91c1c;
+  --badge-overdue-border:    #f87171;
+
+  --badge-academic-bg:       #ede9fe;
+  --badge-academic-color:    #6d28d9;
+
+  --badge-internship-bg:     #fef3c7;
+  --badge-internship-color:  #b45309;
+
+  --badge-personal-bg:       #ccfbf1;
+  --badge-personal-color:    #0f766e;
+
+  --badge-planned-bg:        #e0e7ff;
+  --badge-planned-color:     #4338ca;
 }
 
 /* ── Global Styles ───────────────────────────────────────────────────────── */
@@ -42,6 +168,7 @@ html, body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Ambient Glow Elements */
@@ -55,7 +182,7 @@ html, body {
   filter: blur(40px);
 }
 
-/* Glass Panels */
+/* Glass Panels & Cards */
 .glass-panel {
   background: var(--bg-card);
   backdrop-filter: blur(24px);
@@ -63,6 +190,7 @@ html, body {
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 24px;
+  box-shadow: var(--shadow-card);
   transition: all 0.25s ease;
 }
 
@@ -73,6 +201,8 @@ html, body {
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 /* Buttons */
@@ -94,8 +224,9 @@ html, body {
 
 .btn-primary {
   background: var(--accent-primary);
-  color: #1000a9;
+  color: var(--accent-primary-text);
   font-weight: 600;
+  box-shadow: 0 2px 10px var(--accent-primary-glow);
 }
 
 .btn-primary:hover {
@@ -104,13 +235,13 @@ html, body {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--btn-secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--btn-secondary-hover);
 }
 
 .btn-ghost {
@@ -120,13 +251,18 @@ html, body {
 
 .btn-ghost:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--btn-ghost-hover);
+}
+
+.btn-icon {
+  padding: 6px 10px;
+  border-radius: 8px;
 }
 
 /* Form Controls */
 .input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--input-bg);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   padding: 12px 16px;
@@ -138,16 +274,17 @@ html, body {
 
 .input:focus {
   border-color: var(--accent-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--input-bg-focus);
   box-shadow: 0 0 0 2px var(--accent-primary-glow);
 }
 
 .input::placeholder {
-  color: rgba(227, 225, 235, 0.4);
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 select.input option {
-  background: #1e1f26;
+  background: var(--input-option-bg);
   color: var(--text-primary);
 }
 
@@ -165,57 +302,85 @@ select.input option {
 }
 
 .badge-high {
-  background: rgba(255, 180, 171, 0.15);
-  color: var(--accent-error);
-  border: 1px solid rgba(255, 180, 171, 0.3);
+  background: var(--badge-high-bg);
+  color: var(--badge-high-color);
+  border: 1px solid var(--badge-high-border);
 }
 
 .badge-medium {
-  background: rgba(255, 209, 102, 0.15);
-  color: var(--accent-amber);
-  border: 1px solid rgba(255, 209, 102, 0.3);
+  background: var(--badge-medium-bg);
+  color: var(--badge-medium-color);
+  border: 1px solid var(--badge-medium-border);
 }
 
 .badge-low {
-  background: rgba(52, 211, 153, 0.15);
-  color: var(--accent-emerald);
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: var(--badge-low-bg);
+  color: var(--badge-low-color);
+  border: 1px solid var(--badge-low-border);
 }
 
 .badge-overdue {
-  background: rgba(255, 180, 171, 0.25);
-  color: var(--accent-error);
-  border: 1px solid rgba(255, 180, 171, 0.4);
+  background: var(--badge-overdue-bg);
+  color: var(--badge-overdue-color);
+  border: 1px solid var(--badge-overdue-border);
 }
 
 .badge-academic {
-  background: rgba(221, 183, 255, 0.15);
-  color: var(--accent-secondary);
+  background: var(--badge-academic-bg);
+  color: var(--badge-academic-color);
 }
 
 .badge-internship {
-  background: rgba(255, 209, 102, 0.15);
-  color: var(--accent-amber);
+  background: var(--badge-internship-bg);
+  color: var(--badge-internship-color);
 }
 
 .badge-personal {
-  background: rgba(79, 219, 200, 0.15);
-  color: var(--accent-tertiary);
+  background: var(--badge-personal-bg);
+  color: var(--badge-personal-color);
 }
 
 .badge-planned {
-  background: rgba(192, 193, 255, 0.15);
-  color: var(--accent-primary);
+  background: var(--badge-planned-bg);
+  color: var(--badge-planned-color);
 }
 
 .badge-in_progress {
-  background: rgba(255, 209, 102, 0.15);
-  color: var(--accent-amber);
+  background: var(--badge-medium-bg);
+  color: var(--badge-medium-color);
 }
 
 .badge-done {
-  background: rgba(52, 211, 153, 0.15);
-  color: var(--accent-emerald);
+  background: var(--badge-low-bg);
+  color: var(--badge-low-color);
+}
+
+/* Countdown Chips */
+.countdown-chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.countdown-chip.upcoming {
+  background: var(--badge-planned-bg);
+  color: var(--badge-planned-color);
+  border: 1px solid var(--border-subtle);
+}
+
+.countdown-chip.today {
+  background: var(--badge-medium-bg);
+  color: var(--badge-medium-color);
+  border: 1px solid var(--badge-medium-border);
+}
+
+.countdown-chip.overdue {
+  background: var(--badge-overdue-bg);
+  color: var(--badge-overdue-color);
+  border: 1px solid var(--badge-overdue-border);
 }
 
 /* Animations */
@@ -235,7 +400,7 @@ select.input option {
   top: 0;
   height: 100vh;
   width: 240px;
-  background: rgba(18, 19, 25, 0.85);
+  background: var(--bg-sidebar);
   backdrop-filter: blur(48px);
   -webkit-backdrop-filter: blur(48px);
   border-right: 1px solid var(--border-subtle);
@@ -243,6 +408,7 @@ select.input option {
   display: flex;
   flex-direction: column;
   z-index: 40;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .nav-item {
@@ -264,15 +430,16 @@ select.input option {
 
 .nav-item:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-hover);
 }
 
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-hover);
   color: var(--accent-primary);
   border-left: 2px solid var(--accent-primary);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+  font-weight: 600;
 }
 
 .main-content {
@@ -292,6 +459,8 @@ select.input option {
   border-radius: 12px;
   padding: 20px;
   border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .summary-card .amount {
@@ -308,10 +477,43 @@ select.input option {
   letter-spacing: 0.05em;
 }
 
+/* Kanban Board */
 .kanban {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+.kanban-col {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 16px;
+  min-height: 320px;
+}
+
+.kanban-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.kanban-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tab-count {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
 }
 
 .item-card {
@@ -320,6 +522,12 @@ select.input option {
   padding: 14px;
   margin-bottom: 10px;
   border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+
+.item-card:hover {
+  box-shadow: var(--shadow-hover);
 }
 
 .todo-item {
@@ -331,10 +539,12 @@ select.input option {
   background: var(--bg-card);
   margin-bottom: 8px;
   border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
 }
 
 .todo-item.done-item {
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 .custom-checkbox {
@@ -347,12 +557,16 @@ select.input option {
   justify-content: center;
   cursor: pointer;
   background: transparent;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .custom-checkbox.checked {
   background: var(--accent-emerald);
   border-color: var(--accent-emerald);
-  color: #121319;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .no-scrollbar::-webkit-scrollbar {
