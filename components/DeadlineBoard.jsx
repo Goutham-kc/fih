@@ -142,10 +142,13 @@ export default function DeadlineBoard() {
 
                     <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>Automated Reminders:</span>
-                      {dl.reminderOffsets.map(o => (
+                      {dl.reminderOffsets.filter(o => {
+                        const reminderTime = new Date(new Date(dl.dueDate).getTime() - o * 60 * 1000);
+                        return reminderTime > new Date(new Date(dl.createdAt).getTime() - 60000);
+                      }).map(o => (
                         <span key={o} style={{
-                          fontSize: 11,
-                          background: 'rgba(255, 255, 255, 0.05)',
+                          fontSize: 12,
+                          background: 'var(--surface-sunken)',
                           border: '1px solid var(--border-subtle)',
                           padding: '2px 8px',
                           borderRadius: 8,
