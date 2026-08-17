@@ -674,8 +674,19 @@ export default async function handler(req, res) {
 
         if (choice === '6' || choice === 'watch' || choice.includes('watchlist')) {
           await clearPendingIntent(userId);
-          const item = await WatchlistItem.create({ userId, title: rawText, type: 'show', environmentMode: user.environmentMode || 'live' });
-          await reply(`✅ Added to watchlist: "${item.title}" [show]`);
+          let cleanTitle = rawText
+            .replace(/\b(?:to\s+)?(?:watch|read|binge|stream)\b/gi, '')
+            .replace(/^(?:watch|watching|movie|show|anime|read|reading|binge|binging|stream|streaming|add|book)\b/gi, '')
+            .replace(/\b(?:watchlist|to my watchlist)\b/gi, '')
+            .replace(/^[\s,\-–:]+/, '')
+            .replace(/[\s,\-–:]+$/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+
+          const isBook = /\b(read|reading|paper|book)\b/i.test(rawText);
+          const item = await WatchlistItem.create({ userId, title: cleanTitle || rawText, type: isBook ? 'book' : 'show', environmentMode: user.environmentMode || 'live' });
+          await reply(`✅ Added to watchlist: "${item.title}" [${item.type}]`);
           return res.status(200).end();
         }
 
