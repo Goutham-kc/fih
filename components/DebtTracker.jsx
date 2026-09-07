@@ -49,6 +49,15 @@ export default function DebtTracker() {
     setAdding(false);
   }
 
+  async function settleSingleDebt(debtId) {
+    await fetch(`/api/debts/${debtId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settled: true }),
+    });
+    fetchDebts();
+  }
+
   async function settleAll(personName) {
     if (!confirm(`Settle all active debts with ${personName}?`)) return;
     const toSettle = debts.filter(d => d.person === personName && !d.settled);
@@ -285,9 +294,19 @@ export default function DebtTracker() {
                         )}
                       </div>
 
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                        {formatDate(d.createdAt)}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                          {formatDate(d.createdAt)}
+                        </span>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => settleSingleDebt(d._id)}
+                          style={{ fontSize: 11, padding: '4px 10px', height: 'auto' }}
+                          title="Settle this specific record"
+                        >
+                          ✓ Settle
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -343,9 +362,19 @@ export default function DebtTracker() {
                             Settled {d.settledDate ? `(${new Date(d.settledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })})` : ''}
                           </span>
                         ) : (
-                          <span className="badge badge-medium" style={{ fontSize: 11 }}>
-                            Active
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span className="badge badge-medium" style={{ fontSize: 11 }}>
+                              Active
+                            </span>
+                            <button
+                              className="btn btn-secondary"
+                              onClick={() => settleSingleDebt(d._id)}
+                              style={{ fontSize: 11, padding: '3px 8px', height: 'auto' }}
+                              title="Settle this specific transaction"
+                            >
+                              ✓ Settle
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

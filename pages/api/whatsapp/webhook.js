@@ -182,17 +182,71 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
         return reply(`📜 Transaction Journal (Last 10):\n\n${lines.join('\n')}`);
       }
 
-      if (parsed.action === 'settle') {
-        const debts = await Debt.find({ ...envQuery, person: new RegExp(parsed.person, 'i'), settled: false });
-        if (!debts.length) return reply(`No unsettled debts found for "${parsed.person}".`);
-        await Debt.updateMany({ _id: { $in: debts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
+      if (parsed.action === 'settle_all') {
+        const debts = await Debt.find({ ...envQuery, person: new RegExp(`^${parsed.person}$`, 'i'), settled: false });
+        const fallbackDebts = debts.length ? debts : await Debt.find({ ...envQuery, person: new RegExp(parsed.person, 'i'), settled: false });
+        if (!fallbackDebts.length) return reply(`No unsettled debts found for "${parsed.person}".`);
+        
+        let totalAmount = 0;
+        fallbackDebts.forEach(d => { totalAmount += d.amount; });
+        await Debt.updateMany({ _id: { $in: fallbackDebts.map(d => d._id) } }, { settled: true, settledDate: new Date() });
         await logAudit(userId, {
           action: 'UPDATE',
           module: 'debt',
-          description: `Settled all debts with ${debts[0].person} via WhatsApp`,
+          description: `Settled all debts with ${fallbackDebts[0].person} (₹${totalAmount}) via WhatsApp`,
           environmentMode: envMode
         });
-        return reply(`✅ Settled all debts with ${debts[0].person}. Transaction saved to your Journal.`);
+        return reply(`✅ Settled all ${fallbackDebts.length} debt(s) with ${fallbackDebts[0].person} (Total: ₹${totalAmount}). Saved to Journal.`);
+      }
+
+      if (parsed.action === 'settle') {
+        const exactDebts = await Debt.find({ ...envQuery, person: new RegExp(`^${parsed.person}$`, 'i'), settled: false }).sort({ createdAt: 1 });
+        const debts = exactDebts.length ? exactDebts : await Debt.find({ ...envQuery, person: new RegExp(parsed.person, 'i'), settled: false }).sort({ createdAt: 1 });
+        
+        if (!debts.length) return reply(`No unsettled debts found for "${parsed.person}".`);
+
+        if (parsed.amount) {
+          const matchByAmount = debts.find(d => d.amount === parsed.amount);
+          const target = matchByAmount || debts[0];
+          target.settled = true;
+          target.settledDate = new Date();
+          await target.save();
+          await logAudit(userId, {
+            action: 'UPDATE',
+            module: 'debt',
+            description: `Settled individual debt with ${target.person}: ₹${target.amount} (${target.note || 'no note'}) via WhatsApp`,
+            environmentMode: envMode
+          });
+          return reply(`✅ Settled individual debt with ${target.person}: ₹${target.amount}${target.note ? ` (${target.note})` : ''}.`);
+        }
+
+        if (debts.length === 1) {
+          const target = debts[0];
+          target.settled = true;
+          target.settledDate = new Date();
+          await target.save();
+          await logAudit(userId, {
+            action: 'UPDATE',
+            module: 'debt',
+            description: `Settled debt with ${target.person}: ₹${target.amount} (${target.note || 'no note'}) via WhatsApp`,
+            environmentMode: envMode
+          });
+          return reply(`✅ Settled debt with ${target.person}: ₹${target.amount}${target.note ? ` (${target.note})` : ''}.`);
+        }
+
+        const listText = debts.map((d, i) => {
+          const dir = d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU';
+          return `${i + 1}. ${dir} ₹${d.amount}${d.note ? ` (${d.note})` : ''}`;
+        }).join('\n');
+
+        await createPendingIntent(userId, {
+          module: 'debt_settle_pick',
+          partialData: { candidates: debts.map(d => d._id.toString()), person: debts[0].person },
+          missingField: 'pick',
+          question: `Multiple active debts found for ${debts[0].person}. Which one would you like to settle?\n\n${listText}\n\nReply with a number (1-${debts.length}) or type "all" to settle all.`,
+          environmentMode: envMode
+        });
+        return reply(`Multiple active debts found for ${debts[0].person}. Which one would you like to settle?\n\n${listText}\n\nReply with a number (1-${debts.length}) or type "all" to settle all.`);
       }
       const debt = await Debt.create({
         userId, person: parsed.person, amount: parsed.amount,
@@ -527,6 +581,50 @@ export default async function handler(req, res) {
           environmentMode: envMode
         });
         await reply(`✅ Marked as watched: "${item.title}"${pending.partialData.rating ? ` — rated ${pending.partialData.rating}/10` : ''}`);
+      }
+      return res.status(200).end();
+    }
+
+    if (pending.module === 'debt_settle_pick') {
+      const textLower = text.trim().toLowerCase();
+      const ids = pending.partialData.candidates;
+      const personName = pending.partialData.person;
+
+      if (textLower === 'all' || textLower === 'all debts') {
+        await Debt.updateMany({ _id: { $in: ids } }, { settled: true, settledDate: new Date() });
+        await clearPendingIntent(userId);
+        await logAudit(userId, {
+          action: 'UPDATE',
+          module: 'debt',
+          description: `Settled all debts with ${personName} via WhatsApp selection`,
+          environmentMode: envMode
+        });
+        await reply(`✅ Settled all debts with ${personName}.`);
+        return res.status(200).end();
+      }
+
+      const pick = parseInt(text, 10);
+      if (isNaN(pick) || pick < 1 || pick > ids.length) {
+        await reply(`Please reply with a number between 1 and ${ids.length}, or type "all".`);
+        return res.status(200).end();
+      }
+
+      const chosenId = ids[pick - 1];
+      await clearPendingIntent(userId);
+      const debt = await Debt.findById(chosenId);
+      if (debt) {
+        debt.settled = true;
+        debt.settledDate = new Date();
+        await debt.save();
+        await logAudit(userId, {
+          action: 'UPDATE',
+          module: 'debt',
+          description: `Settled individual debt with ${debt.person}: ₹${debt.amount} (${debt.note || 'no note'}) via WhatsApp selection`,
+          environmentMode: envMode
+        });
+        await reply(`✅ Settled individual debt with ${debt.person}: ₹${debt.amount}${debt.note ? ` (${debt.note})` : ''}.`);
+      } else {
+        await reply(`Debt record not found.`);
       }
       return res.status(200).end();
     }
