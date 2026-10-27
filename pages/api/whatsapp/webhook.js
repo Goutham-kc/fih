@@ -788,7 +788,13 @@ export default async function handler(req, res) {
           return res.status(200).end();
         }
 
-        await reply(`Please reply with 1-6 or type cancel:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist`);
+        if (choice === '7' || choice === 'cancel' || choice.includes('cancel')) {
+          await clearPendingIntent(userId);
+          await reply('Cancelled.');
+          return res.status(200).end();
+        }
+
+        await reply(`Please reply with 1-7 or type cancel:\n1. To-do\n2. Reminder\n3. Debt\n4. Deadline\n5. Important Date\n6. Watchlist\n7. Cancel`);
         return res.status(200).end();
       }
     }
@@ -856,7 +862,8 @@ export default async function handler(req, res) {
         { id: '3', title: 'Debt', description: 'Money owed/borrowed' },
         { id: '4', title: 'Deadline', description: 'Due dates' },
         { id: '5', title: 'Important Date', description: 'Birthdays & Anniversaries' },
-        { id: '6', title: 'Watchlist', description: 'Movies, shows, books' }
+        { id: '6', title: 'Watchlist', description: 'Movies, shows, books' },
+        { id: 'cancel', title: 'Cancel', description: 'Dismiss without saving' }
       ]
     }
   ];
