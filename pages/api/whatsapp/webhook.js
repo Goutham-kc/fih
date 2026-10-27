@@ -88,7 +88,7 @@ function parseDebtInput(text, defaultData = {}) {
     action = 'settle';
   }
 
-  const keywords = ['owe', 'owed', 'owes', 'settle', 'i', 'me', 'you', 'to', 'for', 'rs', 'inr', '₹'];
+  const keywords = ['owe', 'owed', 'owes', 'settle', 'i', 'me', 'my', 'you', 'he', 'she', 'to', 'for', 'from', 'with', 'rs', 'inr', '₹', 'hi', 'hello', 'hey', 'todo', 'to-do', 'reminder', 'debt', 'deadline', 'date', 'watch', 'watchlist', 'cancel', 'yes', 'no'];
   const nameTokens = subTokens.filter(t => !/^\d+(?:\.\d+)?$/.test(t) && !keywords.includes(t.toLowerCase()));
   if (nameTokens.length > 0 && !person) {
     person = nameTokens.join(' ');
@@ -103,6 +103,8 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
     : { userId, environmentMode: 'development' };
 
   switch (parsed.type) {
+    case 'greeting':
+      return reply(`👋 Hey! I'm *fih*, your personal life assistant.\n\nHere's what you can send me:\n• *To-dos:* "Buy groceries", ">todo Finish essay"\n• *Reminders:* "Remind me tomorrow at 9am to submit forms"\n• *Deadlines:* "Submit AI lab report by Friday 5pm"\n• *Debts:* "I owe Alex 500 for dinner", "Sarah paid me 200"\n• *Watchlist:* "Add Inception to watch"\n• *Announcements:* Forward long class messages or schedules directly!\n\nType *help* or *menu* anytime to see all commands.`);
     case 'help':
       return reply(HELP_TEXT);
 
@@ -497,6 +499,18 @@ export default async function handler(req, res) {
   } else if (messageObj.type === 'interactive' && messageObj.interactive?.type === 'button_reply') {
     text = messageObj.interactive.button_reply.id;
   }
+
+  if (text && text.includes('Please select a category:')) {
+    const after = text.split(/Please select a category:\s*/i)[1] || '';
+    const selectedLine = after.trim().split(/[\r\n]+/)[0].trim().toLowerCase();
+    if (selectedLine.includes('to-do') || selectedLine === 'todo' || selectedLine === '1') text = '1';
+    else if (selectedLine.includes('reminder') || selectedLine === '2') text = '2';
+    else if (selectedLine.includes('debt') || selectedLine === '3') text = '3';
+    else if (selectedLine.includes('deadline') || selectedLine === '4') text = '4';
+    else if (selectedLine.includes('date') || selectedLine === '5') text = '5';
+    else if (selectedLine.includes('watchlist') || selectedLine === 'watch' || selectedLine === '6') text = '6';
+    else if (selectedLine.includes('cancel') || selectedLine === '7') text = 'cancel';
+  }
   
   if (!messageId || !from) return res.status(200).end();
 
@@ -539,15 +553,40 @@ export default async function handler(req, res) {
     // Check for pending intent
   const pending = await getPendingIntent(userId);
 
-  // Handle 'cancel'
-  if (text.toLowerCase() === 'cancel') {
-    if (pending) {
-      await clearPendingIntent(userId);
-      await reply('Cancelled.');
-    }
+  if (!pending && ['cancel', 'abort', 'stop', 'exit'].includes(text.toLowerCase().trim())) {
+    await reply('Nothing to cancel.');
     return res.status(200).end();
   }
+
   if (pending) {
+    const textLower = text.toLowerCase().trim();
+    const freshNatural = parseNaturalLanguage(text);
+
+    // Explicit cancel
+    if (['cancel', 'abort', 'stop', 'exit', 'nevermind', 'never mind'].includes(textLower)) {
+      await clearPendingIntent(userId);
+      await reply('❌ Cancelled.');
+      return res.status(200).end();
+    }
+
+    const isCommand = text.startsWith('>');
+    const isGreeting = freshNatural.type === 'greeting';
+    const isAnnouncement = freshNatural.type === 'announcement' || freshNatural.type === 'multi_reminder';
+    const isHelp = freshNatural.type === 'help';
+    const isCategoryPickerResponse = ['1', '2', '3', '4', '5', '6', '7', 'todo', 'to-do', 'reminder', 'watchlist', 'deadline'].includes(textLower);
+
+    // Global failsafe override: If user sends an explicit command, greeting, or announcement, clear stale pending intent!
+    if (isCommand || isGreeting || isAnnouncement || isHelp) {
+      await clearPendingIntent(userId);
+      // Fall through to main message processing below
+    } else if (pending.module === 'debt' && isCategoryPickerResponse) {
+      // User tapped or replied with category while trapped in debt prompt
+      await clearPendingIntent(userId);
+      // Fall through to main message processing below
+    } else if (pending.module === 'debt' && freshNatural.confidence === 'high' && freshNatural.type !== 'debt') {
+      await clearPendingIntent(userId);
+      // Fall through to main message processing below
+    } else {
     // Handle numbered pick for ambiguous fuzzy matches
     if (['done_pick', 'watch_done_pick'].includes(pending.module)) {
       const pick = parseInt(text, 10);
@@ -817,6 +856,7 @@ export default async function handler(req, res) {
         await handleCommand(reParsed, userId, reply, user.environmentMode || 'live');
       }
       return res.status(200).end();
+    }
     }
   }
 
