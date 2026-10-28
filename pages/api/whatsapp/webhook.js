@@ -487,6 +487,15 @@ export default async function handler(req, res) {
   // Extract the message
   const entry = payload?.entry?.[0];
   const change = entry?.changes?.[0];
+
+  if (change?.value?.statuses) {
+    for (const st of change.value.statuses) {
+      if (st.status === 'failed' || st.errors) {
+        console.error('[WhatsApp Webhook Delivery Failure]:', JSON.stringify(st));
+      }
+    }
+  }
+
   const messageObj = change?.value?.messages?.[0];
   if (!messageObj) return res.status(200).end(); // ACK non-message events
 
@@ -524,7 +533,10 @@ export default async function handler(req, res) {
     return userDigits && (userDigits === cleanFrom || cleanFrom.endsWith(userDigits) || userDigits.endsWith(cleanFrom));
   });
 
-  if (!user && allUsers.length === 1) {
+  console.log(`[WhatsApp Webhook Incoming] from=${from} text="${text}" id=${messageId}`);
+
+  if (!user && allUsers.length > 0) {
+    console.warn(`[WhatsApp Webhook] No exact phone match for from=${from}. Falling back to primary user (${allUsers[0].email})`);
     user = allUsers[0];
   }
 
