@@ -14,40 +14,211 @@ import Reminder from '@/models/Reminder';
 import { parseNaturalLanguage } from '@/lib/naturalParser';
 import { logAudit } from '@/lib/audit';
 
-const HELP_TEXT = `fih 🥀
-───────────────
+const HELP_INDEX = `fih 🥀 *Help Center & Commands*
+───────────────────────────────
+Reply with *help <topic>* or *>help <topic>* for dedicated guides:
 
-*COMMANDS* (Prefix: >)
+1️⃣ *help debt* — Money owed, balances, ledger & settlements
+2️⃣ *help todo* — Tasks, priorities & completing items
+3️⃣ *help reminder* — Timed alerts, natural dates & timetables
+4️⃣ *help deadline* — Academic due dates & announcement parsing
+5️⃣ *help watch* — Movies, shows, anime & reading lists
+6️⃣ *help date* — Birthdays, anniversaries & annual events
+7️⃣ *help list* — Filtering, sorting & search queries
+8️⃣ *help controls* — Undo mistakes, cancel prompts & modes
 
-• *To-do:*
-\`>todo <text> | <due-date>\`
-\`>done <title>\`
+💡 *Quick Tip:* You don't need `>` for natural language! E.g. just text "Hanan +100" or "Remind me tomorrow 9am".`;
 
-• *Debts:*
-\`>debt owe <person> <amount> | <note>\`
-\`>debt owed <person> <amount> | <note>\`
-\`>debt settle <person>\`
+const HELP_PAGES = {
+  debt: `💰 *Debt & Financial Ledger Guide*
+───────────────────────────────
+Track money owed, borrowed, net balances, and settlements.
 
-• *Deadlines & Reminders:*
-\`>deadline <title> | <date> <time>\`
-\`>reminder <text> | <time>\`
+*1. Natural Language:*
+• *Lending (Owed to you):*
+  "Arjun +2080 Advance for Trek"
+  "Hanan +500 for dinner"
+  "Sarah owes me 300"
+• *Borrowing (You owe):*
+  "Arjun -1064 Return train"
+  "Amir -50 for coffee"
+  "I owe Hanan 200 for lunch"
 
-• *Dates & Watchlist:*
-\`>date <title> | <MM-DD or YYYY-MM-DD>\`
-\`>watch <title> | <movie|show|book>\`
+*2. Direct Commands:*
+• \`>debt owe <person> <amount> | <note>\`
+• \`>debt owed <person> <amount> | <note>\`
 
-• *List & Filter:*
-\`>list <todo|debt|reminder|deadline|date|watch>\`
-\`show <module> by <person/keyword>\`
-\`sort todos by priority\`
-\`sort debts by amount\`
-\`show deadlines for academic\`
+*3. Balances & Net Position:*
+• "how much i owe Arjun" — Net balance & notes
+• "how much Arjun owes me"
+• "what is my total balance" — Full financial overview
+• \`>debt journal\` — Last 10 settled & active transactions
 
-───────────────
-*CONTROLS*
+*4. Filtering & Sorting:*
+• "show debts for Arjun" — Debts with Arjun only
+• "show debts sorted by amount" — Highest to lowest
+• "show debts sorted by person" — Grouped by contact
+• "show debts sorted by time" — Most recent first
 
-• \`undo\` — Revert last item
-• \`cancel\` — Clear active prompt`;
+*5. Settling Debts:*
+• \`>debt settle Arjun\` — Select individual debt to settle
+• \`>debt settle all Arjun\` — Settle all debts with Arjun
+• \`>debt settle Arjun 1064\` — Settle exact amount
+
+_Type *help* to return to the Main Menu._`,
+
+  todo: `📋 *To-Dos & Tasks Guide*
+───────────────────────────────
+Organize your daily tasks, action items, and priorities.
+
+*1. Creating Tasks:*
+• *Natural:* "Buy groceries", "Finish chemistry essay"
+• *Command:* \`>todo Buy groceries\`
+• *With Due Date:* \`>todo Submit paper | 2026-11-05 18:00\`
+
+*2. Completing Tasks:*
+• \`>done groceries\` — Matches title & marks complete
+• If multiple match, fih will prompt you to pick a number.
+
+*3. Viewing & Filtering:*
+• \`>list todo\` — All open tasks
+• "show todos by priority" — High ➔ Medium ➔ Low
+• "show todos sorted by time" — Earliest due date first
+• "my todos"
+
+_Type *help* to return to the Main Menu._`,
+
+  reminder: `⏰ *Smart Reminders & Timetables Guide*
+───────────────────────────────
+Time-specific alerts dispatched straight to your WhatsApp.
+
+*1. Natural Reminders:*
+• "Remind me tomorrow at 9am to submit forms"
+• "Azithromycin tomorrow 3pm"
+• "ticket book tmr" — Defaults to 9:00 AM IST
+• "Remind me in 30 mins to take out laundry"
+
+*2. Direct Command:*
+• \`>reminder Buy medicine | tomorrow 3pm\`
+• \`>reminder Call mom | 2026-11-02 10:00\`
+
+*3. Class Timetables & Schedules:*
+• Forward multiple class periods at once:
+  "R5B tomorrow 4th hr AWT, 5th hr DAA"
+• Automatically creates separate scheduled reminders!
+
+*4. Viewing Reminders:*
+• \`>list reminder\` — Upcoming scheduled alerts
+• "my reminders"
+
+_Type *help* to return to the Main Menu._`,
+
+  deadline: `⏳ *Deadlines & Academic Tracker Guide*
+───────────────────────────────
+Track project submissions, evaluations, and circulars with live countdowns.
+
+*1. Setting Deadlines:*
+• *Natural:* "Submit AI lab report by Friday 5pm"
+• *Specific Date:* "WT Evaluation on 11.08.2026 Tuesday"
+• *Command:* \`>deadline AI Project Submission | 2026-11-15 23:59\`
+
+*2. Forwarding Announcements:*
+• Forward long circulars or class notices directly:
+  "All students who have not yet registered for NPTEL exam must complete their registration today before 4:00 PM."
+• fih automatically extracts the topic name and sets the deadline!
+
+*3. Viewing Deadlines:*
+• \`>list deadline\` — Upcoming deadlines with category tags
+• "show deadlines for academic"
+
+_Type *help* to return to the Main Menu._`,
+
+  watch: `🎬 *Media & Reading Watchlist Guide*
+───────────────────────────────
+Save movies, TV shows, anime, and books to watch or read later.
+
+*1. Adding to Watchlist:*
+• *Show / Movie:* "Minions and Monster to watch"
+• *Book / Paper:* "Harry Potter to read"
+• *Command:* \`>watch Inception | movie\`
+• *Command:* \`>watch Dune | book\`
+
+*2. Marking Watched / Read:*
+• \`>watched Inception 9/10\` — Marks watched with your rating!
+• \`>watched Harry Potter\`
+
+*3. Viewing Watchlist:*
+• \`>list watch\` — Unwatched and unread items
+• "my watchlist"
+
+_Type *help* to return to the Main Menu._`,
+
+  date: `⭐ *Important Dates & Anniversaries Guide*
+───────────────────────────────
+Keep track of birthdays, anniversaries, and annual milestones.
+
+*1. Adding Dates:*
+• *Birthday:* "Mom's birthday on 14th Sept"
+• *Anniversary:* "Wedding anniversary on Oct 5"
+• *Command:* \`>date Rahul Birthday | 09-14\`
+
+*2. Recurring Tracking:*
+• Anniversaries and birthdays recur yearly automatically.
+
+*3. Viewing Dates:*
+• \`>list date\` — All saved important dates
+• "my dates"
+
+_Type *help* to return to the Main Menu._`,
+
+  list: `🔍 *List, Sort & Filter Reference*
+───────────────────────────────
+Query any module using powerful sorting and filters.
+
+*1. Debts:*
+• \`>list debt\` — All active debts
+• "show debts for <person>" — Filter by contact name
+• "show debts sorted by amount" — Highest amount first
+• "show debts sorted by person" — Grouped with net totals
+• "show debts sorted by time" — Most recent first
+
+*2. Tasks & Deadlines:*
+• \`>list todo\` / "show todos by priority"
+• \`>list deadline\` / "show deadlines for academic"
+• \`>list reminder\` / "show upcoming reminders"
+• \`>list watch\` / \`>list date\`
+
+_Type *help* to return to the Main Menu._`,
+
+  controls: `⚙️ *Controls, Failsafes & Modes Guide*
+───────────────────────────────
+System shortcuts and configuration commands.
+
+*1. Undo & Cancel:*
+• \`undo\` — Made a typo or saved by mistake? Type \`undo\` to delete the last created item immediately.
+• \`cancel\` — Dismisses any active question or interactive category selection prompt.
+
+*2. Environment Modes:*
+• \`>mode dev\` — Generates a 10-minute secure link to switch your account to the isolated Development sandbox.
+• \`>mode live\` — Generates a link to return to the Live environment.
+• Test new formats safely in dev mode without touching your real data!
+
+_Type *help* to return to the Main Menu._`
+};
+
+function normalizeHelpTopic(rawTopic) {
+  if (!rawTopic) return null;
+  const t = rawTopic.trim().toLowerCase();
+  if (t === '1' || t.includes('debt') || t.includes('money') || t.includes('iou') || t.includes('balance') || t.includes('settle')) return 'debt';
+  if (t === '2' || t.includes('todo') || t.includes('task') || t.includes('done')) return 'todo';
+  if (t === '3' || t.includes('remind')) return 'reminder';
+  if (t === '4' || t.includes('deadline') || t.includes('exam') || t.includes('submi') || t.includes('announc')) return 'deadline';
+  if (t === '5' || t.includes('watch') || t.includes('movie') || t.includes('show') || t.includes('book')) return 'watch';
+  if (t === '6' || t.includes('date') || t.includes('birthday') || t.includes('annivers')) return 'date';
+  if (t === '7' || t.includes('list') || t.includes('filter') || t.includes('sort') || t.includes('search') || t.includes('query')) return 'list';
+  if (t === '8' || t.includes('control') || t.includes('mode') || t.includes('undo') || t.includes('cancel')) return 'controls';
+  return null;
+}
 
 function formatTodo(t, i) {
   const due = t.dueDate ? ` (due ${new Date(t.dueDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })})` : '';
@@ -105,8 +276,13 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
   switch (parsed.type) {
     case 'greeting':
       return reply(`👋 Hey! I'm *fih*, your personal life assistant.\n\nHere's what you can send me:\n• *To-dos:* "Buy groceries", ">todo Finish essay"\n• *Reminders:* "Remind me tomorrow at 9am to submit forms"\n• *Deadlines:* "Submit AI lab report by Friday 5pm"\n• *Debts:* "I owe Alex 500 for dinner", "Sarah paid me 200"\n• *Watchlist:* "Add Inception to watch"\n• *Announcements:* Forward long class messages or schedules directly!\n\nType *help* or *menu* anytime to see all commands.`);
-    case 'help':
-      return reply(HELP_TEXT);
+    case 'help': {
+      const topic = normalizeHelpTopic(parsed.topic);
+      if (topic && HELP_PAGES[topic]) {
+        return reply(HELP_PAGES[topic]);
+      }
+      return reply(HELP_INDEX);
+    }
 
     case 'did_you_mean':
       return reply(`Did you mean \`>${parsed.suggestion}\`? Try \`>help\` for all commands.`);
