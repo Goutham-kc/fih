@@ -722,6 +722,7 @@ export default async function handler(req, res) {
   }
 
   const userId = user._id;
+  const envMode = user.environmentMode || 'live';
   const reply = (msg) => sendWhatsAppMessage(from, msg);
 
   // Deduplicate message processing via ProcessedMessage TTL collection (atomic create-first)
