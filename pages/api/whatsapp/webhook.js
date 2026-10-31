@@ -1097,12 +1097,30 @@ export default async function handler(req, res) {
     }
   ];
 
-  await sendWhatsAppInteractiveList(
-    from, 
-    `I wasn't sure how to save "${text}".\nPlease select a category:`, 
-    'Select Category', 
-    sections
-  );
+  // Try interactive list first; fall back to plain text if it fails.
+  // If both fail, clear the pending intent so the bot is never silently locked up.
+  try {
+    const listRes = await sendWhatsAppInteractiveList(
+      from, 
+      `I wasn't sure how to save "${text}".\nPlease select a category:`, 
+      'Select Category', 
+      sections
+    );
+    // sendWhatsAppInteractiveList calls res.json() — if the response wasn't ok, fall back
+    if (listRes && listRes.error) {
+      throw new Error(`Meta error: ${JSON.stringify(listRes.error)}`);
+    }
+  } catch (interactiveErr) {
+    console.warn('[WhatsApp Webhook] Interactive list failed, falling back to plain text:', interactiveErr?.message || interactiveErr);
+    // Plain text fallback — this always works as long as the token is valid
+    const plainText = `I wasn't sure how to save that. Reply with a number:\n\n1️⃣ To-do\n2️⃣ Reminder\n3️⃣ Debt\n4️⃣ Deadline\n5️⃣ Important Date\n6️⃣ Watchlist\n7️⃣ Cancel`;
+    const plainRes = await sendWhatsAppMessage(from, plainText);
+    if (!plainRes || !plainRes.ok) {
+      // Both failed — clear the pending intent to prevent the bot from locking up silently
+      console.error('[WhatsApp Webhook] Plain text fallback also failed. Clearing pending intent to prevent silent lockup.');
+      await clearPendingIntent(userId);
+    }
+  }
   return res.status(200).end();
 
   } catch (error) {
