@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     // Feature: Auto-subscribe WABA to App if action=subscribe is passed
     let subscribeResult = null;
-    const wabaId = req.query.waba_id || '1170873438934562';
+    const wabaId = req.query.waba_id || '29499913899695764';
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
     if (req.query.action === 'subscribe' && accessToken) {
