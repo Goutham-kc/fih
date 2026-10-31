@@ -84,6 +84,15 @@ export default function AuditLogView() {
           gap: 16px;
           box-shadow: var(--shadow-card);
         }
+        @media (max-width: 480px) {
+          .timeline-content {
+            flex-direction: column;
+            gap: 8px;
+          }
+          .timeline-content .tabular-nums {
+            text-align: left !important;
+          }
+        }
         .badge-create { background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); }
         .badge-update { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); }
         .badge-delete { background: rgba(244, 63, 94, 0.12); color: var(--accent-rose); }

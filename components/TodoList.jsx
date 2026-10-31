@@ -113,7 +113,7 @@ export default function TodoList() {
       <div className="fih-card" style={{ marginBottom: 24 }}>
         <form onSubmit={addTodo}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div className="form-row-responsive">
               <input
                 className="fih-input"
                 style={{ flex: 1, fontSize: 14 }}
@@ -236,9 +236,17 @@ export default function TodoList() {
             <div
               className="custom-checkbox"
               onClick={() => markDone(todo._id, todo.status)}
-              title="Mark as done"
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  markDone(todo._id, todo.status);
+                }
+              }}
+              tabIndex={0}
               role="checkbox"
               aria-checked="false"
+              aria-label={`Mark task "${todo.title}" as complete`}
+              title="Mark as complete"
             />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -281,6 +289,7 @@ export default function TodoList() {
               onClick={() => deleteTodo(todo._id, todo.title)}
               style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 36 }}
               title="Delete task"
+              aria-label={`Delete task: ${todo.title}`}
             >
               <Trash2 size={15} />
             </button>
@@ -306,9 +315,17 @@ export default function TodoList() {
                   <div
                     className="custom-checkbox checked"
                     onClick={() => markDone(todo._id, todo.status)}
-                    title="Mark as open"
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        markDone(todo._id, todo.status);
+                      }
+                    }}
+                    tabIndex={0}
                     role="checkbox"
                     aria-checked="true"
+                    aria-label={`Mark task "${todo.title}" as open`}
+                    title="Mark as open"
                   >
                     <Check size={13} strokeWidth={3} />
                   </div>
@@ -329,6 +346,7 @@ export default function TodoList() {
                     onClick={() => deleteTodo(todo._id, todo.title)}
                     style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 36 }}
                     title="Delete task"
+                    aria-label={`Delete completed task: ${todo.title}`}
                   >
                     <Trash2 size={15} />
                   </button>

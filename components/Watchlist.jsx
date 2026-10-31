@@ -121,6 +121,7 @@ export default function Watchlist() {
             onClick={() => deleteItem(item._id, item.title)}
             style={{ color: 'var(--text-muted)', padding: '4px', minHeight: 28 }}
             title="Remove item"
+            aria-label={`Remove ${item.title} from watchlist`}
           >
             <Trash2 size={13} />
           </button>
@@ -264,7 +265,7 @@ export default function Watchlist() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
               gap: 12,
               alignItems: 'end',
             }}

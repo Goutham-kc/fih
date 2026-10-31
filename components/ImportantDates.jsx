@@ -165,6 +165,7 @@ export default function ImportantDates() {
                     onClick={() => deleteDate(d._id, d.title)}
                     style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 32 }}
                     title="Delete date"
+                    aria-label={`Delete date: ${d.title}`}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -199,7 +200,7 @@ export default function ImportantDates() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
               gap: 12,
               alignItems: 'end',
             }}

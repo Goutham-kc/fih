@@ -13,6 +13,8 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  LayoutGrid,
+  X,
 } from 'lucide-react';
 import TodoList from '@/components/TodoList';
 import DebtTracker from '@/components/DebtTracker';
@@ -39,6 +41,7 @@ const TABS = [
 export default function Dashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('todos');
+  const [moreSheetOpen, setMoreSheetOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [envMode, setEnvMode] = useState('live');
   const [updatingEnv, setUpdatingEnv] = useState(false);
@@ -68,8 +71,19 @@ export default function Dashboard() {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
+    setMoreSheetOpen(false);
     router.replace({ query: { ...router.query, tab: tabId } }, undefined, { shallow: true });
   };
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape' && moreSheetOpen) {
+        setMoreSheetOpen(false);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [moreSheetOpen]);
 
   useEffect(() => {
     fetch('/api/todos')
@@ -484,6 +498,227 @@ export default function Dashboard() {
           </div>
         </footer>
       </main>
+
+      {/* Native Mobile Bottom Navigation Bar */}
+      <nav className="mobile-bottom-nav">
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'space-around', alignItems: 'center' }}>
+          {[
+            { id: 'todos', label: 'Tasks', icon: CheckSquare },
+            { id: 'reminders', label: 'Alerts', icon: Clock },
+            { id: 'debts', label: 'Ledger', icon: CreditCard },
+            { id: 'deadlines', label: 'Due', icon: Calendar },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleTabChange(item.id)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1,
+                  minHeight: 46,
+                  background: 'none',
+                  border: 'none',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '4px 0',
+                  position: 'relative',
+                  transition: 'color var(--duration-fast) ease, transform var(--duration-fast) ease',
+                }}
+              >
+                <Icon size={20} style={{ strokeWidth: isActive ? 2.2 : 1.8, marginBottom: 3 }} />
+                <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, letterSpacing: '0.02em' }}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 2,
+                      width: 14,
+                      height: 2.5,
+                      borderRadius: 2,
+                      background: 'var(--accent-primary)',
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
+
+          {/* More Sheet Trigger */}
+          <button
+            onClick={() => setMoreSheetOpen(!moreSheetOpen)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              minHeight: 46,
+              background: 'none',
+              border: 'none',
+              color: ['dates', 'watchlist', 'audit', 'settings'].includes(activeTab) || moreSheetOpen
+                ? 'var(--text-primary)'
+                : 'var(--text-muted)',
+              cursor: 'pointer',
+              padding: '4px 0',
+              position: 'relative',
+            }}
+          >
+            <LayoutGrid size={20} style={{ strokeWidth: ['dates', 'watchlist', 'audit', 'settings'].includes(activeTab) ? 2.2 : 1.8, marginBottom: 3 }} />
+            <span style={{ fontSize: 10, fontWeight: ['dates', 'watchlist', 'audit', 'settings'].includes(activeTab) ? 700 : 500, letterSpacing: '0.02em' }}>
+              More
+            </span>
+            {['dates', 'watchlist', 'audit', 'settings'].includes(activeTab) && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 2,
+                  width: 14,
+                  height: 2.5,
+                  borderRadius: 2,
+                  background: 'var(--accent-primary)',
+                }}
+              />
+            )}
+          </button>
+        </div>
+      </nav>
+
+      {/* Slide-Up Bottom Sheet for Secondary Navigation */}
+      {moreSheetOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 60,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            animation: 'fihSurfaceEnter var(--duration-fast) ease',
+          }}
+          onClick={() => setMoreSheetOpen(false)}
+        >
+          <div
+            className="sheet-enter"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation & Secondary Controls"
+            style={{
+              background: 'var(--bg-card)',
+              borderTop: '1px solid var(--border-default)',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: '16px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px',
+              boxShadow: '0 -10px 40px rgba(0,0,0,0.4)',
+              maxHeight: '82vh',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Grab Handle */}
+            <div
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                background: 'var(--border-strong)',
+                margin: '0 auto 16px auto',
+              }}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                Secondary Modules
+              </span>
+              <button
+                onClick={() => setMoreSheetOpen(false)}
+                className="btn btn-ghost"
+                aria-label="Close navigation sheet"
+                style={{ padding: 4, minHeight: 32, borderRadius: '50%' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20 }}>
+              {[
+                { id: 'dates', label: 'Dates', icon: Sparkles, desc: 'Anniversaries & events' },
+                { id: 'watchlist', label: 'Watchlist', icon: Film, desc: 'Movies & queue' },
+                { id: 'audit', label: 'Audit Log', icon: History, desc: 'Chronicle telemetry' },
+                { id: 'settings', label: 'Settings', icon: Settings, desc: 'System preferences' },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      padding: '14px 14px',
+                      borderRadius: 12,
+                      background: isActive ? 'var(--bg-active)' : 'var(--bg-sunken)',
+                      border: `1px solid ${isActive ? 'var(--border-strong)' : 'var(--border-subtle)'}`,
+                      color: 'var(--text-primary)',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <Icon size={16} style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
+                      <span style={{ fontSize: 14, fontWeight: 600 }}>{item.label}</span>
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick Actions Row */}
+            <div style={{ display: 'flex', gap: 10, paddingTop: 14, borderTop: '1px solid var(--border-subtle)' }}>
+              <button
+                onClick={() => {
+                  switchEnvMode(envMode === 'live' ? 'development' : 'live');
+                }}
+                disabled={updatingEnv}
+                className="btn btn-secondary"
+                style={{ flex: 1, minHeight: 44, fontSize: 13, justifyContent: 'center' }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                    marginRight: 6,
+                  }}
+                />
+                {envMode === 'live' ? 'Live Production' : 'Dev Sandbox'}
+              </button>
+
+              <button
+                onClick={logout}
+                className="btn btn-secondary"
+                style={{ minHeight: 44, padding: '0 16px', fontSize: 13, color: 'var(--accent-rose)' }}
+              >
+                <LogOut size={16} style={{ marginRight: 6 }} />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

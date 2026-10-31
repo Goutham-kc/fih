@@ -189,7 +189,7 @@ export default function ReminderBoard() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
             gap: 12,
             alignItems: 'end',
           }}
@@ -328,6 +328,7 @@ export default function ReminderBoard() {
                       className="btn btn-ghost btn-icon"
                       style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 34 }}
                       title="Delete reminder"
+                      aria-label={`Delete reminder: ${r.title}`}
                     >
                       <Trash2 size={15} />
                     </button>
@@ -394,6 +395,7 @@ export default function ReminderBoard() {
                   className="btn btn-ghost btn-icon"
                   style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 32 }}
                   title="Delete record"
+                  aria-label={`Delete reminder: ${r.title}`}
                 >
                   <Trash2 size={15} />
                 </button>

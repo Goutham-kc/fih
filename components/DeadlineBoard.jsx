@@ -95,7 +95,7 @@ export default function DeadlineBoard() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
               gap: 12,
               alignItems: 'end',
             }}
@@ -322,6 +322,7 @@ export default function DeadlineBoard() {
                     onClick={() => deleteDeadline(dl._id, dl.title)}
                     style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 36 }}
                     title="Delete deadline"
+                    aria-label={`Delete deadline: ${dl.title}`}
                   >
                     <Trash2 size={15} />
                   </button>

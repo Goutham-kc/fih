@@ -190,7 +190,39 @@
   --badge-planned-color:     #4338ca;
 }
 
-/* ── Global Styles ───────────────────────────────────────────────────────── */
+/* ── Platform Mobile-Native Baseline ─────────────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+
+button, a, [role="button"], .custom-checkbox, .nav-item {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Accessible Keyboard Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+.custom-checkbox:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Stop iOS Safari automatic zoom on inputs */
+@media (pointer: coarse) {
+  input, select, textarea, .input, .fih-input {
+    font-size: 16px !important;
+  }
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -202,7 +234,10 @@ html, body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -212,7 +247,9 @@ html, body {
 #__next {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+  width: 100%;
 }
 
 /* Typography Utility Classes */
@@ -283,7 +320,7 @@ html, body {
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  min-height: 40px;
+  min-height: 42px;
   user-select: none;
   white-space: nowrap;
   transition: transform var(--duration-fast) var(--ease-out),
@@ -349,7 +386,7 @@ html, body {
 .btn-icon {
   padding: 6px 10px;
   border-radius: 8px;
-  min-height: 36px;
+  min-height: 38px;
 }
 
 /* ── Form Controls Design System ───────────────────────────────────────── */
@@ -362,7 +399,7 @@ html, body {
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
-  min-height: 42px;
+  min-height: 44px;
   transition: border-color var(--duration-fast) ease,
               background-color var(--duration-fast) ease,
               box-shadow var(--duration-fast) ease;
@@ -390,6 +427,23 @@ select.input, select.fih-input {
 select.input option, select.fih-input option {
   background: var(--input-option-bg);
   color: var(--text-primary);
+}
+
+/* Responsive Form Rows */
+.form-row-responsive {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .form-row-responsive {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .form-row-responsive .btn {
+    width: 100% !important;
+  }
 }
 
 /* ── Badge Design System ───────────────────────────────────────────────── */
@@ -537,6 +591,21 @@ select.input option, select.fih-input option {
   transform-origin: top;
 }
 
+@keyframes slideUpSheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sheet-enter {
+  animation: slideUpSheet var(--duration-normal) var(--ease-out) forwards;
+}
+
 /* Stagger List Recipe (Sub-150ms total budget) */
 .stagger-item {
   animation: fihSurfaceEnter var(--duration-normal) var(--ease-out) both;
@@ -550,15 +619,14 @@ select.input option, select.fih-input option {
 .stagger-item:nth-child(6) { animation-delay: 115ms; }
 
 /* Micro-Interaction: Custom Checkbox Spring Bounce */
-@keyframes checkBounce {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+@keyframes checkSnap {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .custom-checkbox {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 7px;
   border: 2px solid var(--text-muted);
   display: flex;
@@ -592,7 +660,7 @@ select.input option, select.fih-input option {
 
 .custom-checkbox.checked svg,
 .custom-checkbox.checked span {
-  animation: checkBounce 180ms var(--ease-out) forwards;
+  animation: checkSnap 180ms var(--ease-out) forwards;
 }
 
 /* Skeleton Loading Shimmer */
@@ -649,7 +717,7 @@ select.input option, select.fih-input option {
   background: transparent;
   width: 100%;
   text-align: left;
-  min-height: 42px;
+  min-height: 44px;
   transition: background-color var(--duration-fast) ease,
               color var(--duration-fast) ease,
               transform var(--duration-fast) var(--ease-out) !important;
@@ -678,7 +746,9 @@ select.input option, select.fih-input option {
   margin-left: 250px;
   padding: 36px 48px 64px 48px;
   min-height: 100vh;
+  min-height: 100dvh;
   max-width: 1320px;
+  width: auto;
 }
 
 /* Summary Grid */
@@ -821,6 +891,11 @@ select.input option, select.fih-input option {
   -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
 }
 
+/* Mobile Bottom Navigation Bar (Hidden on desktop) */
+.mobile-bottom-nav {
+  display: none;
+}
+
 /* ── Reduced Motion Accessibility ───────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -840,7 +915,30 @@ select.input option, select.fih-input option {
   }
 }
 
-/* ── Responsive Mobile Overrides ───────────────────────────────────────── */
+/* ── Responsive Tablet Overrides (769px - 1024px) ────────────────────────── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 210px !important;
+    padding: 20px 12px !important;
+  }
+
+  .main-content {
+    margin-left: 210px !important;
+    padding: 28px 24px 48px 24px !important;
+  }
+
+  .grid-summary {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .kanban {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 14px !important;
+  }
+}
+
+/* ── Responsive Mobile Overrides (Phone: <= 768px) ─────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
     display: none !important;
@@ -848,38 +946,66 @@ select.input option, select.fih-input option {
 
   .main-content {
     margin-left: 0 !important;
-    padding: 20px 16px 48px 16px !important;
-    max-width: 100% !important;
+    padding: 16px 16px max(96px, calc(80px + env(safe-area-inset-bottom, 0px))) 16px !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
   }
 
   .mobile-header {
     display: flex !important;
+    padding-top: max(14px, env(safe-area-inset-top, 0px)) !important;
   }
 
   .desktop-header {
     display: none !important;
   }
 
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--bg-mobile-header);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 6px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  }
+
   .grid-summary {
     grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
   .kanban {
     grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 
   .card, .glass-panel, .fih-card {
-    padding: 18px 14px !important;
+    padding: 18px 16px !important;
     border-radius: 14px !important;
   }
 
   .btn, .fih-btn {
     min-height: 44px; /* Emil Kowalski / iOS minimum touch target */
   }
+
+  .todo-item {
+    padding: 12px 14px !important;
+  }
 }
 
 @media (min-width: 769px) {
   .mobile-header {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav {
     display: none !important;
   }
 }
