@@ -2,6 +2,18 @@ import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ThemeToggle } from '@/lib/theme';
+import {
+  CheckSquare,
+  Clock,
+  CreditCard,
+  Calendar,
+  Sparkles,
+  Film,
+  History,
+  Settings,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react';
 import TodoList from '@/components/TodoList';
 import DebtTracker from '@/components/DebtTracker';
 import DeadlineBoard from '@/components/DeadlineBoard';
@@ -15,77 +27,13 @@ import AnalyticsPulse from '@/components/AnalyticsPulse';
 import AuroraBackground from '@/components/AuroraBackground';
 
 const TABS = [
-  {
-    id: 'todos',
-    label: 'Todos',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 11l3 3L22 4" />
-        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-      </svg>
-    ),
-  },
-  {
-    id: 'reminders',
-    label: 'Reminders',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-  },
-  {
-    id: 'debts',
-    label: 'Debts',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="5" width="20" height="14" rx="2" />
-        <line x1="2" y1="10" x2="22" y2="10" />
-      </svg>
-    ),
-  },
-  {
-    id: 'deadlines',
-    label: 'Deadlines',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-  },
-  {
-    id: 'dates',
-    label: 'Important Dates',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'watchlist',
-    label: 'Watchlist',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'audit',
-    label: 'Audit Log',
-    svg: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5" />
-      </svg>
-    ),
-  },
+  { id: 'todos', label: 'Tasks', icon: CheckSquare },
+  { id: 'reminders', label: 'Reminders', icon: Clock },
+  { id: 'debts', label: 'Ledger', icon: CreditCard },
+  { id: 'deadlines', label: 'Deadlines', icon: Calendar },
+  { id: 'dates', label: 'Dates', icon: Sparkles },
+  { id: 'watchlist', label: 'Watchlist', icon: Film },
+  { id: 'audit', label: 'Audit Log', icon: History },
 ];
 
 export default function Dashboard() {
@@ -94,6 +42,23 @@ export default function Dashboard() {
   const [authChecked, setAuthChecked] = useState(false);
   const [envMode, setEnvMode] = useState('live');
   const [updatingEnv, setUpdatingEnv] = useState(false);
+  const [greeting, setGreeting] = useState('Good day');
+  const [dateStr, setDateStr] = useState('');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 4 && hour < 12) setGreeting('Good morning');
+    else if (hour >= 12 && hour < 17) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+
+    setDateStr(
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      })
+    );
+  }, []);
 
   useEffect(() => {
     if (router.isReady && router.query.tab) {
@@ -108,13 +73,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetch('/api/todos')
-      .then(res => {
+      .then((res) => {
         if (res.status === 401) router.push('/login');
         else {
           setAuthChecked(true);
           fetch('/api/user/settings')
-            .then(r => r.json())
-            .then(data => { if (data.environmentMode) setEnvMode(data.environmentMode); });
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.environmentMode) setEnvMode(data.environmentMode);
+            });
         }
       })
       .catch(() => router.push('/login'));
@@ -147,8 +114,16 @@ export default function Dashboard() {
 
   if (!authChecked) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)' }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading Dashboard...</div>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-dark)',
+        }}
+      >
+        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading Precision Dashboard...</div>
       </div>
     );
   }
@@ -170,123 +145,177 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard — fih</title>
-        <meta name="description" content="Your personal life dashboard" />
+        <title>fih — Personal Operating System</title>
+        <meta name="description" content="Precision Personal Life Operations & WhatsApp Chronicle" />
       </Head>
 
       <AuroraBackground />
-      {/* Ambient Background Glow */}
-      <div className="ambient-glow" style={{ top: -100, left: '25%' }} />
-      <div className="ambient-glow" style={{ bottom: -100, right: '25%' }} />
+      {/* Ambient Radial Accent */}
+      <div className="ambient-glow" style={{ top: -80, left: '20%' }} />
 
       {/* Desktop Left Sidebar Navigation */}
       <nav className="sidebar">
+        {/* Brand Header */}
         <div style={{ marginBottom: 32, paddingLeft: 8, paddingRight: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>fih</h2>
+          <div>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 28,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+              }}
+            >
+              fih
+            </span>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 2 }}>
+              Chronicle
+            </div>
+          </div>
           <ThemeToggle size={18} />
         </div>
 
+        {/* Tab Items */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => handleTabChange(tab.id)}
-            >
-              <span style={{ display: 'inline-flex', alignItems: 'center', opacity: activeTab === tab.id ? 1 : 0.7 }}>
-                {tab.svg}
-              </span>
-              <span className="nav-text">{tab.label}</span>
-            </button>
-          ))}
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <Icon size={17} style={{ opacity: isActive ? 1 : 0.75 }} />
+                <span className="nav-text">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Settings & Sign Out Section */}
         <div style={{ paddingTop: 16, borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {/* Settings Button with Mode Badge */}
+          {/* Settings Button with Mode Indicator */}
           <button
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => handleTabChange('settings')}
             style={{ width: '100%', justifyContent: 'space-between' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Settings size={17} />
               <span className="nav-text">Settings</span>
             </div>
-            <span style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.03em',
-              textTransform: 'uppercase',
-              padding: '2px 7px',
-              borderRadius: 10,
-              background: envMode === 'live' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 146, 60, 0.15)',
-              color: envMode === 'live' ? '#4ade80' : '#fb923c',
-              border: `1px solid ${envMode === 'live' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
-            }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                padding: '2px 7px',
+                borderRadius: 8,
+                background: envMode === 'live' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                color: envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                border: `1px solid ${envMode === 'live' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+              }}
+            >
               {envMode === 'live' ? 'Live' : 'Dev'}
             </span>
           </button>
 
           {/* Sign Out Button */}
           <button className="nav-item" onClick={logout}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <LogOut size={17} />
             <span className="nav-text">Sign Out</span>
           </button>
         </div>
       </nav>
 
       {/* Mobile Top Header */}
-      <header className="mobile-header" style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        background: 'var(--bg-mobile-header)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid var(--border-subtle)',
-        flexDirection: 'column',
-        gap: 14,
-        padding: '16px 0 12px 0',
-      }}>
+      <header
+        className="mobile-header"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: 'var(--bg-mobile-header)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderBottom: '1px solid var(--border-subtle)',
+          flexDirection: 'column',
+          gap: 12,
+          padding: '14px 0 10px 0',
+        }}
+      >
         {/* Brand & Action Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', lineHeight: 1 }}>fih</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 26,
+                color: 'var(--text-primary)',
+                lineHeight: 1,
+              }}
+            >
+              fih
+            </span>
             <ThemeToggle size={16} style={{ width: 32, height: 32 }} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              onClick={() => handleTabChange('settings')}
-              className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: 11, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 6 }}
+              onClick={() => switchEnvMode(envMode === 'live' ? 'development' : 'live')}
+              disabled={updatingEnv}
+              style={{
+                fontSize: 11,
+                padding: '4px 10px',
+                borderRadius: 20,
+                background: envMode === 'live' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                color: envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                border: `1px solid ${envMode === 'live' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: envMode === 'live' ? '#4ade80' : '#fb923c' }} />
-              Settings ({envMode === 'live' ? 'Live' : 'Dev'})
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                }}
+              />
+              {envMode === 'live' ? 'Live' : 'Dev'}
             </button>
-            <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 13, padding: '4px 10px', color: 'var(--text-secondary)' }}>
+            <button
+              className="btn btn-ghost"
+              onClick={logout}
+              style={{ fontSize: 13, padding: '4px 8px', color: 'var(--text-secondary)' }}
+            >
               Sign Out
             </button>
           </div>
         </div>
 
-        {/* Natural Scrollable Horizontal Pills */}
-        <div className="no-scrollbar" style={{
-          display: 'flex',
-          gap: 8,
-          overflowX: 'auto',
-          padding: '2px 20px 4px 20px',
-          WebkitOverflowScrolling: 'touch',
-        }}>
-          {TABS.map(tab => {
+        {/* Scrollable Horizontal Navigation with Edge Gradient Mask */}
+        <div
+          className="no-scrollbar mask-edge-fade"
+          style={{
+            display: 'flex',
+            gap: 8,
+            overflowX: 'auto',
+            padding: '2px 18px 4px 18px',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -296,28 +325,108 @@ export default function Dashboard() {
                 style={{
                   fontSize: 13,
                   fontWeight: isActive ? 600 : 500,
-                  padding: '8px 16px',
+                  padding: '8px 14px',
                   borderRadius: 24,
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
-                  boxShadow: isActive ? '0 4px 14px var(--accent-primary-glow)' : 'none',
+                  boxShadow: isActive ? '0 2px 10px var(--accent-primary-glow)' : 'none',
                 }}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center', marginRight: 6 }}>{tab.svg}</span>
+                <Icon size={14} style={{ marginRight: 6 }} />
                 {tab.label}
               </button>
             );
           })}
+          <button
+            className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => handleTabChange('settings')}
+            style={{
+              fontSize: 13,
+              fontWeight: activeTab === 'settings' ? 600 : 500,
+              padding: '8px 14px',
+              borderRadius: 24,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            <Settings size={14} style={{ marginRight: 6 }} />
+            Settings
+          </button>
         </div>
       </header>
 
       {/* Main Content Canvas */}
       <main className="main-content">
-        {/* Desktop Top Header */}
-        <header className="desktop-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>
-            {activeTab === 'settings' ? 'Settings' : TABS.find(t => t.id === activeTab)?.label}
-          </h1>
+        {/* Desktop Editorial Greeting & Hero */}
+        <header className="desktop-header" style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                {dateStr || 'Personal Operating System'} • {envMode === 'live' ? 'Live Mode' : 'Sandbox Mode'}
+              </div>
+              <h1
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: 'clamp(32px, 3.6vw, 46px)',
+                  fontWeight: 400,
+                  color: 'var(--text-primary)',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.15,
+                  margin: 0,
+                }}
+              >
+                {activeTab === 'settings'
+                  ? 'Settings & Controls'
+                  : activeTab === 'audit'
+                  ? 'System Audit Chronicle'
+                  : `${greeting}, Goutham.`}
+              </h1>
+            </div>
+
+            {/* Quick Mode Toggle Pill */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                onClick={() => switchEnvMode(envMode === 'live' ? 'development' : 'live')}
+                disabled={updatingEnv}
+                title="Toggle between Live and Development database"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  background: envMode === 'live' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                  border: `1px solid ${envMode === 'live' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+                  color: envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)',
+                    boxShadow: `0 0 8px ${envMode === 'live' ? 'var(--accent-emerald)' : 'var(--accent-amber)'}`,
+                  }}
+                />
+                <span>{envMode === 'live' ? 'Live Production' : 'Dev Sandbox'}</span>
+              </button>
+            </div>
+          </div>
         </header>
 
         {/* Top Graphical Pulse & Overview Metrics */}
@@ -329,7 +438,49 @@ export default function Dashboard() {
         )}
 
         {/* Tab Content Component */}
-        {renderTab()}
+        <section>{renderTab()}</section>
+
+        {/* Quiet Editorial Footer */}
+        <footer
+          style={{
+            marginTop: 64,
+            paddingTop: 24,
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+            fontSize: 12,
+            color: 'var(--text-muted)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--text-primary)' }}>
+              fih
+            </span>
+            <span>•</span>
+            <span>Precision Personal Operating System</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span>WhatsApp Bot Active</span>
+            <span>•</span>
+            <button
+              onClick={() => handleTabChange('audit')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                fontSize: 12,
+                textDecoration: 'underline',
+              }}
+            >
+              Audit Log
+            </button>
+          </div>
+        </footer>
       </main>
     </>
   );

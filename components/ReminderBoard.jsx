@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { Clock, Plus, Trash2, RefreshCw, Check, Calendar } from 'lucide-react';
 
 export default function ReminderBoard() {
   const [reminders, setReminders] = useState([]);
@@ -22,7 +24,7 @@ export default function ReminderBoard() {
       console.error('Failed to fetch reminders', err);
     } finally {
       setLoading(false);
-      if (isManual) setTimeout(() => setRefreshing(false), 500);
+      if (isManual) setTimeout(() => setRefreshing(false), 400);
     }
   };
 
@@ -46,20 +48,25 @@ export default function ReminderBoard() {
       if (res.ok) {
         setTitle('');
         setRemindAt('');
+        toast.success('Reminder scheduled');
         fetchReminders();
+      } else {
+        toast.error('Failed to schedule reminder');
       }
     } catch (err) {
       console.error('Failed to create reminder', err);
+      toast.error('Network error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const deleteReminder = async (id) => {
+  const deleteReminder = async (id, rTitle) => {
     try {
       const res = await fetch(`/api/reminders/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setReminders((prev) => prev.filter((r) => r._id !== id));
+        toast('Reminder removed', { description: rTitle || '' });
       }
     } catch (err) {
       console.error('Failed to delete reminder', err);
@@ -74,6 +81,7 @@ export default function ReminderBoard() {
         body: JSON.stringify({ sent: !currentSent }),
       });
       if (res.ok) {
+        toast.success(currentSent ? 'Moved to upcoming' : 'Marked as sent');
         fetchReminders();
       }
     } catch (err) {
@@ -99,48 +107,57 @@ export default function ReminderBoard() {
 
   const getRelativeBadge = (dateStr) => {
     const diff = new Date(dateStr) - new Date();
-    if (diff < 0) return { text: 'Overdue / Pending Trigger', color: '#ff4b4b' };
+    if (diff < 0) return { text: 'Overdue / Pending Trigger', color: 'var(--accent-rose)', bg: 'var(--badge-high-bg)', border: 'var(--badge-high-border)' };
     const mins = Math.floor(diff / (1000 * 60));
-    if (mins < 60) return { text: `In ${mins} min${mins === 1 ? '' : 's'}`, color: '#f59e0b' };
+    if (mins < 60) return { text: `In ${mins} min${mins === 1 ? '' : 's'}`, color: 'var(--accent-amber)', bg: 'var(--badge-medium-bg)', border: 'var(--badge-medium-border)' };
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return { text: `In ${hours} hr${hours === 1 ? '' : 's'}`, color: '#3b82f6' };
+    if (hours < 24) return { text: `In ${hours} hr${hours === 1 ? '' : 's'}`, color: 'var(--accent-indigo)', bg: 'var(--badge-planned-bg)', border: 'var(--border-subtle)' };
     const days = Math.floor(hours / 24);
-    return { text: `In ${days} day${days === 1 ? '' : 's'}`, color: '#10b981' };
+    return { text: `In ${days} day${days === 1 ? '' : 's'}`, color: 'var(--accent-emerald)', bg: 'var(--badge-low-bg)', border: 'var(--badge-low-border)' };
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Header with Refresh & Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 8, background: 'var(--bg-sunken)', border: '1px solid var(--border-subtle)', padding: 4, borderRadius: 12 }}>
+    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* View Switcher & Header Controls */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            background: 'var(--bg-sunken)',
+            border: '1px solid var(--border-subtle)',
+            padding: 3,
+            borderRadius: 10,
+          }}
+        >
           <button
             onClick={() => setActiveTab('upcoming')}
+            className={`btn ${activeTab === 'upcoming' ? 'btn-secondary' : 'btn-ghost'}`}
             style={{
-              padding: '6px 16px',
-              borderRadius: 8,
-              border: 'none',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              background: activeTab === 'upcoming' ? 'var(--gradient-primary)' : 'transparent',
-              color: activeTab === 'upcoming' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
+              padding: '6px 14px',
+              fontSize: 12,
+              fontWeight: activeTab === 'upcoming' ? 600 : 500,
+              minHeight: 32,
             }}
           >
             Upcoming ({upcomingReminders.length})
           </button>
           <button
             onClick={() => setActiveTab('history')}
+            className={`btn ${activeTab === 'history' ? 'btn-secondary' : 'btn-ghost'}`}
             style={{
-              padding: '6px 16px',
-              borderRadius: 8,
-              border: 'none',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              background: activeTab === 'history' ? 'var(--gradient-primary)' : 'transparent',
-              color: activeTab === 'history' ? 'var(--accent-primary-text)' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
+              padding: '6px 14px',
+              fontSize: 12,
+              fontWeight: activeTab === 'history' ? 600 : 500,
+              minHeight: 32,
             }}
           >
             Sent / Past ({historyReminders.length})
@@ -150,55 +167,110 @@ export default function ReminderBoard() {
         <button
           onClick={() => fetchReminders(true)}
           className="btn btn-secondary"
-          style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+          style={{ fontSize: 12, padding: '4px 12px', minHeight: 32 }}
         >
-          <span style={{ display: 'inline-block', transform: refreshing ? 'rotate(360deg)' : 'none', transition: 'transform 0.5s ease' }}>↻</span>
-          Refresh
+          <RefreshCw
+            size={13}
+            style={{
+              transform: refreshing ? 'rotate(360deg)' : 'none',
+              transition: 'transform 0.4s ease',
+            }}
+          />
+          <span>Refresh</span>
         </button>
       </div>
 
-      {/* Add New Reminder Form */}
-      <form onSubmit={handleSubmit} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>⏰ Set New Reminder</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-          <input
-            type="text"
-            placeholder="Reminder title (e.g. Call Mom, Take medicine)..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="input"
-            required
-          />
-          <input
-            type="datetime-local"
-            value={remindAt}
-            onChange={(e) => setRemindAt(e.target.value)}
-            className="input"
-            required
-          />
+      {/* Set New Reminder Form Card */}
+      <form onSubmit={handleSubmit} className="fih-card">
+        <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 14 }}>
+          Set New Reminder Alert
+        </h3>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 12,
+            alignItems: 'end',
+          }}
+        >
+          <div>
+            <label
+              style={{
+                fontSize: 11,
+                color: 'var(--text-muted)',
+                fontWeight: 600,
+                display: 'block',
+                marginBottom: 6,
+                letterSpacing: '0.04em',
+              }}
+            >
+              TITLE
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Call Mom, Review PR..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="fih-input"
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                fontSize: 11,
+                color: 'var(--text-muted)',
+                fontWeight: 600,
+                display: 'block',
+                marginBottom: 6,
+                letterSpacing: '0.04em',
+              }}
+            >
+              REMIND AT
+            </label>
+            <input
+              type="datetime-local"
+              value={remindAt}
+              onChange={(e) => setRemindAt(e.target.value)}
+              className="fih-input tabular-nums"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={submitting}
+            style={{ minHeight: 42, padding: '0 20px' }}
+          >
+            <Plus size={16} />
+            <span>{submitting ? 'Setting...' : 'Set Reminder'}</span>
+          </button>
         </div>
-        <button type="submit" className="btn btn-primary" disabled={submitting} style={{ alignSelf: 'flex-start' }}>
-          {submitting ? 'Setting...' : '+ Set Reminder'}
-        </button>
       </form>
 
       {/* List Display */}
       {loading ? (
-        <div className="card" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>Loading reminders...</div>
+        <div className="fih-card" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+          Loading reminders...
+        </div>
       ) : activeTab === 'upcoming' ? (
         upcomingReminders.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No upcoming reminders</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>You're all caught up! Use the form above or text WhatsApp to add one.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+              All caught up! Use the form above or message your WhatsApp bot to schedule one.
+            </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {upcomingReminders.map((r) => {
               const badge = getRelativeBadge(r.remindAt);
               return (
                 <div
                   key={r._id}
-                  className="card"
+                  className="fih-card"
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -206,42 +278,59 @@ export default function ReminderBoard() {
                     flexWrap: 'wrap',
                     gap: 12,
                     padding: '16px 20px',
-                    borderLeft: `4px solid ${badge.color}`,
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{r.title}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {r.title}
+                      </span>
                       <span
+                        className="tabular-nums"
                         style={{
                           fontSize: 11,
                           fontWeight: 700,
                           padding: '2px 8px',
-                          borderRadius: 12,
-                          background: `${badge.color}20`,
+                          borderRadius: 6,
+                          background: badge.bg,
                           color: badge.color,
+                          border: `1px solid ${badge.border}`,
                         }}
                       >
                         {badge.text}
                       </span>
                     </div>
-                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>🗓️ {formatDateTime(r.remindAt)}</span>
+                    <span
+                      className="tabular-nums"
+                      style={{
+                        fontSize: 12,
+                        color: 'var(--text-secondary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Calendar size={12} />
+                      {formatDateTime(r.remindAt)}
+                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                     <button
                       onClick={() => toggleSent(r._id, r.sent)}
                       className="btn btn-secondary"
-                      style={{ fontSize: 12, padding: '6px 12px' }}
+                      style={{ fontSize: 12, padding: '6px 12px', minHeight: 34 }}
                     >
-                      ✓ Mark Sent
+                      <Check size={13} />
+                      <span>Mark Sent</span>
                     </button>
                     <button
-                      onClick={() => deleteReminder(r._id)}
-                      className="btn btn-secondary"
-                      style={{ fontSize: 12, padding: '6px 10px', color: '#ff4b4b', borderColor: '#ff4b4b40' }}
+                      onClick={() => deleteReminder(r._id, r.title)}
+                      className="btn btn-ghost btn-icon"
+                      style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 34 }}
+                      title="Delete reminder"
                     >
-                      🗑️
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
@@ -249,44 +338,70 @@ export default function ReminderBoard() {
             })}
           </div>
         )
+      ) : historyReminders.length === 0 ? (
+        <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No sent reminder history</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            Completed alerts will appear here for audit history.
+          </p>
+        </div>
       ) : (
-        historyReminders.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No sent reminder history</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Completed alerts will appear here for audit history.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {historyReminders.map((r) => (
-              <div
-                key={r._id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 12,
-                  padding: '16px 20px',
-                  opacity: 0.75,
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{r.title}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>🗓️ Triggered: {formatDateTime(r.sentAt || r.remindAt)}</span>
-                </div>
-
-                <button
-                  onClick={() => deleteReminder(r._id)}
-                  className="btn btn-secondary"
-                  style={{ fontSize: 12, padding: '6px 10px', color: '#ff4b4b', borderColor: '#ff4b4b40' }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {historyReminders.map((r) => (
+            <div
+              key={r._id}
+              className="fih-card"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 12,
+                padding: '16px 20px',
+                opacity: 0.7,
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: 'var(--text-secondary)',
+                    textDecoration: 'line-through',
+                  }}
                 >
-                  🗑️
+                  {r.title}
+                </span>
+                <span
+                  className="tabular-nums"
+                  style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}
+                >
+                  <Clock size={12} />
+                  Triggered: {formatDateTime(r.sentAt || r.remindAt)}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => toggleSent(r._id, r.sent)}
+                  className="btn btn-ghost"
+                  style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
+                  title="Move back to upcoming"
+                >
+                  Reopen
+                </button>
+                <button
+                  onClick={() => deleteReminder(r._id, r.title)}
+                  className="btn btn-ghost btn-icon"
+                  style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 32 }}
+                  title="Delete record"
+                >
+                  <Trash2 size={15} />
                 </button>
               </div>
-            ))}
-          </div>
-        )
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

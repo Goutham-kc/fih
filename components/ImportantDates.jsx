@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { Sparkles, Plus, Trash2, RefreshCw, Calendar } from 'lucide-react';
 
 function getDaysUntil(dateStr) {
   const now = new Date();
@@ -18,8 +20,11 @@ function getDaysUntil(dateStr) {
 }
 
 function groupDates(dates) {
-  const thisWeek = [], thisMonth = [], later = [], past = [];
-  dates.forEach(d => {
+  const thisWeek = [];
+  const thisMonth = [];
+  const later = [];
+  const past = [];
+  dates.forEach((d) => {
     const days = getDaysUntil(d.date);
     if (days < 0) past.push(d);
     else if (days <= 7) thisWeek.push(d);
@@ -39,36 +44,49 @@ export default function ImportantDates() {
 
   async function fetchDates() {
     const res = await fetch('/api/dates');
-    if (res.ok) setDates((await res.json()).dates);
+    if (res.ok) {
+      const data = await res.json();
+      setDates(data.dates || []);
+    }
     setLoading(false);
   }
 
-  useEffect(() => { fetchDates(); }, []);
+  useEffect(() => {
+    fetchDates();
+  }, []);
 
   async function addDate(e) {
     e.preventDefault();
-    if (!title || !date) return;
+    if (!title.trim() || !date.trim()) return;
     setAdding(true);
-    await fetch('/api/dates', {
+    const res = await fetch('/api/dates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, date, recurring }),
+      body: JSON.stringify({ title: title.trim(), date: date.trim(), recurring }),
     });
-    setTitle(''); setDate(''); setRecurring('none');
-    await fetchDates();
+
+    if (res.ok) {
+      setTitle('');
+      setDate('');
+      setRecurring('none');
+      toast.success('Important date tracked');
+      await fetchDates();
+    } else {
+      toast.error('Failed to save date');
+    }
     setAdding(false);
   }
 
-  async function deleteDate(id) {
-    if (!confirm('Delete this important date?')) return;
+  async function deleteDate(id, dateTitle) {
     await fetch(`/api/dates/${id}`, { method: 'DELETE' });
+    toast('Date removed', { description: dateTitle || '' });
     fetchDates();
   }
 
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading dates...</div>
+        <div>Loading important dates chronicle...</div>
       </div>
     );
   }
@@ -78,49 +96,73 @@ export default function ImportantDates() {
   function renderGroup(label, items, badgeColor) {
     if (!items.length) return null;
     return (
-      <div style={{ marginBottom: 24 }}>
-        <div style={{
-          fontSize: 12,
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          color: badgeColor || 'var(--text-muted)',
-          marginBottom: 12,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8
-        }}>
+      <div style={{ marginBottom: 28 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            color: badgeColor || 'var(--text-muted)',
+            marginBottom: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
           <span>{label}</span>
-          <span style={{ height: 1, flex: 1, background: 'var(--border-subtle)' }}></span>
+          <span style={{ height: 1, flex: 1, background: 'var(--border-subtle)' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {items.map(d => {
+          {items.map((d) => {
             const days = getDaysUntil(d.date);
             return (
-              <div key={d._id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div
+                key={d._id}
+                className="fih-card"
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0, flex: 1 }}>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
-                      <span style={{ fontWeight: 700, fontSize: 16 }}>{d.title}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
+                        {d.title}
+                      </span>
                       {d.recurring !== 'none' && (
                         <span className="badge badge-planned" style={{ textTransform: 'capitalize' }}>
                           {d.recurring}
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    <div className="tabular-nums" style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Calendar size={12} />
                       Date: <strong style={{ color: 'var(--text-primary)' }}>{d.date}</strong>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <span className={`countdown-chip ${days === 0 ? 'today' : days > 0 && days <= 7 ? 'today' : 'upcoming'}`} style={{ fontSize: 13, padding: '6px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                  <span
+                    className={`countdown-chip tabular-nums ${days === 0 ? 'today' : days > 0 && days <= 7 ? 'today' : 'upcoming'}`}
+                    style={{ fontSize: 12, padding: '4px 12px' }}
+                  >
                     {days === 0 ? 'Today' : days > 0 ? `In ${days} days` : `${Math.abs(days)} days ago`}
                   </span>
-                  <button className="btn btn-ghost btn-icon" onClick={() => deleteDate(d._id)} style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-                    Delete
+                  <button
+                    className="btn btn-ghost btn-icon"
+                    onClick={() => deleteDate(d._id, d.title)}
+                    style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 32 }}
+                    title="Delete date"
+                  >
+                    <Trash2 size={15} />
                   </button>
                 </div>
               </div>
@@ -133,51 +175,123 @@ export default function ImportantDates() {
 
   return (
     <div className="animate-fade">
-      {/* Create Form */}
-      <div className="card" style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700 }}>Track Important Date / Birthday</h3>
-          <button className="btn btn-secondary" onClick={fetchDates} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh dates">
-            ↻ Refresh
+      {/* Create Form Card */}
+      <div className="fih-card" style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em' }}>
+            Track Important Date / Milestone
+          </h3>
+          <button
+            className="btn btn-secondary"
+            onClick={fetchDates}
+            style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
+            title="Refresh dates"
+          >
+            <RefreshCw size={13} />
+            <span>Refresh</span>
           </button>
         </div>
         <form onSubmit={addDate}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: 12,
+              alignItems: 'end',
+            }}
+          >
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>TITLE</label>
-              <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Mom's Birthday" required />
+              <label
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                TITLE
+              </label>
+              <input
+                className="fih-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Mom's Birthday, Visa Renewal"
+                required
+              />
             </div>
 
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>DATE (MM-DD or YYYY-MM-DD)</label>
-              <input className="input" value={date} onChange={e => setDate(e.target.value)} placeholder="e.g. 09-14" required />
+              <label
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                DATE (MM-DD or YYYY-MM-DD)
+              </label>
+              <input
+                className="fih-input tabular-nums"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                placeholder="e.g. 09-14 or 2026-11-20"
+                required
+              />
             </div>
 
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>RECURRING</label>
-              <select className="input" value={recurring} onChange={e => setRecurring(e.target.value)}>
-                <option value="none">One-time Event</option>
-                <option value="yearly">Yearly (Birthdays, Anniversaries)</option>
-                <option value="monthly">Monthly</option>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                RECURRING
+              </label>
+              <select
+                className="fih-input"
+                value={recurring}
+                onChange={(e) => setRecurring(e.target.value)}
+              >
+                <option value="none">One-time Milestone</option>
+                <option value="yearly">Yearly (Birthday / Anniversary)</option>
+                <option value="monthly">Monthly Cycle</option>
               </select>
             </div>
 
-            <button type="submit" className="btn btn-primary" disabled={adding} style={{ height: 46 }}>
-              {adding ? 'Adding...' : '+ Save Date'}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={adding}
+              style={{ minHeight: 42, padding: '0 20px' }}
+            >
+              <Plus size={16} />
+              <span>{adding ? 'Saving...' : 'Save Date'}</span>
             </button>
           </div>
         </form>
       </div>
 
       {dates.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+        <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No important dates saved</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Add birthdays or anniversaries to receive WhatsApp reminders.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            Add birthdays, milestones, or anniversaries to receive automated WhatsApp reminders.
+          </p>
         </div>
       ) : (
         <>
           {renderGroup('This Week', thisWeek, 'var(--accent-amber)')}
-          {renderGroup('This Month', thisMonth, 'var(--accent-cyan)')}
+          {renderGroup('This Month', thisMonth, 'var(--accent-indigo)')}
           {renderGroup('Upcoming Later', later, 'var(--accent-violet)')}
           {renderGroup('Past Events', past, 'var(--text-muted)')}
         </>

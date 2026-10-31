@@ -2,6 +2,7 @@ import Head from 'next/head';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { ThemeToggle } from '@/lib/theme';
+import AuroraBackground from '@/components/AuroraBackground';
 
 export default function Login() {
   const router = useRouter();
@@ -36,141 +37,139 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Login — fih</title>
-        <meta name="description" content="Sign in to your fih dashboard" />
+        <title>Sign In — fih</title>
+        <meta name="description" content="Sign in to your fih personal operating system" />
       </Head>
 
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-canvas)',
-        padding: '24px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-dark)',
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <AuroraBackground />
+
         {/* Top-right theme toggle */}
         <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 20 }}>
           <ThemeToggle size={18} />
         </div>
 
-        {/* Ambient Glow Spheres */}
-        <div style={{
-          position: 'absolute',
-          top: '20%',
-          left: '30%',
-          width: 400,
-          height: 400,
-          background: 'radial-gradient(circle, var(--accent-violet-glow) 0%, rgba(0,0,0,0) 70%)',
-          pointerEvents: 'none',
-          filter: 'blur(60px)',
-        }} />
+        {/* Ambient Radial Glow */}
+        <div className="ambient-glow" style={{ top: '15%', left: '25%' }} />
 
-        <div style={{
-          position: 'absolute',
-          bottom: '20%',
-          right: '30%',
-          width: 400,
-          height: 400,
-          background: 'radial-gradient(circle, var(--accent-primary-glow) 0%, rgba(0,0,0,0) 70%)',
-          pointerEvents: 'none',
-          filter: 'blur(60px)',
-        }} />
-
-        <div className="card" style={{
-          width: '100%',
-          maxWidth: '420px',
-          padding: '44px 36px',
-          boxShadow: 'var(--shadow-modal)',
-          position: 'relative',
-          zIndex: 10,
-          animation: 'fadeIn 0.4s ease forwards'
-        }}>
-          {/* Brand Logo */}
-          <div style={{ textAlign: 'center', marginBottom: 36 }}>
-            <img
-              src="/logo.png"
-              alt="FIH"
+        <div
+          className="fih-card animate-fade"
+          style={{
+            width: '100%',
+            maxWidth: '400px',
+            padding: '40px 32px',
+            position: 'relative',
+            zIndex: 10,
+          }}
+        >
+          {/* Brand Identity */}
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div
               style={{
-                width: 76,
-                height: 76,
-                borderRadius: '50%',
-                margin: '0 auto 20px',
-                display: 'block',
-                objectFit: 'cover',
-                boxShadow: '0 8px 24px var(--accent-primary-glow), 0 0 0 2px var(--border-subtle)',
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 48,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                marginBottom: 6,
               }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-            <div style={{
-              fontSize: 52,
-              fontWeight: 800,
-              background: 'var(--gradient-primary)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-              marginBottom: 8,
-            }}>fih</div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>
-              Personal Life Dashboard
+            >
+              fih
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500 }}>
+              Precision Personal Operating System
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 20 }}>
-              <label htmlFor="email" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.05em' }}>
+            <div style={{ marginBottom: 18 }}>
+              <label
+                htmlFor="email"
+                style={{
+                  display: 'block',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
                 EMAIL ADDRESS
               </label>
               <input
                 id="email"
                 type="email"
-                className="input"
+                className="fih-input"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
                 autoFocus
               />
             </div>
 
-            <div style={{ marginBottom: 24 }}>
-              <label htmlFor="password" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.05em' }}>
+            <div style={{ marginBottom: 22 }}>
+              <label
+                htmlFor="password"
+                style={{
+                  display: 'block',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
                 PASSWORD
               </label>
               <input
                 id="password"
                 type="password"
-                className="input"
+                className="fih-input"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
               />
             </div>
 
             {error && (
-              <div style={{
-                background: 'rgba(244, 63, 94, 0.12)',
-                border: '1px solid rgba(244, 63, 94, 0.3)',
-                color: 'var(--accent-rose)',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                fontSize: 13,
-                marginBottom: 20,
-                textAlign: 'center',
-                fontWeight: 600
-              }}>{error}</div>
+              <div
+                style={{
+                  background: 'var(--badge-high-bg)',
+                  border: '1px solid var(--badge-high-border)',
+                  color: 'var(--badge-high-color)',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  fontSize: 13,
+                  marginBottom: 18,
+                  textAlign: 'center',
+                  fontWeight: 600,
+                }}
+              >
+                {error}
+              </div>
             )}
 
             <button
               type="submit"
               className="btn btn-primary"
               disabled={loading}
-              style={{ width: '100%', height: 48, fontSize: 15, borderRadius: 12 }}
+              style={{ width: '100%', height: 44, fontSize: 14, borderRadius: 10 }}
             >
-              {loading ? 'Signing in...' : 'Sign In →'}
+              {loading ? 'Authenticating...' : 'Sign In →'}
             </button>
           </form>
         </div>

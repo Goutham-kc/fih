@@ -1,6 +1,7 @@
 import '@/styles/globals.css';
 import Head from 'next/head';
 import { ThemeProvider } from '@/lib/theme';
+import { Toaster } from 'sonner';
 
 export default function App({ Component, pageProps }) {
   return (
@@ -10,10 +11,10 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <link rel="alternate icon" href="/logo.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#121319" />
+        <meta name="theme-color" content="#0d0e12" />
       </Head>
       <Component {...pageProps} />
+      <Toaster richColors position="top-right" theme="system" closeButton />
     </ThemeProvider>
   );
 }
-

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { fireSuccessBurst } from '@/lib/confetti';
+import { Plus, Trash2, RefreshCw, Star, Film, BookOpen } from 'lucide-react';
 
 export default function Watchlist() {
   const [items, setItems] = useState([]);
@@ -11,89 +14,146 @@ export default function Watchlist() {
 
   async function fetchItems() {
     const res = await fetch('/api/watchlist');
-    if (res.ok) setItems((await res.json()).items);
+    if (res.ok) {
+      const data = await res.json();
+      setItems(data.items || []);
+    }
     setLoading(false);
   }
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    fetchItems();
+  }, []);
 
   async function addItem(e) {
     e.preventDefault();
     if (!title.trim()) return;
     setAdding(true);
-    await fetch('/api/watchlist', {
+    const res = await fetch('/api/watchlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, type }),
+      body: JSON.stringify({ title: title.trim(), type }),
     });
-    setTitle(''); setType('show');
-    await fetchItems();
+
+    if (res.ok) {
+      setTitle('');
+      setType('show');
+      toast.success('Added to watchlist');
+      await fetchItems();
+    } else {
+      toast.error('Failed to add item');
+    }
     setAdding(false);
   }
 
   async function updateStatus(id, status, rating) {
     try {
+      if (status === 'done') {
+        fireSuccessBurst();
+      }
       const res = await fetch(`/api/watchlist/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, ...(rating != null ? { rating } : {}) }),
       });
-      if (!res.ok) {
+      if (res.ok) {
+        toast.success(`Moved to ${status === 'in_progress' ? 'In Progress' : status === 'done' ? 'Completed' : 'Planned'}`);
+      } else {
         const errData = await res.json().catch(() => ({}));
-        alert(`Error updating watchlist: ${errData.error?.message || res.statusText}`);
+        toast.error(`Error updating: ${errData.error?.message || res.statusText}`);
       }
     } catch (error) {
-      alert(`Network error: ${error.message}`);
+      toast.error(`Network error: ${error.message}`);
     }
     fetchItems();
   }
 
-  async function deleteItem(id) {
-    if (!confirm('Remove from watchlist?')) return;
+  async function deleteItem(id, itemTitle) {
     await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
+    toast('Item removed', { description: itemTitle || '' });
     fetchItems();
   }
 
-  const planned = items.filter(i => i.status === 'planned');
-  const inProgress = items.filter(i => i.status === 'in_progress');
-  const done = items.filter(i => i.status === 'done');
+  const planned = items.filter((i) => i.status === 'planned');
+  const inProgress = items.filter((i) => i.status === 'in_progress');
+  const done = items.filter((i) => i.status === 'done');
 
   function renderItem(item) {
     return (
       <div key={item._id} className="item-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 4 }}>
+          <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: 14,
+                color: 'var(--text-primary)',
+                marginBottom: 4,
+                wordBreak: 'break-word',
+              }}
+            >
               {item.title}
             </div>
-            <span className="badge badge-planned" style={{ fontSize: 10, textTransform: 'uppercase' }}>
-              {item.type}
-            </span>
-            {item.status === 'done' && item.rating && (
-              <span style={{ marginLeft: 8, color: '#fbbf24', fontSize: 13, fontWeight: 700 }}>
-                ★ {item.rating}/10
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span className="badge badge-planned" style={{ fontSize: 10, textTransform: 'uppercase' }}>
+                {item.type}
               </span>
-            )}
+              {item.status === 'done' && item.rating && (
+                <span
+                  className="tabular-nums"
+                  style={{
+                    color: '#fbbf24',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <Star size={11} fill="#fbbf24" /> {item.rating}/10
+                </span>
+              )}
+            </div>
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={() => deleteItem(item._id)} style={{ color: 'var(--text-muted)', padding: 4 }}>
-            ✕
+          <button
+            className="btn btn-ghost btn-icon"
+            onClick={() => deleteItem(item._id, item.title)}
+            style={{ color: 'var(--text-muted)', padding: '4px', minHeight: 28 }}
+            title="Remove item"
+          >
+            <Trash2 size={13} />
           </button>
         </div>
 
         {/* Action Controls */}
         <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {item.status !== 'in_progress' && (
-            <button className="btn btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => updateStatus(item._id, 'in_progress')}>
-              In Progress
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
+              onClick={() => updateStatus(item._id, 'in_progress')}
+            >
+              Start
             </button>
           )}
           {item.status !== 'planned' && (
-            <button className="btn btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => updateStatus(item._id, 'planned')}>
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
+              onClick={() => updateStatus(item._id, 'planned')}
+            >
               Plan
             </button>
           )}
           {item.status !== 'done' && (
-            <button className="btn btn-primary" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => { setRatingFor(item._id); setTempRating(8); }}>
+            <button
+              className="btn btn-primary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
+              onClick={() => {
+                setRatingFor(item._id);
+                setTempRating(8);
+              }}
+            >
               Complete
             </button>
           )}
@@ -101,26 +161,61 @@ export default function Watchlist() {
 
         {/* Rating Prompt Drawer */}
         {ratingFor === item._id && (
-          <div style={{ marginTop: 12, padding: 12, background: 'var(--bg-sunken)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>Rate this item (1-10):</div>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              background: 'var(--bg-sunken)',
+              borderRadius: 10,
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>
+              Rate this item (1-10):
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <input
                 type="range"
                 min="1"
                 max="10"
                 value={tempRating}
-                onChange={e => setTempRating(Number(e.target.value))}
-                style={{ flex: 1, accentColor: 'var(--accent-violet)' }}
+                onChange={(e) => setTempRating(Number(e.target.value))}
+                style={{ flex: 1, accentColor: 'var(--accent-indigo)' }}
               />
-              <span style={{ color: '#fbbf24', fontWeight: 800, minWidth: 36, fontSize: 14 }}>
-                ★ {tempRating}
+              <span
+                className="tabular-nums"
+                style={{
+                  color: '#fbbf24',
+                  fontWeight: 700,
+                  minWidth: 42,
+                  fontSize: 13,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                }}
+              >
+                <Star size={12} fill="#fbbf24" /> {tempRating}
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-primary" style={{ flex: 1, fontSize: 12, padding: '6px' }} onClick={() => { updateStatus(item._id, 'done', tempRating); setRatingFor(null); }}>
-                Save Rating
+              <button
+                className="btn btn-primary"
+                style={{ flex: 1, fontSize: 11, padding: '5px', minHeight: 30 }}
+                onClick={() => {
+                  updateStatus(item._id, 'done', tempRating);
+                  setRatingFor(null);
+                }}
+              >
+                Save
               </button>
-              <button className="btn btn-ghost" style={{ fontSize: 12, padding: '6px' }} onClick={() => { updateStatus(item._id, 'done'); setRatingFor(null); }}>
+              <button
+                className="btn btn-ghost"
+                style={{ fontSize: 11, padding: '5px 10px', minHeight: 30 }}
+                onClick={() => {
+                  updateStatus(item._id, 'done');
+                  setRatingFor(null);
+                }}
+              >
                 Skip
               </button>
             </div>
@@ -133,31 +228,78 @@ export default function Watchlist() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading watchlist...</div>
+        <div>Loading watchlist chronicle...</div>
       </div>
     );
   }
 
   return (
     <div className="animate-fade">
-      {/* Create Form */}
-      <div className="card" style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700 }}>Add to Watch / Read List</h3>
-          <button className="btn btn-secondary" onClick={fetchItems} style={{ fontSize: 12, padding: '4px 10px' }} title="Refresh watchlist">
-            ↻ Refresh
+      {/* Create Form Card */}
+      <div className="fih-card" style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em' }}>
+            Add to Watch / Read Chronicle
+          </h3>
+          <button
+            className="btn btn-secondary"
+            onClick={fetchItems}
+            style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
+            title="Refresh watchlist"
+          >
+            <RefreshCw size={13} />
+            <span>Refresh</span>
           </button>
         </div>
         <form onSubmit={addItem}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, alignItems: 'end' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: 12,
+              alignItems: 'end',
+            }}
+          >
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>TITLE</label>
-              <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Severance, Dune, Cyberpunk" required />
+              <label
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                TITLE
+              </label>
+              <input
+                className="fih-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Severance, Dune, Cyberpunk"
+                required
+              />
             </div>
 
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>TYPE</label>
-              <select className="input" value={type} onChange={e => setType(e.target.value)}>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                TYPE
+              </label>
+              <select
+                className="fih-input"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              >
                 <option value="movie">Movie</option>
                 <option value="show">TV Show</option>
                 <option value="anime">Anime</option>
@@ -166,8 +308,14 @@ export default function Watchlist() {
               </select>
             </div>
 
-            <button type="submit" className="btn btn-primary" disabled={adding} style={{ height: 46 }}>
-              {adding ? 'Adding...' : '+ Add Item'}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={adding}
+              style={{ minHeight: 42, padding: '0 20px' }}
+            >
+              <Plus size={16} />
+              <span>{adding ? 'Adding...' : 'Add Item'}</span>
             </button>
           </div>
         </form>
@@ -177,26 +325,44 @@ export default function Watchlist() {
       <div className="kanban">
         <div className="kanban-col">
           <div className="kanban-header">
-            <h3 style={{ color: 'var(--accent-indigo)' }}>Planned</h3>
-            <span className="tab-count">{planned.length}</span>
+            <h3>Planned</h3>
+            <span className="tab-count tabular-nums">{planned.length}</span>
           </div>
-          {planned.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Nothing planned</p> : planned.map(renderItem)}
+          {planned.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+              Nothing planned
+            </p>
+          ) : (
+            planned.map(renderItem)
+          )}
         </div>
 
         <div className="kanban-col">
           <div className="kanban-header">
-            <h3 style={{ color: 'var(--accent-amber)' }}>In Progress</h3>
-            <span className="tab-count">{inProgress.length}</span>
+            <h3>In Progress</h3>
+            <span className="tab-count tabular-nums">{inProgress.length}</span>
           </div>
-          {inProgress.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Nothing active</p> : inProgress.map(renderItem)}
+          {inProgress.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+              Nothing active
+            </p>
+          ) : (
+            inProgress.map(renderItem)
+          )}
         </div>
 
         <div className="kanban-col">
           <div className="kanban-header">
-            <h3 style={{ color: 'var(--accent-emerald)' }}>Completed</h3>
-            <span className="tab-count">{done.length}</span>
+            <h3>Completed</h3>
+            <span className="tab-count tabular-nums">{done.length}</span>
           </div>
-          {done.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Nothing finished yet</p> : done.map(renderItem)}
+          {done.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+              Nothing finished yet
+            </p>
+          ) : (
+            done.map(renderItem)
+          )}
         </div>
       </div>
     </div>
