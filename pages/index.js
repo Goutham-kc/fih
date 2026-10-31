@@ -11,6 +11,8 @@ import ReminderBoard from '@/components/ReminderBoard';
 import SettingsView from '@/components/SettingsView';
 import AuditLogView from '@/components/AuditLogView';
 import OverviewCards from '@/components/OverviewCards';
+import AnalyticsPulse from '@/components/AnalyticsPulse';
+import AuroraBackground from '@/components/AuroraBackground';
 
 const TABS = [
   {
@@ -172,6 +174,7 @@ export default function Dashboard() {
         <meta name="description" content="Your personal life dashboard" />
       </Head>
 
+      <AuroraBackground />
       {/* Ambient Background Glow */}
       <div className="ambient-glow" style={{ top: -100, left: '25%' }} />
       <div className="ambient-glow" style={{ bottom: -100, right: '25%' }} />
@@ -317,9 +320,12 @@ export default function Dashboard() {
           </h1>
         </header>
 
-        {/* Top Overview Metrics Strip */}
+        {/* Top Graphical Pulse & Overview Metrics */}
         {activeTab !== 'settings' && activeTab !== 'audit' && (
-          <OverviewCards onNavigate={handleTabChange} envMode={envMode} />
+          <>
+            <AnalyticsPulse onNavigate={handleTabChange} envMode={envMode} />
+            <OverviewCards onNavigate={handleTabChange} envMode={envMode} />
+          </>
         )}
 
         {/* Tab Content Component */}

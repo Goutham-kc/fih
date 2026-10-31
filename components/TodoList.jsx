@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fireSuccessBurst } from '@/lib/confetti';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -39,6 +40,9 @@ export default function TodoList() {
   }
 
   async function markDone(id, currentStatus) {
+    if (currentStatus !== 'done') {
+      fireSuccessBurst();
+    }
     await fetch(`/api/todos/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

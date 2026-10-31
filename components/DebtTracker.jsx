@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fireSuccessBurst, fireBigCelebration } from '@/lib/confetti';
 
 function cleanNote(note, personName) {
   if (!note) return '';
@@ -50,6 +51,7 @@ export default function DebtTracker() {
   }
 
   async function settleSingleDebt(debtId) {
+    fireSuccessBurst();
     await fetch(`/api/debts/${debtId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -60,6 +62,7 @@ export default function DebtTracker() {
 
   async function settleAll(personName) {
     if (!confirm(`Settle all active debts with ${personName}?`)) return;
+    fireBigCelebration();
     const toSettle = debts.filter(d => d.person === personName && !d.settled);
     await Promise.all(toSettle.map(d =>
       fetch(`/api/debts/${d._id}`, {
