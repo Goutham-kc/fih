@@ -27,7 +27,7 @@ Reply with *help <topic>* or *>help <topic>* for dedicated guides:
 7️⃣ *help list* — Filtering, sorting & search queries
 8️⃣ *help controls* — Undo mistakes, cancel prompts & modes
 
-💡 *Quick Tip:* You don't need `>` for natural language! E.g. just text "Hanan +100" or "Remind me tomorrow 9am".`;
+💡 *Quick Tip:* You don't need \`>\` for natural language! E.g. just text "Hanan +100" or "Remind me tomorrow 9am".`;
 
 const HELP_PAGES = {
   debt: `💰 *Debt & Financial Ledger Guide*
