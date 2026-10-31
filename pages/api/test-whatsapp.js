@@ -13,6 +13,46 @@ export default async function handler(req, res) {
     const recentProcessed = await ProcessedMessage.find({}).sort({ createdAt: -1 }).limit(5);
     const recentAudit = await AuditLog.find({}).sort({ createdAt: -1 }).limit(5);
 
+    // Feature: Auto-subscribe WABA to App if action=subscribe is passed
+    let subscribeResult = null;
+    const wabaId = req.query.waba_id || '1170873438934562';
+    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+    if (req.query.action === 'subscribe' && accessToken) {
+      try {
+        const subRes = await fetch(`https://graph.facebook.com/v19.0/${wabaId}/subscribed_apps`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const subData = await subRes.json();
+        subscribeResult = {
+          status: subRes.status,
+          response: subData
+        };
+      } catch (e) {
+        subscribeResult = { error: e.message };
+      }
+    }
+
+    // Check subscribed apps on this WABA
+    let currentSubscriptions = null;
+    if (accessToken) {
+      try {
+        const getRes = await fetch(`https://graph.facebook.com/v19.0/${wabaId}/subscribed_apps`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        });
+        currentSubscriptions = await getRes.json();
+      } catch (e) {
+        currentSubscriptions = { error: e.message };
+      }
+    }
+
     let sendResult = null;
     if (req.query.skip_send !== 'true') {
       const apiRes = await sendWhatsAppMessage(phone, "🧪 Test message from FIH WhatsApp Assistant Diagnostic!");
@@ -39,6 +79,11 @@ export default async function handler(req, res) {
         hasVerifyToken: !!process.env.WHATSAPP_VERIFY_TOKEN,
         hasAppSecret: !!process.env.WHATSAPP_APP_SECRET,
         hasMongoUri: !!process.env.MONGODB_URI,
+      },
+      wabaCheck: {
+        wabaId,
+        currentSubscriptions,
+        subscribeResult
       },
       database: {
         usersCount: users.length,
