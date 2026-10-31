@@ -10,6 +10,7 @@ import Watchlist from '@/components/Watchlist';
 import ReminderBoard from '@/components/ReminderBoard';
 import SettingsView from '@/components/SettingsView';
 import AuditLogView from '@/components/AuditLogView';
+import OverviewCards from '@/components/OverviewCards';
 
 const TABS = [
   {
@@ -315,6 +316,11 @@ export default function Dashboard() {
             {activeTab === 'settings' ? 'Settings' : TABS.find(t => t.id === activeTab)?.label}
           </h1>
         </header>
+
+        {/* Top Overview Metrics Strip */}
+        {activeTab !== 'settings' && activeTab !== 'audit' && (
+          <OverviewCards onNavigate={handleTabChange} envMode={envMode} />
+        )}
 
         {/* Tab Content Component */}
         {renderTab()}
