@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { fireSuccessBurst } from '@/lib/confetti';
 import { Plus, Trash2, RefreshCw, Star, Film, BookOpen } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 export default function Watchlist() {
   const [items, setItems] = useState([]);
@@ -80,7 +81,7 @@ export default function Watchlist() {
 
   function renderItem(item) {
     return (
-      <div key={item._id} className="item-card">
+      <div key={item._id} className="item-card stagger-item">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
             <div
@@ -162,6 +163,7 @@ export default function Watchlist() {
         {/* Rating Prompt Drawer */}
         {ratingFor === item._id && (
           <div
+            className="dropdown-enter"
             style={{
               marginTop: 12,
               padding: 12,
@@ -227,8 +229,15 @@ export default function Watchlist() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading watchlist chronicle...</div>
+      <div className="animate-fade">
+        <div className="fih-card" style={{ marginBottom: 24, height: 110 }}>
+          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 10, marginBottom: 12 }} />
+        </div>
+        <div className="kanban">
+          <div className="kanban-col"><SkeletonLoader count={2} height={80} /></div>
+          <div className="kanban-col"><SkeletonLoader count={2} height={80} /></div>
+          <div className="kanban-col"><SkeletonLoader count={2} height={80} /></div>
+        </div>
       </div>
     );
   }

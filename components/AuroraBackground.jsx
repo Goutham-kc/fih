@@ -17,38 +17,53 @@ export default function AuroraBackground() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Floating glowing orbs
     const orbs = [
-      { x: width * 0.2, y: height * 0.25, r: 240, color: 'rgba(99, 102, 241, 0.18)', vx: 0.25, vy: 0.15 },
-      { x: width * 0.8, y: height * 0.35, r: 260, color: 'rgba(168, 85, 247, 0.15)', vx: -0.2, vy: 0.2 },
-      { x: width * 0.5, y: height * 0.75, r: 280, color: 'rgba(20, 184, 166, 0.12)', vx: 0.15, vy: -0.18 },
-      { x: width * 0.85, y: height * 0.85, r: 220, color: 'rgba(236, 72, 153, 0.12)', vx: -0.15, vy: -0.12 },
+      { x: width * 0.2, y: height * 0.25, r: 240, color: 'rgba(99, 102, 241, 0.16)', vx: 0.2, vy: 0.12 },
+      { x: width * 0.8, y: height * 0.35, r: 260, color: 'rgba(168, 85, 247, 0.14)', vx: -0.18, vy: 0.18 },
+      { x: width * 0.5, y: height * 0.75, r: 280, color: 'rgba(16, 185, 129, 0.1)', vx: 0.12, vy: -0.15 },
+      { x: width * 0.85, y: height * 0.85, r: 220, color: 'rgba(244, 63, 94, 0.08)', vx: -0.12, vy: -0.1 },
     ];
 
-    let t = 0;
-    const render = () => {
-      t += 0.01;
+    const drawFrame = (time) => {
       ctx.clearRect(0, 0, width, height);
-
       orbs.forEach((orb, i) => {
-        orb.x += orb.vx + Math.sin(t + i) * 0.3;
-        orb.y += orb.vy + Math.cos(t + i) * 0.3;
+        const x = orb.x + Math.sin(time + i) * 0.25;
+        const y = orb.y + Math.cos(time + i) * 0.25;
 
-        if (orb.x < -100) orb.x = width + 100;
-        if (orb.x > width + 100) orb.x = -100;
-        if (orb.y < -100) orb.y = height + 100;
-        if (orb.y > height + 100) orb.y = -100;
-
-        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, orb.r);
         grad.addColorStop(0, orb.color);
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
+        ctx.arc(x, y, orb.r, 0, Math.PI * 2);
         ctx.fill();
       });
+    };
 
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReducedMotion) {
+      // Draw single calm ambient frame without running a continuous 60fps loop
+      drawFrame(0);
+      return () => {
+        window.removeEventListener('resize', resize);
+      };
+    }
+
+    let t = 0;
+    const render = () => {
+      t += 0.008;
+      orbs.forEach((orb) => {
+        orb.x += orb.vx;
+        orb.y += orb.vy;
+
+        if (orb.x < -120) orb.x = width + 120;
+        if (orb.x > width + 120) orb.x = -120;
+        if (orb.y < -120) orb.y = height + 120;
+        if (orb.y > height + 120) orb.y = -120;
+      });
+
+      drawFrame(t);
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -72,7 +87,7 @@ export default function AuroraBackground() {
         pointerEvents: 'none',
         zIndex: 0,
         opacity: 0.85,
-        filter: 'blur(50px)',
+        filter: 'blur(52px)',
       }}
     />
   );

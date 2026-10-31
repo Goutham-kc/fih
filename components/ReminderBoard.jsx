@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Clock, Plus, Trash2, RefreshCw, Check, Calendar } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 export default function ReminderBoard() {
   const [reminders, setReminders] = useState([]);
@@ -252,9 +253,7 @@ export default function ReminderBoard() {
 
       {/* List Display */}
       {loading ? (
-        <div className="fih-card" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-          Loading reminders...
-        </div>
+        <SkeletonLoader count={3} height={70} />
       ) : activeTab === 'upcoming' ? (
         upcomingReminders.length === 0 ? (
           <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
@@ -270,7 +269,7 @@ export default function ReminderBoard() {
               return (
                 <div
                   key={r._id}
-                  className="fih-card"
+                  className="fih-card stagger-item"
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',

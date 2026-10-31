@@ -260,6 +260,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         {/* Confirmation Card */}
         {confirmTarget && (
           <div
+            className="modal-enter"
             style={{
               marginTop: 16,
               padding: 14,

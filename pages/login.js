@@ -169,7 +169,14 @@ export default function Login() {
               disabled={loading}
               style={{ width: '100%', height: 44, fontSize: 14, borderRadius: 10 }}
             >
-              {loading ? 'Authenticating...' : 'Sign In →'}
+              {loading ? (
+                <>
+                  <span className="spin-loading" style={{ marginRight: 8, fontSize: 16 }}>⟳</span>
+                  Authenticating...
+                </>
+              ) : (
+                'Sign In →'
+              )}
             </button>
           </form>
         </div>

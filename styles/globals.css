@@ -20,7 +20,7 @@
   --bg-sidebar:              rgba(13, 14, 18, 0.88);
   --bg-mobile-header:        rgba(13, 14, 18, 0.94);
 
-  /* Accents - Strict 3% Budget: Chrome is quiet, color conveys data */
+  /* Accents - Strict 3% Budget */
   --accent-primary:          #6366f1;
   --accent-primary-text:     #ffffff;
   --accent-primary-glow:     rgba(99, 102, 241, 0.22);
@@ -89,6 +89,15 @@
 
   --badge-planned-bg:        rgba(99, 102, 241, 0.12);
   --badge-planned-color:     #818cf8;
+
+  /* ── Emil Kowalski Motion Tokens ────────────────────────────────────────── */
+  --ease-out:                cubic-bezier(0.23, 1, 0.32, 1);    /* canonical strong ease-out for entering UI */
+  --ease-in-out:            cubic-bezier(0.77, 0, 0.175, 1);   /* on-screen morphing & layout */
+  --ease-drawer:            cubic-bezier(0.32, 0.72, 0, 1);    /* iOS-like drawer curve */
+  --duration-instant:       100ms;
+  --duration-fast:          160ms;                             /* button press, checkbox, toggle */
+  --duration-normal:        220ms;                             /* cards, popovers, dropdowns */
+  --duration-slow:          300ms;                             /* modal dialogs, drawers */
 }
 
 [data-theme="light"] {
@@ -197,7 +206,7 @@ html, body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color var(--duration-normal) ease, color var(--duration-normal) ease;
 }
 
 #__next {
@@ -240,17 +249,26 @@ html, body {
   border-radius: 16px;
   padding: 24px;
   box-shadow: var(--shadow-card);
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease,
+              transform var(--duration-fast) var(--ease-out);
 }
 
 .card-interactive, .fih-card-interactive {
-  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease !important;
+  transition: transform var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease,
+              background-color var(--duration-fast) ease !important;
+  will-change: transform;
 }
 
-.card-interactive:hover, .fih-card-interactive:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-hover) !important;
-  box-shadow: var(--shadow-hover) !important;
+@media (hover: hover) and (pointer: fine) {
+  .card-interactive:hover, .fih-card-interactive:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-hover) !important;
+    box-shadow: var(--shadow-hover) !important;
+  }
 }
 
 /* ── Button Design System ──────────────────────────────────────────────── */
@@ -268,11 +286,40 @@ html, body {
   min-height: 40px;
   user-select: none;
   white-space: nowrap;
-  transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease !important;
+  transition: transform var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease,
+              background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease !important;
 }
 
 .btn:active, .fih-btn:active {
   transform: scale(0.97) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover, .fih-btn-primary:hover {
+    opacity: 0.93;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--accent-primary-glow);
+  }
+
+  .btn-secondary:hover, .fih-btn-secondary:hover {
+    background-color: var(--btn-secondary-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost:hover, .fih-btn-ghost:hover {
+    color: var(--text-primary);
+    background-color: var(--btn-ghost-hover);
+  }
+
+  .btn-danger:hover, .fih-btn-danger:hover {
+    background-color: rgba(244, 63, 94, 0.18);
+    border-color: var(--accent-rose);
+    transform: translateY(-1px);
+  }
 }
 
 .btn-primary, .fih-btn-primary {
@@ -282,20 +329,10 @@ html, body {
   box-shadow: 0 2px 10px var(--accent-primary-glow);
 }
 
-.btn-primary:hover, .fih-btn-primary:hover {
-  opacity: 0.92;
-  box-shadow: 0 4px 14px var(--accent-primary-glow);
-}
-
 .btn-secondary, .fih-btn-secondary {
   background: var(--btn-secondary-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
-}
-
-.btn-secondary:hover, .fih-btn-secondary:hover {
-  background: var(--btn-secondary-hover);
-  border-color: var(--border-hover);
 }
 
 .btn-ghost, .fih-btn-ghost {
@@ -303,20 +340,10 @@ html, body {
   color: var(--text-muted);
 }
 
-.btn-ghost:hover, .fih-btn-ghost:hover {
-  color: var(--text-primary);
-  background: var(--btn-ghost-hover);
-}
-
 .btn-danger, .fih-btn-danger {
   background: rgba(244, 63, 94, 0.1);
   color: var(--accent-rose);
   border: 1px solid rgba(244, 63, 94, 0.2);
-}
-
-.btn-danger:hover, .fih-btn-danger:hover {
-  background: rgba(244, 63, 94, 0.18);
-  border-color: var(--accent-rose);
 }
 
 .btn-icon {
@@ -336,7 +363,9 @@ html, body {
   font-size: 14px;
   outline: none;
   min-height: 42px;
-  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--duration-fast) ease,
+              background-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease;
 }
 
 .input:focus, .fih-input:focus {
@@ -460,14 +489,132 @@ select.input option, select.fih-input option {
   border: 1px solid var(--badge-overdue-border);
 }
 
-/* ── Micro-Animations ─────────────────────────────────────────────────── */
-@keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(6px); }
-  100% { opacity: 1; transform: translateY(0); }
+/* ── Emil Kowalski Motion Recipes & Keyframes ────────────────────────── */
+@keyframes fihSurfaceEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-fade {
-  animation: fadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-fade, .page-enter {
+  animation: fihSurfaceEnter var(--duration-normal) var(--ease-out) forwards;
+}
+
+@keyframes modalScaleEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modalScaleEnter var(--duration-normal) var(--ease-out) forwards;
+  transform-origin: center;
+}
+
+@keyframes dropdownDropEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-enter {
+  animation: dropdownDropEnter var(--duration-fast) var(--ease-out) forwards;
+  transform-origin: top;
+}
+
+/* Stagger List Recipe (Sub-150ms total budget) */
+.stagger-item {
+  animation: fihSurfaceEnter var(--duration-normal) var(--ease-out) both;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 15ms; }
+.stagger-item:nth-child(2) { animation-delay: 35ms; }
+.stagger-item:nth-child(3) { animation-delay: 55ms; }
+.stagger-item:nth-child(4) { animation-delay: 75ms; }
+.stagger-item:nth-child(5) { animation-delay: 95ms; }
+.stagger-item:nth-child(6) { animation-delay: 115ms; }
+
+/* Micro-Interaction: Custom Checkbox Spring Bounce */
+@keyframes checkBounce {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.custom-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  transition: transform var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .custom-checkbox:hover {
+    border-color: var(--accent-emerald);
+    transform: scale(1.08);
+  }
+}
+
+.custom-checkbox:active {
+  transform: scale(0.92);
+}
+
+.custom-checkbox.checked {
+  background: var(--accent-emerald);
+  border-color: var(--accent-emerald);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+.custom-checkbox.checked svg,
+.custom-checkbox.checked span {
+  animation: checkBounce 180ms var(--ease-out) forwards;
+}
+
+/* Skeleton Loading Shimmer */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+.skeleton-loading {
+  animation: skeletonPulse 1.5s var(--ease-in-out) infinite;
+  background: var(--bg-hover);
+}
+
+/* Smooth Spinner for Buttons & Refresh */
+@keyframes spinSmooth {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-loading {
+  animation: spinSmooth 0.7s linear infinite;
+  display: inline-block;
 }
 
 /* ── Layout Elements: Sidebar & Main Canvas ─────────────────────────────── */
@@ -485,7 +632,7 @@ select.input option, select.fih-input option {
   display: flex;
   flex-direction: column;
   z-index: 40;
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition: background-color var(--duration-normal) ease, border-color var(--duration-normal) ease;
 }
 
 .nav-item {
@@ -503,13 +650,21 @@ select.input option, select.fih-input option {
   width: 100%;
   text-align: left;
   min-height: 42px;
-  transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease !important;
+  transition: background-color var(--duration-fast) ease,
+              color var(--duration-fast) ease,
+              transform var(--duration-fast) var(--ease-out) !important;
 }
 
-.nav-item:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+    transform: translateX(3px);
+  }
+}
+
+.nav-item:active {
+  transform: scale(0.98) !important;
 }
 
 .nav-item.active {
@@ -539,7 +694,9 @@ select.input option, select.fih-input option {
   padding: 20px;
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
-  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease;
 }
 
 .summary-card .amount {
@@ -608,12 +765,17 @@ select.input option, select.fih-input option {
   margin-bottom: 10px;
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease;
 }
 
-.item-card:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-hover);
+@media (hover: hover) and (pointer: fine) {
+  .item-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
+  }
 }
 
 /* Tactile Todo Items */
@@ -627,50 +789,21 @@ select.input option, select.fih-input option {
   margin-bottom: 8px;
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) ease,
+              background-color var(--duration-fast) ease;
 }
 
-.todo-item:hover {
-  border-color: var(--border-hover);
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .todo-item:hover {
+    border-color: var(--border-hover);
+    transform: translateX(3px);
+  }
 }
 
 .todo-item.done-item {
   opacity: 0.5;
   background: transparent;
-}
-
-/* Spring-Animated Custom Checkbox */
-.custom-checkbox {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  border: 2px solid var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background: transparent;
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease;
-  flex-shrink: 0;
-}
-
-.custom-checkbox:hover {
-  border-color: var(--accent-emerald);
-  transform: scale(1.08);
-}
-
-.custom-checkbox:active {
-  transform: scale(0.92);
-}
-
-.custom-checkbox.checked {
-  background: var(--accent-emerald);
-  border-color: var(--accent-emerald);
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
 }
 
 /* Horizontal Scroll Utilities */
@@ -686,6 +819,25 @@ select.input option, select.fih-input option {
 .mask-edge-fade {
   mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+}
+
+/* ── Reduced Motion Accessibility ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card-interactive:hover, .fih-card-interactive:hover,
+  .btn:active, .fih-btn:active,
+  .btn:hover, .fih-btn:hover,
+  .nav-item:hover, .nav-item:active,
+  .custom-checkbox:hover, .custom-checkbox:active,
+  .todo-item:hover, .item-card:hover {
+    transform: none !important;
+  }
 }
 
 /* ── Responsive Mobile Overrides ───────────────────────────────────────── */

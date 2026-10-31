@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Plus, Trash2, RefreshCw, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 export default function DeadlineBoard() {
   const [deadlines, setDeadlines] = useState([]);
@@ -70,8 +71,15 @@ export default function DeadlineBoard() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading deadline schedule...</div>
+      <div className="animate-fade">
+        <div className="fih-card" style={{ marginBottom: 24, height: 110 }}>
+          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 10, marginBottom: 12 }} />
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div className="skeleton-loading" style={{ height: 34, width: 140, borderRadius: 8 }} />
+            <div className="skeleton-loading" style={{ height: 34, width: 140, borderRadius: 8 }} />
+          </div>
+        </div>
+        <SkeletonLoader count={3} height={76} />
       </div>
     );
   }
@@ -240,7 +248,7 @@ export default function DeadlineBoard() {
             return (
               <div
                 key={dl._id}
-                className="fih-card"
+                className="fih-card stagger-item"
                 style={{
                   padding: '18px 20px',
                 }}

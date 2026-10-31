@@ -437,8 +437,10 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* Tab Content Component */}
-        <section>{renderTab()}</section>
+        {/* Tab Content Component with Emil Kowalski page transition */}
+        <section key={activeTab} className="page-enter">
+          {renderTab()}
+        </section>
 
         {/* Quiet Editorial Footer */}
         <footer

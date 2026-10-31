@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fireSuccessBurst } from '@/lib/confetti';
 import { toast } from 'sonner';
 import { Plus, RefreshCw, Trash2, Calendar, Check, AlertCircle } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -93,8 +94,15 @@ export default function TodoList() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading tasks...</div>
+      <div className="animate-fade">
+        <div className="fih-card" style={{ marginBottom: 24, height: 112 }}>
+          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 10, marginBottom: 12 }} />
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div className="skeleton-loading" style={{ height: 34, width: 140, borderRadius: 8 }} />
+            <div className="skeleton-loading" style={{ height: 34, width: 140, borderRadius: 8 }} />
+          </div>
+        </div>
+        <SkeletonLoader count={4} height={64} />
       </div>
     );
   }
@@ -224,7 +232,7 @@ export default function TodoList() {
         </div>
       ) : (
         open.map((todo) => (
-          <div key={todo._id} className="todo-item">
+          <div key={todo._id} className="todo-item stagger-item">
             <div
               className="custom-checkbox"
               onClick={() => markDone(todo._id, todo.status)}

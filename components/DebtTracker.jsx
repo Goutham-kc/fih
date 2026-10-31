@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fireSuccessBurst, fireBigCelebration } from '@/lib/confetti';
 import { toast } from 'sonner';
 import { Plus, Check, RefreshCw, ArrowUpRight, ArrowDownLeft, CheckCircle2 } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 function cleanNote(note, personName) {
   if (!note) return '';
@@ -130,8 +131,13 @@ export default function DebtTracker() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading precision ledger...</div>
+      <div className="animate-fade">
+        <div className="grid-summary" style={{ marginBottom: 24 }}>
+          <div className="summary-card skeleton-loading" style={{ height: 96 }} />
+          <div className="summary-card skeleton-loading" style={{ height: 96 }} />
+          <div className="summary-card skeleton-loading" style={{ height: 96 }} />
+        </div>
+        <SkeletonLoader count={3} height={80} />
       </div>
     );
   }
@@ -387,7 +393,7 @@ export default function DebtTracker() {
             const net = getPersonNet(ds);
 
             return (
-              <div key={name} className="fih-card" style={{ marginBottom: 16, padding: '20px' }}>
+              <div key={name} className="fih-card stagger-item" style={{ marginBottom: 16, padding: '20px' }}>
                 <div
                   style={{
                     display: 'flex',

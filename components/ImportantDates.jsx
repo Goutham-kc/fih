@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Sparkles, Plus, Trash2, RefreshCw, Calendar } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 function getDaysUntil(dateStr) {
   const now = new Date();
@@ -85,8 +86,11 @@ export default function ImportantDates() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-        <div>Loading important dates chronicle...</div>
+      <div className="animate-fade">
+        <div className="fih-card" style={{ marginBottom: 24, height: 110 }}>
+          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 10, marginBottom: 12 }} />
+        </div>
+        <SkeletonLoader count={3} height={70} />
       </div>
     );
   }
@@ -120,7 +124,7 @@ export default function ImportantDates() {
             return (
               <div
                 key={d._id}
-                className="fih-card"
+                className="fih-card stagger-item"
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',

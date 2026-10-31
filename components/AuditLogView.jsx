@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, History, ShieldAlert } from 'lucide-react';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 export default function AuditLogView() {
   const [logs, setLogs] = useState([]);
@@ -117,9 +118,7 @@ export default function AuditLogView() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 64, color: 'var(--text-muted)' }}>
-          <div>Loading audit trail...</div>
-        </div>
+        <SkeletonLoader count={4} height={68} />
       ) : logs.length === 0 ? (
         <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
           <History size={32} style={{ marginBottom: 12, opacity: 0.5 }} />
@@ -131,7 +130,7 @@ export default function AuditLogView() {
           {logs.map((log) => {
             const moduleColor = getModuleColor(log.module);
             return (
-              <div key={log._id} className="timeline-item">
+              <div key={log._id} className="timeline-item stagger-item">
                 <div 
                   className="timeline-dot" 
                   style={{ background: moduleColor }} 
