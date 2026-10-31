@@ -34,6 +34,8 @@ export default async function handler(req, res) {
   for (const user of users) {
     const userId = user._id;
     const waNumber = user.whatsappNumber;
+    if (!waNumber) continue;
+try {
     const mode = user.environmentMode || 'live';
     const envQuery = mode === 'live'
       ? { userId, $or: [{ environmentMode: 'live' }, { environmentMode: { $exists: false } }] }
@@ -171,7 +173,7 @@ export default async function handler(req, res) {
     const allDates = await ImportantDate.find(envQuery);
     for (const d of allDates) {
       const matches =
-        (d.recurring === 'yearly' && d.date.endsWith(`-${mmdd}`)) ||
+        (d.recurring === 'yearly' && (d.date === mmdd || d.date.endsWith(`-${mmdd}`))) ||
         (d.recurring === 'monthly' && d.date.endsWith(`-${dd}`)) ||
         (d.recurring === 'none' && d.date === todayStr);
       
@@ -192,6 +194,9 @@ export default async function handler(req, res) {
           sent++;
         }
       }
+    }
+    } catch (userErr) {
+      console.error(`[Cron] Error processing reminders for user ${user._id}:`, userErr);
     }
   }
 

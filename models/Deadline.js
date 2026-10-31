@@ -11,13 +11,18 @@ const DeadlineSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-DeadlineSchema.pre('save', function () {
-  if (this.isNew || this.isModified('dueDate') || this.isModified('reminderOffsets')) {
-    const now = new Date();
-    this.reminderOffsets = this.reminderOffsets.filter(offset => {
-      const reminderTime = new Date(this.dueDate.getTime() - offset * 60 * 1000);
-      return reminderTime > now;
-    });
+DeadlineSchema.pre('save', function (next) {
+  try {
+    if (this.isNew || this.isModified('dueDate') || this.isModified('reminderOffsets')) {
+      const now = new Date();
+      this.reminderOffsets = this.reminderOffsets.filter(offset => {
+        const reminderTime = new Date(this.dueDate.getTime() - offset * 60 * 1000);
+        return reminderTime > now;
+      });
+    }
+    if (typeof next === 'function') next();
+  } catch (err) {
+    if (typeof next === 'function') next(err);
   }
 });
 
