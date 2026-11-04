@@ -40,17 +40,18 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
   });
 
   // Toolshed Weather & Atmosphere State (Spec 8.2 & 8.5)
-  const [weatherOverride, setWeatherOverride] = useState('auto');
-  const [timeOverride, setTimeOverride] = useState('auto');
-
-  useEffect(() => {
-
-    const savedW = localStorage.getItem('pv_weather_override');
-    if (savedW) setWeatherOverride(savedW);
-
-    const savedT = localStorage.getItem('pv_time_override');
-    if (savedT) setTimeOverride(savedT);
-  }, []);
+  const [weatherOverride, setWeatherOverride] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pv_weather_override') || 'auto';
+    }
+    return 'auto';
+  });
+  const [timeOverride, setTimeOverride] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pv_time_override') || 'auto';
+    }
+    return 'auto';
+  });
 
   function handleToggleSound() {
     const next = soundManager.toggleMute();

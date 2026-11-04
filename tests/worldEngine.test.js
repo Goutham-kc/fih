@@ -126,3 +126,22 @@ describe('SoundManager Controls (Spec Section 8.3)', () => {
     expect(soundManager.getEffectiveVolume('ambience')).toBe(0);
   });
 });
+
+describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
+  it('defines all 8 chapter anchors with valid coordinates and original residents', async () => {
+    const { CHAPTER_ANCHORS } = await import('../components/world/PixelWorldCanvas');
+    const expectedChapters = ['todos', 'debts', 'reminders', 'deadlines', 'dates', 'watchlist', 'audit', 'settings'];
+
+    expectedChapters.forEach((chId) => {
+      expect(CHAPTER_ANCHORS).toHaveProperty(chId);
+      const anchor = CHAPTER_ANCHORS[chId];
+      expect(typeof anchor.x).toBe('number');
+      expect(typeof anchor.y).toBe('number');
+      expect(anchor.x).toBeGreaterThan(0);
+      expect(anchor.y).toBeGreaterThan(0);
+      expect(typeof anchor.name).toBe('string');
+      expect(typeof anchor.resident).toBe('string');
+      expect(typeof anchor.chapterTitle).toBe('string');
+    });
+  });
+});

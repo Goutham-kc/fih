@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const CHAPTER_HOTBAR = [
   { id: 'todos', label: 'Quests', icon: '🌾', num: '1' },
@@ -12,6 +12,22 @@ const CHAPTER_HOTBAR = [
 ];
 
 export default function RPGHotbar({ activeTab = 'debts', onSelectTab }) {
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName) || e.target?.isContentEditable) {
+        return;
+      }
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= CHAPTER_HOTBAR.length) {
+        const target = CHAPTER_HOTBAR[num - 1];
+        if (target && onSelectTab) {
+          onSelectTab(target.id);
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onSelectTab]);
   return (
     <nav
       className="rpg-hotbar"

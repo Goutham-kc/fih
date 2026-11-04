@@ -16,7 +16,8 @@ import DevModeIndicator from '@/components/ui/DevModeIndicator';
 import { soundManager } from '@/lib/soundManager';
 import { eventBus, EVENTS } from '@/lib/eventBus';
 import { getDateSeededWeather } from '@/components/world/WeatherEngine';
-import dialogueContent from '@/content/dialogue';
+import dialogueContent, { getContextualDialogue } from '@/content/dialogue';
+import { CHARACTER_META } from '@/components/character/CharacterSprite';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -177,8 +178,17 @@ export default function Dashboard() {
   const timeStr = time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).toLowerCase();
   const currentWeather = getDateSeededWeather(time);
 
-  // Active dialogue info
+  // Time of Day & Contextual Dialogue
+  const currentHour = time.getHours();
+  const timeOfDay = currentHour < 12 ? 'morning' : currentHour < 17 ? 'day' : currentHour < 21 ? 'evening' : 'night';
   const chapterDialogue = dialogueContent[activeTab] || dialogueContent.debts;
+  const currentResidentId = chapterDialogue?.character || 'pip';
+  const residentMeta = CHARACTER_META[currentResidentId] || { name: 'Resident', title: 'Villager' };
+  const residentFullName = `${residentMeta.name} ${residentMeta.title}`;
+  const dialogueLine = getContextualDialogue(activeTab, {
+    timeOfDay,
+    weather: currentWeather,
+  });
 
   function renderTabContent() {
     switch (activeTab) {
@@ -397,10 +407,10 @@ export default function Dashboard() {
           }}
         >
           <RPGDialogueBox
-            character={chapterDialogue.character || 'bram'}
-            name={chapterDialogue.character === 'bram' ? 'Bram the Factor' : 'Pip the Farmer'}
-            chapterName={chapterDialogue.chapterTitle || 'The Ledger Hut'}
-            text={chapterDialogue.day || '“Clear accounts make steadfast friends,” as we say in the valley. Settle your tabs before the fair!'}
+            character={currentResidentId}
+            name={residentFullName}
+            chapterName={chapterDialogue.chapterTitle || 'Village Chapter'}
+            text={dialogueLine}
           />
         </div>
 
