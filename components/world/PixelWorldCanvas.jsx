@@ -113,11 +113,11 @@ export const BUILDING_HITBOXES = [
     doorX: 12 * TILE_SIZE,
     doorY: 33 * TILE_SIZE,
     minX: 9 * TILE_SIZE,
-    minY: 29 * TILE_SIZE,
+    minY: 28 * TILE_SIZE,
     maxX: 15 * TILE_SIZE,
     maxY: 34 * TILE_SIZE,
     bannerX: 12 * TILE_SIZE,
-    bannerY: 29 * TILE_SIZE - 6,
+    bannerY: 28 * TILE_SIZE - 6,
   },
   {
     id: 'settings',
@@ -343,8 +343,8 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
-  // 10. Chapter 7: The Archive Cellar stone walls (tx: 10..13, ty: 30..32)
-  if (tx >= 10 && tx <= 13 && ty >= 30 && ty <= 32) {
+  // 10. Chapter 7: The Archive Cellar stone walls (tx: 10..14, ty: 29..32)
+  if (tx >= 10 && tx <= 14 && ty >= 29 && ty <= 32) {
     return false;
   }
 
@@ -458,7 +458,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null, festival_grounds: null, moonlight_cinema: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null, festival_grounds: null, moonlight_cinema: null, archive_cellar: null },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
     targetCamera: { x: 32 * 16, y: 33 * 16 },
@@ -490,6 +490,7 @@ export default function PixelWorldCanvas({
       { key: 'bell_tower', src: '/assets/buildings/bell_tower.png' },
       { key: 'festival_grounds', src: '/assets/buildings/festival_grounds.png' },
       { key: 'moonlight_cinema', src: '/assets/buildings/moonlight_cinema.png' },
+      { key: 'archive_cellar', src: '/assets/buildings/archive_cellar.png' },
     ];
 
     let count = 0;
@@ -1112,16 +1113,25 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 8. Chapter 7: The Archive Cellar (tx: 12, ty: 32) ──
+      // ── 8. Chapter 7: The Archive Cellar (New Custom Archive Cellar) ──
       renderables.push({
-        y: 33 * TILE_SIZE,
+        y: 33 * TILE_SIZE + 4,
         render: () => {
-          const ax = 11 * TILE_SIZE;
-          const ay = 30 * TILE_SIZE;
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax, ay, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + TILE_SIZE, ay, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + 2 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax - 1 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const cellarImg = state.images.archive_cellar;
+          if (cellarImg) {
+            const bW = 76;
+            const bH = 90;
+            const bX = 12 * TILE_SIZE - bW / 2; // 192 - 38 = 154px
+            const bY = 34 * TILE_SIZE - bH - 4; // 544 - 90 - 4 = 450px
+            ctx.drawImage(cellarImg, bX, bY, bW, bH);
+          } else {
+            const ax = 11 * TILE_SIZE;
+            const ay = 30 * TILE_SIZE;
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax, ay, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + TILE_SIZE, ay, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + 2 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax - 1 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
         },
       });
 

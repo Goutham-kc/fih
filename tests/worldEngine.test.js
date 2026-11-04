@@ -192,6 +192,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitCinema).not.toBeNull();
     expect(hitCinema.id).toBe('watchlist');
     expect(hitCinema.name).toBe('The Moonlight Cinema');
+
+    // Clicking on the new Archive Cellar (at tx: 12, ty: 30) hits The Archive Cellar
+    const hitCellar = getHitBuilding(12 * 16, 30 * 16);
+    expect(hitCellar).not.toBeNull();
+    expect(hitCellar.id).toBe('audit');
+    expect(hitCellar.name).toBe('The Archive Cellar');
+  });
+
+  it('detects entrance proximity for the custom Archive Cellar', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing on the steps pad at (tx: 12, ty: 33) detects The Archive Cellar within range
+    const nearby = getNearbyBuilding(12 * 16, 33 * 16, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('audit');
   });
 
   it('detects entrance proximity for the custom Moonlight Cinema', async () => {

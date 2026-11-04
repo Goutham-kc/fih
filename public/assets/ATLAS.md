@@ -115,7 +115,7 @@ The Pixel Valley overworld map is structured on a **64 × 64 tile grid** (1024 �
 | **The Bell Tower** | Hoot | Ch. 3 (Belfry Alerts) | Custom `bell_tower.png` | `(32, 10)` | `(32*16, 14*16)` | `[31..33, 9..13]` | `[30*16..34*16, 7*16..14*16]` |
 | **The Farmstead** | Pip | Ch. 1 (Daily Quests) | Custom `farmhouse.png` | `(14, 12)` | `(14*16, 14*16)` | `[12..16, 10..13]` | `[11*16..17*16, 9*16..15*16]` |
 | **The Ledger Bank** | Bram | Ch. 2 (Gold Ledger) | Custom `bank.png` | `(50, 12)` | `(50*16, 14*16)` | `[48..52, 10..13]` | `[47*16..53*16, 9*16..15*16]` |
-| **The Archive Cellar** | Moss | Ch. 7 (The Chronicle) | `cellar_stone` & books | `(12, 32)` | `(12*16, 33*16)` | `[10..13, 30..32]` | `[9*16..15*16, 29*16..34*16]` |
+| **The Archive Cellar** | Moss | Ch. 7 (The Chronicle) | Custom `archive_cellar.png` | `(12, 32)` | `(12*16, 33*16)` | `[10..14, 29..32]` | `[9*16..15*16, 28*16..34*16]` |
 | **The Toolshed Workbench** | Rowan | Ch. 8 (Toolshed Workshop) | `toolshed_rack` & anvil | `(16, 22)` | `(16*16, 23*16)` | `[15..17, 21..22]` | `[14*16..18*16, 20*16..24*16]` |
 | **Sky Post** | Wren | Dispatches | `courier_post` (tileset) | `(48, 24)` | `(48*16, 25*16)` | `[47..49, 23..24]` | `[46*16..50*16, 22*16..26*16]` |
 | **The Festival Grounds** | Clover | Ch. 5 (Festival Grounds) | Custom `festival_grounds.png` | `(16, 48)` | `(16*16, 51*16)` | `[14..18, 47..49]` | `[12*16..20*16, 44*16..52*16]` |
@@ -159,3 +159,9 @@ The Pixel Valley overworld map is structured on a **64 × 64 tile grid** (1024 �
 - **World Rendering:** Scaled to 128×93 world px (placed at world coordinates x: 704, y: 743)
 - **Features:** Open-air woodland amphitheater, carved wooden cinema screen with crescent moon and star pediment crest, purple and twilight blue drapery, hanging star & moon string lanterns, tickets booth, popcorn machine wagon cart, concentric tiered wooden viewing benches, and street lamps.
 - **Interactive Role:** Chapter 6: The Moonlight Cinema (Watchlist & Screenings / Watchlist). Audience entrance at world position `(48 * 16, 51 * 16)`.
+
+### The Archive Cellar (`archive_cellar.png`)
+- **Source:** User Custom Sprite (Cropped to 711×849 px, transparent alpha background)
+- **World Rendering:** Scaled to 76×90 world px (placed at world coordinates x: 154, y: 450)
+- **Features:** Weathered cut-stone masonry with moss accents, pitched terracotta tiled roof with decorative gable ridge, circular attic window, carved wooden signboard featuring an open book and quill insignia, arched double timber doors with forged iron hinges and warm golden interior light, wide stone steps, flanking iron lanterns, leather-bound book stacks, wooden barrels, and blooming flower planters.
+- **Interactive Role:** Chapter 7: The Archive Cellar (The Chronicle & Audit Log / Audit). Front entrance doorstep pad at world position `(12 * 16, 33 * 16)` facing West Archive Way.

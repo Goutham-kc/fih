@@ -21,6 +21,7 @@ const bankBase64 = fs.readFileSync('public/assets/buildings/bank.png').toString(
 const bellTowerBase64 = fs.readFileSync('public/assets/buildings/bell_tower.png').toString('base64');
 const festivalGroundsBase64 = fs.readFileSync('public/assets/buildings/festival_grounds.png').toString('base64');
 const moonlightCinemaBase64 = fs.readFileSync('public/assets/buildings/moonlight_cinema.png').toString('base64');
+const archiveCellarBase64 = fs.readFileSync('public/assets/buildings/archive_cellar.png').toString('base64');
 
 function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const currentTab = isMobile ? (activeTab || 'todos') : activeTab;
@@ -315,6 +316,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const bellTowerImg = new Image();
       const festivalGroundsImg = new Image();
       const moonlightCinemaImg = new Image();
+      const archiveCellarImg = new Image();
 
       tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
       pipImg.src = 'data:image/png;base64,${pipBase64}';
@@ -325,11 +327,12 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       bellTowerImg.src = 'data:image/png;base64,${bellTowerBase64}';
       festivalGroundsImg.src = 'data:image/png;base64,${festivalGroundsBase64}';
       moonlightCinemaImg.src = 'data:image/png;base64,${moonlightCinemaBase64}';
+      archiveCellarImg.src = 'data:image/png;base64,${archiveCellarBase64}';
 
       let loaded = 0;
       function checkLoaded() {
         loaded++;
-        if (loaded === 9) drawWorld();
+        if (loaded === 10) drawWorld();
       }
       tilesetImg.onload = checkLoaded;
       pipImg.onload = checkLoaded;
@@ -340,6 +343,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       bellTowerImg.onload = checkLoaded;
       festivalGroundsImg.onload = checkLoaded;
       moonlightCinemaImg.onload = checkLoaded;
+      archiveCellarImg.onload = checkLoaded;
 
       const scale = ${isMobile ? 3 : 4};
       const TILE_SIZE = 16;
@@ -353,7 +357,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         { id: 'deadlines', label: '📋 Town Deadlines', bx: 32*16, by: 32*16-6 },
         { id: 'dates', label: '🎪 Festival Grounds', bx: 16*16, by: 44*16-6 },
         { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 48*16, by: 44*16-6 },
-        { id: 'audit', label: '📜 Archive Cellar', bx: 12*16, by: 29*16-6 },
+        { id: 'audit', label: '📜 Archive Cellar', bx: 12*16, by: 28*16-6 },
         { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 16*16, by: 20*16-6 },
       ];
 
@@ -571,13 +575,14 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
           }
         });
 
-        // Archive Cellar
+        // Chapter 7: Archive Cellar (New Custom Archive Cellar)
         renderables.push({
-          y: 33 * 16,
+          y: 33 * 16 + 4,
           render: () => {
-            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, 11 * 16, 30 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, 12 * 16, 30 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 5 * 16, 48, 16, 16, 13 * 16, 31 * 16, 16, 16);
+            const bW = 76, bH = 90;
+            const bX = 12 * 16 - bW / 2;
+            const bY = 34 * 16 - bH - 4;
+            ctx.drawImage(archiveCellarImg, bX, bY, bW, bH);
           }
         });
 
@@ -819,6 +824,15 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-cinema-custom-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-cinema-custom-desktop.png') });
   console.log('✓ Captured overworld-cinema-custom-desktop.png');
+
+  // 0j. Pip outside the new custom Archive Cellar (West Woodland Clearing)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 12 * 16, y: 33 * 16, dir: 3 }, nearbyBuilding: 'The Archive Cellar', isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-archive-cellar-custom-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-archive-cellar-custom-desktop.png') });
+  console.log('✓ Captured overworld-archive-cellar-custom-desktop.png');
 
   // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Bank)
   currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 50 * 16, y: 14 * 16, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
