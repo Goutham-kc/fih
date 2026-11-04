@@ -171,6 +171,52 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(isWalkable(38 * 16, 26 * 16)).toBe(false);
   });
 
+  it('prevents walking through houses, building walls, counters, and obstacles', async () => {
+    const { isWalkable } = await import('../components/world/PixelWorldCanvas');
+
+    // 1. Chapter 1: The Farmstead Cabin walls & roof (tx: 6-9, ty: 4-6) are solid
+    expect(isWalkable(7 * 16, 5 * 16)).toBe(false);
+    expect(isWalkable(8 * 16, 6 * 16)).toBe(false);
+
+    // 2. Chapter 2: The Ledger Hut (tx: 24-28, ty: 7-9) and Bram's Counter (tx: 25-27, ty: 10-11) are solid
+    expect(isWalkable(26 * 16, 8 * 16)).toBe(false); // inside hut
+    expect(isWalkable(26 * 16, 11 * 16)).toBe(false); // counter table
+    expect(isWalkable(26 * 16, 12 * 16)).toBe(true); // cobblestones in front of counter
+
+    // 3. Chapter 3: The Bell Tower masonry (tx: 17-18, ty: 2-4) is solid
+    expect(isWalkable(17 * 16, 3 * 16)).toBe(false);
+    expect(isWalkable(18 * 16, 6 * 16)).toBe(true); // door approach is walkable
+
+    // 4. Chapter 4: The Notice Board posts (tx: 17-19, ty: 15) are solid
+    expect(isWalkable(18 * 16, 15 * 16)).toBe(false);
+    expect(isWalkable(18 * 16, 16 * 16)).toBe(true); // in front of board is walkable
+
+    // 5. Chapter 5: The Festival Grounds Gazebo (tx: 26-29, ty: 17-18) is solid
+    expect(isWalkable(28 * 16, 17 * 16)).toBe(false);
+    expect(isWalkable(28 * 16, 19 * 16)).toBe(true); // festival entrance is walkable
+
+    // 6. Chapter 6: The Moonlight Cinema screen (tx: 4-7, ty: 18) is solid
+    expect(isWalkable(5 * 16, 18 * 16)).toBe(false);
+    expect(isWalkable(6 * 16, 19 * 16)).toBe(true); // seating is walkable
+
+    // 7. Chapter 7: The Archive Cellar stone walls (tx: 26-29, ty: 2-3) are solid
+    expect(isWalkable(28 * 16, 2 * 16)).toBe(false);
+    expect(isWalkable(28 * 16, 4 * 16)).toBe(true); // cellar door is walkable
+
+    // 8. Chapter 8: The Toolshed Workbench & Forge (tx: 7-9, ty: 2-3) is solid
+    expect(isWalkable(8 * 16, 3 * 16)).toBe(false);
+    expect(isWalkable(6 * 16, 3 * 16)).toBe(true); // clearing beside toolshed is walkable
+    expect(isWalkable(8 * 16, 7 * 16)).toBe(true); // farm porch outside cabin door is walkable
+
+    // 9. Central Village Fountain basin (tx: 18, ty: 11) is solid
+    expect(isWalkable(18 * 16, 11 * 16)).toBe(false);
+    expect(isWalkable(18 * 16, 12 * 16)).toBe(true); // fountain apron is walkable
+
+    // 10. Fences block movement, but farm gate (tx: 8-9, ty: 8) allows passage
+    expect(isWalkable(5 * 16, 8 * 16)).toBe(false); // garden fence
+    expect(isWalkable(8 * 16, 8 * 16)).toBe(true); // farm gate opening
+  });
+
   it('computes normalized velocity vectors from keyboard inputs', async () => {
     const { getKeyboardVelocity } = await import('../components/world/PixelWorldCanvas');
     // Up only

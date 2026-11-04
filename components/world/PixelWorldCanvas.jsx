@@ -255,16 +255,77 @@ export function getHitBuilding(wx, wy) {
 }
 
 export function isWalkable(wx, wy) {
-  // Map boundaries (prevent walking off world)
+  // 1. Map boundaries (prevent walking off world edge)
   if (wx < 2 * TILE_SIZE || wx > 36 * TILE_SIZE || wy < 3 * TILE_SIZE || wy > 24 * TILE_SIZE) {
     return false;
   }
-  // Pond collision: tx 12-15, ty 16-18
+
   const tx = Math.floor(wx / TILE_SIZE);
   const ty = Math.floor(wy / TILE_SIZE);
+
+  // 2. Natural Pond (tx: 12-15, ty: 16-18)
   if (tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18) {
     return false;
   }
+
+  // 3. Central Village Stone Fountain basin (tx: 18, ty: 11)
+  if (tx === 18 && ty === 11) {
+    return false;
+  }
+
+  // 4. Chapter 1: The Farmstead Cabin walls & roof (tx: 6-9, ty: 4-6)
+  if (tx >= 6 && tx <= 9 && ty >= 4 && ty <= 6) {
+    return false;
+  }
+
+  // 5. Chapter 2: The Ledger Hut (tx: 24-28, ty: 7-9) and Bram's Counter (tx: 25-27, ty: 10-11)
+  if ((tx >= 24 && tx <= 28 && ty >= 7 && ty <= 9) || (tx >= 25 && tx <= 27 && ty >= 10 && ty <= 11)) {
+    return false;
+  }
+
+  // 6. Chapter 3: The Bell Tower masonry (tx: 17-18, ty: 2-4)
+  if (tx >= 17 && tx <= 18 && ty >= 2 && ty <= 4) {
+    return false;
+  }
+
+  // 7. Chapter 4: The Notice Board posts (tx: 17-19, ty: 15)
+  if (tx >= 17 && tx <= 19 && ty === 15) {
+    return false;
+  }
+
+  // 8. Chapter 5: The Festival Grounds Gazebo canopy (tx: 26-29, ty: 17-18)
+  if (tx >= 26 && tx <= 29 && ty >= 17 && ty <= 18) {
+    return false;
+  }
+
+  // 9. Chapter 6: The Moonlight Cinema screen (tx: 4-7, ty: 18)
+  if (tx >= 4 && tx <= 7 && ty === 18) {
+    return false;
+  }
+
+  // 10. Chapter 7: The Archive Cellar stone walls (tx: 26-29, ty: 2-3)
+  if (tx >= 26 && tx <= 29 && ty >= 2 && ty <= 3) {
+    return false;
+  }
+
+  // 11. Chapter 8: The Toolshed Workbench & Forge (tx: 7-9, ty: 2-3)
+  if (tx >= 7 && tx <= 9 && ty >= 2 && ty <= 3) {
+    return false;
+  }
+
+  // 12. Tree Trunks
+  if (tx === 3 && ty === 10) return false;
+  if (tx === 10 && ty === 7) return false;
+  if (tx === 21 && ty === 4) return false;
+
+  // 13. Solid Fences (farm gate at tx: 8-9, ty: 8 is open and walkable)
+  if ((tx >= 4 && tx <= 7 && ty === 8) || (tx === 10 && ty === 8)) {
+    return false;
+  }
+  if (tx >= 20 && tx <= 23 && ty === 14) {
+    return false;
+  }
+
   return true;
 }
 
