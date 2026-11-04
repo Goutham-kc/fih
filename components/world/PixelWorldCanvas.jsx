@@ -252,19 +252,21 @@ export default function PixelWorldCanvas({
       // ── Depth-Sorted Entities (Objects, Characters, Props) ──
       const renderables = [];
 
-      // 1. The Farmhouse Cabin (x: 7 * 16, y: 4 * 16, w: 48, h: 48)
+      // 1. The Farmhouse Cabin (x: 6 * 16, y: 4 * 16, w: 64, h: 48)
       renderables.push({
         y: 8 * 16,
         render: () => {
           const bx = 6 * TILE_SIZE;
           const by = 4 * TILE_SIZE;
-          // Timber Cabin Walls & Shingle Roof
+          // Terracotta Shingled Roof & Half-Timber Walls
           for (let rx = 0; rx < 4; rx++) {
             // Roof
             ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by, TILE_SIZE, TILE_SIZE);
             ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + TILE_SIZE, TILE_SIZE, TILE_SIZE);
             // Wall & Door
-            if (rx === 1) {
+            if (rx === 2) {
+              ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            } else if (rx === 1) {
               ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             } else {
               ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -273,28 +275,35 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // 2. The Ledger Hut Cabin (x: 25 * 16, y: 6 * 16, w: 64, h: 48)
+      // 2. The Ledger Hut Cabin (x: 24 * 16, y: 7 * 16, w: 80, h: 48)
       renderables.push({
         y: 10 * 16,
         render: () => {
           const hx = 24 * TILE_SIZE;
           const hy = 7 * TILE_SIZE;
-          // Roof
+          // Terracotta Shingled Roof
           for (let rx = 0; rx < 5; rx++) {
             ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy, TILE_SIZE, TILE_SIZE);
             ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            // Wall
-            if (rx === 2) {
+            // High-Contrast Half-Timber Plaster Walls (Cream plaster makes Bram pop!)
+            if (rx === 3) {
+              // Heavy Oak Merchant Door
+              ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            } else if (rx === 0 || rx === 4) {
+              // Glowing Amber Window with Dark Oak Shutters
               ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             } else {
+              // Bright Cream Half-Timber Plaster Wall behind Bram
               ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
           }
 
-          // Shingle roof peak sign: "LEDGER"
-          ctx.fillStyle = '#fde047';
-          ctx.font = '8px monospace';
-          ctx.fillText('LEDGER HUT', hx + 10, hy - 4);
+          // Hanging Wooden Shop Signboard ("LEDGER") on the right
+          ctx.drawImage(tileset, 4 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + 4 * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+          // Roof eaves drop-shadow over walls
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+          ctx.fillRect(hx, hy + 2 * TILE_SIZE, 5 * TILE_SIZE, 2);
         },
       });
 
