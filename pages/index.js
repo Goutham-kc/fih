@@ -9,7 +9,7 @@ import Watchlist from '@/components/Watchlist';
 import ReminderBoard from '@/components/ReminderBoard';
 import SettingsView from '@/components/SettingsView';
 import AuditLogView from '@/components/AuditLogView';
-import PixelWorldCanvas, { CHAPTER_ANCHORS } from '@/components/world/PixelWorldCanvas';
+import PixelWorldCanvas, { CHAPTER_ANCHORS, shouldShowDialogue, getHudControlsGuide } from '@/components/world/PixelWorldCanvas';
 import RPGHotbar from '@/components/ui/RPGHotbar';
 import RPGDialogueBox from '@/components/ui/RPGDialogueBox';
 import DevModeIndicator from '@/components/ui/DevModeIndicator';
@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [showCanvas, setShowCanvas] = useState(true); // Accessible toggle
   const [panelMinimized, setPanelMinimized] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false); // Welcome & controls shown once until interaction
+  const [nearbyBuilding, setNearbyBuilding] = useState(null); // Tracks proximity to buildings
   const [time, setTime] = useState(new Date());
 
   // Check auth & hydrate user settings
@@ -106,6 +108,7 @@ export default function Dashboard() {
 
   const handleTabChange = useCallback((tabId, options = {}) => {
     soundManager.playSfx('wood');
+    setHasInteracted(true);
     if (options.panelOnly !== undefined) {
       setShowCanvas(!options.panelOnly);
     }
@@ -129,17 +132,28 @@ export default function Dashboard() {
     router.replace({ query: q }, undefined, { shallow: true });
   }, [router]);
 
-  // Global Escape key listener: works reliably in BOTH Split World and Panel Only modes
+  // Global Escape key listener & interaction tracker
   useEffect(() => {
     function handleGlobalKeyDown(e) {
-      if (e.code === 'Escape' || e.key === 'Escape') {
-        const tag = document.activeElement?.tagName?.toLowerCase();
-        if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+        if (e.code === 'Escape' || e.key === 'Escape') {
           // Blur the active form input first
           document.activeElement.blur();
-          return;
         }
+        return;
+      }
 
+      const interactionCodes = [
+        'KeyW', 'KeyA', 'KeyS', 'KeyD',
+        'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+        'KeyE', 'KeyP', 'Space', 'Enter', 'Escape'
+      ];
+      if (interactionCodes.includes(e.code) || interactionCodes.includes(e.key)) {
+        setHasInteracted(true);
+      }
+
+      if (e.code === 'Escape' || e.key === 'Escape') {
         if (activeTab) {
           e.preventDefault();
           handleCloseChapter();
@@ -233,13 +247,27 @@ export default function Dashboard() {
     const chapterDialogue = dialogueContent[activeTab] || dialogueContent.debts;
     currentResidentId = chapterDialogue?.character || 'pip';
     const residentMeta = CHARACTER_META[currentResidentId] || { name: 'Resident', title: 'Villager' };
-    residentFullName = `${residentMeta.name} ${residentMeta.title}`;
+    residentFullName = `${residentMeta.name} ${residentMeta.title || residentMeta.role || ''}`.trim();
     chapterTitle = chapterDialogue.chapterTitle || 'Village Chapter';
     dialogueLine = getContextualDialogue(activeTab, {
       timeOfDay,
       weather: currentWeather,
     });
+  } else if (nearbyBuilding) {
+    const bDialogue = dialogueContent[nearbyBuilding.id] || dialogueContent.todos;
+    currentResidentId = bDialogue?.character || 'pip';
+    const residentMeta = CHARACTER_META[currentResidentId] || { name: 'Resident', title: 'Villager' };
+    residentFullName = `${residentMeta.name} ${residentMeta.title || residentMeta.role || ''}`.trim();
+    chapterTitle = nearbyBuilding.name || nearbyBuilding.label || 'Building';
+    const speech = getContextualDialogue(nearbyBuilding.id, {
+      timeOfDay,
+      weather: currentWeather,
+    });
+    dialogueLine = `${speech} Press [E] to enter or [P] for Panel Only.`;
   }
+
+  const showDialogue = shouldShowDialogue({ activeTab, hasInteracted, nearbyBuilding });
+  const hudControlsGuide = getHudControlsGuide({ activeTab, hasInteracted, nearbyBuilding });
 
   function renderTabContent() {
     switch (activeTab) {
@@ -289,6 +317,8 @@ export default function Dashboard() {
             reducedMotion={reducedMotion}
             onNavigateToChapter={handleTabChange}
             onCloseChapter={handleCloseChapter}
+            onPlayerInteract={() => setHasInteracted(true)}
+            onNearbyBuildingChange={setNearbyBuilding}
             onSelectDebt={() => {
               setPanelMinimized(false);
             }}
@@ -374,8 +404,8 @@ export default function Dashboard() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* Keyboard Guide Pill */}
-            {!activeTab && (
+            {/* Controls Guide Pill: Initial Welcome Controls or Proximity Prompt */}
+            {hudControlsGuide && (
               <div
                 style={{
                   fontSize: 10,
@@ -388,7 +418,7 @@ export default function Dashboard() {
                   gap: 4,
                 }}
               >
-                <span>🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only</span>
+                <span>{hudControlsGuide}</span>
               </div>
             )}
 
@@ -509,23 +539,37 @@ export default function Dashboard() {
         )}
 
         {/* ── 4. Bottom RPG Dialogue Box (Section 5) ── */}
-        <div
-          className="rpg-dialogue-wrapper"
-          style={{
-            position: 'fixed',
-            bottom: 68,
-            left: 14,
-            zIndex: 80,
-            maxWidth: 580,
-          }}
-        >
-          <RPGDialogueBox
-            character={currentResidentId}
-            name={residentFullName}
-            chapterName={chapterTitle}
-            text={dialogueLine}
-          />
-        </div>
+        {showDialogue && (
+          <div
+            className="rpg-dialogue-wrapper"
+            onClick={() => {
+              if (!activeTab && !nearbyBuilding) {
+                setHasInteracted(true);
+              }
+            }}
+            style={{
+              position: 'fixed',
+              bottom: 68,
+              left: 14,
+              zIndex: 80,
+              maxWidth: 580,
+              cursor: (!activeTab && !nearbyBuilding) ? 'pointer' : 'default',
+            }}
+            title={(!activeTab && !nearbyBuilding) ? 'Click to dismiss welcome' : undefined}
+          >
+            <RPGDialogueBox
+              character={currentResidentId}
+              name={residentFullName}
+              chapterName={chapterTitle}
+              text={dialogueLine}
+              onNext={() => {
+                if (!activeTab && !nearbyBuilding) {
+                  setHasInteracted(true);
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* ── 5. Bottom RPG Hotbar Navigation (Section 5) ── */}
         <RPGHotbar

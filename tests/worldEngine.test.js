@@ -386,3 +386,89 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
     expect(getPathTileInfo(2, 2)).toBeNull();
   });
 });
+
+describe('Overworld Welcome & Interaction Visibility Rules (Spec Section 5)', () => {
+  it('shows Welcome dialogue box on initial login/refresh before interaction', async () => {
+    const { shouldShowDialogue } = await import('../components/world/PixelWorldCanvas');
+
+    // Initial spawn: no tab open, user hasn't interacted, not near any door
+    const show = shouldShowDialogue({
+      activeTab: null,
+      hasInteracted: false,
+      nearbyBuilding: null,
+    });
+    expect(show).toBe(true);
+  });
+
+  it('hides dialogue box once player interacts and is walking in the open world', async () => {
+    const { shouldShowDialogue } = await import('../components/world/PixelWorldCanvas');
+
+    // Player started moving / interacting: hasInteracted is true, roaming open world
+    const show = shouldShowDialogue({
+      activeTab: null,
+      hasInteracted: true,
+      nearbyBuilding: null,
+    });
+    expect(show).toBe(false);
+  });
+
+  it('shows resident dialogue box when approaching any building', async () => {
+    const { shouldShowDialogue } = await import('../components/world/PixelWorldCanvas');
+
+    // Player walks near the Ledger Hut door
+    const show = shouldShowDialogue({
+      activeTab: null,
+      hasInteracted: true,
+      nearbyBuilding: { id: 'debts', name: 'The Ledger Hut' },
+    });
+    expect(show).toBe(true);
+  });
+
+  it('shows chapter dialogue box when inside an active chapter', async () => {
+    const { shouldShowDialogue } = await import('../components/world/PixelWorldCanvas');
+
+    // Player enters the Farmstead chapter (todos)
+    const show = shouldShowDialogue({
+      activeTab: 'todos',
+      hasInteracted: true,
+      nearbyBuilding: null,
+    });
+    expect(show).toBe(true);
+  });
+
+  it('controls HUD guide visibility: shows initial controls once, hides in world, prompts on proximity', async () => {
+    const { getHudControlsGuide } = await import('../components/world/PixelWorldCanvas');
+
+    // 1. Initial login / refresh: full keyboard guide shown
+    const initialGuide = getHudControlsGuide({
+      activeTab: null,
+      hasInteracted: false,
+      nearbyBuilding: null,
+    });
+    expect(initialGuide).toBe('🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only');
+
+    // 2. Walking open world: HUD guide is hidden (clean top bar)
+    const roamingGuide = getHudControlsGuide({
+      activeTab: null,
+      hasInteracted: true,
+      nearbyBuilding: null,
+    });
+    expect(roamingGuide).toBeNull();
+
+    // 3. Approaching a building: proximity entry guide shown
+    const proximityGuide = getHudControlsGuide({
+      activeTab: null,
+      hasInteracted: true,
+      nearbyBuilding: { id: 'reminders', name: 'The Bell Tower' },
+    });
+    expect(proximityGuide).toBe('🚪 [E] Enter • [P] Panel Only');
+
+    // 4. Inside a chapter: null (top bar displays Village Map button instead)
+    const chapterGuide = getHudControlsGuide({
+      activeTab: 'reminders',
+      hasInteracted: true,
+      nearbyBuilding: null,
+    });
+    expect(chapterGuide).toBeNull();
+  });
+});

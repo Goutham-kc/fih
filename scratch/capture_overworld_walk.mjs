@@ -16,8 +16,10 @@ const tilesetBase64 = fs.readFileSync('public/assets/tilesets/village_tileset.pn
 const pipBase64 = fs.readFileSync('public/assets/characters/pip_walk.png').toString('base64');
 const bramBase64 = fs.readFileSync('public/assets/characters/bram_factor.png').toString('base64');
 
-function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
+function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const isOverworld = !activeTab;
+  const showDialogue = !panelOnly && (activeTab !== null || (!hasInteracted && isOverworld) || nearbyBuilding !== null);
+  const hudGuide = activeTab ? null : (!hasInteracted ? '🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only' : (nearbyBuilding ? '🚪 [E] Enter • [P] Panel Only' : null));
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -190,7 +192,8 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
       <div style="font-size:11px; color:#60a5fa;">☀️ Clear</div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      ${isOverworld ? '<div class="controls-pill">🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only</div>' : '<button class="btn-pixel btn-gold">🗺️ Village Map (Esc)</button>'}
+      ${hudGuide ? `<div class="controls-pill">${hudGuide}</div>` : ''}
+      ${!isOverworld ? '<button class="btn-pixel btn-gold">🗺️ Village Map (Esc)</button>' : ''}
       <button class="btn-pixel ${panelOnly ? 'btn-gold' : ''}">${panelOnly ? '🗺️ Show World' : '📜 Panel Only'}</button>
     </div>
   </div>
@@ -234,17 +237,17 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
   </div>` : ''}
 
   <!-- Dialogue Box -->
-  ${!panelOnly ? `
+  ${showDialogue ? `
   <div class="dialogue-box">
-    <div class="portrait">${isOverworld ? '🧑‍🌾' : '🦡'}</div>
+    <div class="portrait">${(!isOverworld || nearbyBuilding) ? '🦡' : '🧑‍🌾'}</div>
     <div>
       <div style="font-family:'PressStart2P', monospace; font-size:9px; color:#facc15; margin-bottom:4px;">
-        ${isOverworld ? 'Pip the Farmhand (Village Guide)' : 'Bram the Honest Factor (Ledger Banker)'}
+        ${(!isOverworld || nearbyBuilding) ? 'Bram the Honest Factor (The Ledger Hut)' : 'Pip the Farmhand (Fih Valley Overworld)'}
       </div>
       <div style="font-size:11px; line-height:1.4; color:#fdf6e2;">
-        ${isOverworld 
-          ? 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.' 
-          : 'Clear accounts make steadfast friends! Settle your tabs before the fair, and your pouch will always jingle.'}
+        ${(!isOverworld || nearbyBuilding)
+          ? 'Clear accounts make steadfast friends! Settle your tabs before the fair. Press [E] to enter or [P] for Panel Only.'
+          : 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.'}
       </div>
     </div>
   </div>` : ''}
@@ -579,17 +582,26 @@ server.listen(PORT, async () => {
   const page = await browser.newPage();
 
 
-  // 0a. Default Overworld Map Desktop (Spawn at Fountain)
-  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  // 0a. Initial Login/Refresh: Shows Welcome Dialogue & Controls Pill
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: false, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-welcome-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-welcome-desktop.png') });
+  console.log('✓ Captured overworld-welcome-desktop.png (initial login view)');
+
+  // 0b. Open World Roaming (interacted, walking path): Welcome and controls hidden, clean view
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 21 * 16, y: 12 * 16, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-map-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-desktop.png') });
-  console.log('✓ Captured updated overworld-map-desktop.png');
+  console.log('✓ Captured updated overworld-map-desktop.png (roaming unobstructed)');
 
-  // 0b. Default Overworld Map Mobile
-  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: true, panelOnly: false });
+  // 0c. Default Overworld Map Mobile
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: true, panelOnly: false });
   await page.setViewport({ width: 390, height: 844 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -597,8 +609,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-mobile.png') });
   console.log('✓ Captured updated overworld-map-mobile.png');
 
-  // 1. Proximity prompt with [E] Enter & [P] Panel Only
-  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
+  // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Ledger Hut)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -607,7 +619,7 @@ server.listen(PORT, async () => {
   console.log('✓ Captured updated overworld-walk-proximity-desktop.png');
 
   // 2. Entered Ledger Hut in Split World View (with Panel Only toggle in header)
-  currentHTML = buildHTML({ activeTab: 'debts', pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  currentHTML = buildHTML({ activeTab: 'debts', hasInteracted: true, pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -616,7 +628,7 @@ server.listen(PORT, async () => {
   console.log('✓ Captured updated overworld-entered-ledger-desktop.png');
 
   // 3. Entered in Fullscreen "Panel Only" View
-  currentHTML = buildHTML({ activeTab: 'debts', pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: true });
+  currentHTML = buildHTML({ activeTab: 'debts', hasInteracted: true, pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: true });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));

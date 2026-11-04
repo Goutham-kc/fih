@@ -358,6 +358,40 @@ export function getNearbyBuilding(pipX, pipY, threshold = 40) {
   return closest;
 }
 
+/**
+ * Dialogue visibility logic:
+ * - On initial login/refresh: shows Welcome dialogue box once.
+ * - Once the character starts interacting (moving, clicking, opening chapters):
+ *   dialogue box hides during open-world roaming.
+ * - Dialogue box ONLY shows when actively interacting:
+ *   1) Approaching a building (proximity to resident/door)
+ *   2) Inside a chapter (activeTab is non-null)
+ */
+export function shouldShowDialogue({ activeTab = null, hasInteracted = false, nearbyBuilding = null } = {}) {
+  if (activeTab !== null && activeTab !== undefined) return true;
+  if (!hasInteracted) return true;
+  if (nearbyBuilding !== null && nearbyBuilding !== undefined) return true;
+  return false;
+}
+
+/**
+ * HUD controls guide logic:
+ * - On initial login/refresh: shows full movement & entry controls guide once.
+ * - Once interacting / roaming: hidden to keep top HUD clean.
+ * - When approaching a building: shows proximity prompt [E] Enter • [P] Panel Only.
+ * - Inside a chapter: null (the top bar renders Village Map (Esc) button instead).
+ */
+export function getHudControlsGuide({ activeTab = null, hasInteracted = false, nearbyBuilding = null } = {}) {
+  if (activeTab !== null && activeTab !== undefined) return null;
+  if (!hasInteracted) {
+    return '🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only';
+  }
+  if (nearbyBuilding) {
+    return '🚪 [E] Enter • [P] Panel Only';
+  }
+  return null;
+}
+
 export default function PixelWorldCanvas({
   activeTab = null, // null or 'map' = Full Overworld Exploration Mode
   debtsData = [],
@@ -371,6 +405,8 @@ export default function PixelWorldCanvas({
   onSelectDebt,
   onNavigateToChapter,
   onCloseChapter,
+  onPlayerInteract,
+  onNearbyBuildingChange,
   reducedMotion = false,
   className = '',
   style = {},
@@ -378,6 +414,16 @@ export default function PixelWorldCanvas({
   const canvasRef = useRef(null);
   const activeKeysRef = useRef(new Set());
   const [nearbyBuildingState, setNearbyBuildingState] = useState(null);
+
+  const onPlayerInteractRef = useRef(onPlayerInteract);
+  const onNearbyBuildingChangeRef = useRef(onNearbyBuildingChange);
+
+  useEffect(() => {
+    onPlayerInteractRef.current = onPlayerInteract;
+    onNearbyBuildingChangeRef.current = onNearbyBuildingChange;
+  }, [onPlayerInteract, onNearbyBuildingChange]);
+
+  const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
     images: { tileset: null, pip: null, bram: null },
@@ -475,9 +521,15 @@ export default function PixelWorldCanvas({
         if (code.startsWith('Arrow')) {
           e.preventDefault(); // Prevent scrolling page with arrow keys
         }
+        if (onPlayerInteractRef.current) {
+          onPlayerInteractRef.current();
+        }
         activeKeysRef.current.add(code);
         stateRef.current.clickTarget = null; // Keyboard cancels click waypoint
       } else if (code === 'KeyE' || code === 'Space') {
+        if (onPlayerInteractRef.current) {
+          onPlayerInteractRef.current();
+        }
         const nearby = stateRef.current.nearbyBuilding;
         if (nearby && onNavigateToChapter) {
           e.preventDefault();
@@ -485,6 +537,9 @@ export default function PixelWorldCanvas({
           onNavigateToChapter(nearby.id, { panelOnly: false });
         }
       } else if (code === 'KeyP') {
+        if (onPlayerInteractRef.current) {
+          onPlayerInteractRef.current();
+        }
         const nearby = stateRef.current.nearbyBuilding;
         if (nearby && onNavigateToChapter) {
           e.preventDefault();
@@ -536,6 +591,9 @@ export default function PixelWorldCanvas({
   }, []);
 
   const handleCanvasClick = useCallback((e) => {
+    if (onPlayerInteractRef.current) {
+      onPlayerInteractRef.current();
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -634,6 +692,9 @@ export default function PixelWorldCanvas({
       const { vx, vy } = getKeyboardVelocity(activeKeys);
 
       if (vx !== 0 || vy !== 0) {
+        if (onPlayerInteractRef.current) {
+          onPlayerInteractRef.current();
+        }
         pip.walking = true;
         const speed = 75 * dt;
         const nextX = pip.x + vx * speed;
@@ -713,6 +774,14 @@ export default function PixelWorldCanvas({
       // ── Update Proximity Detection ──
       const nearby = getNearbyBuilding(pip.x + 8, pip.y + 20, 36);
       state.nearbyBuilding = nearby;
+
+      const nearbyId = nearby ? nearby.id : null;
+      if (lastReportedNearbyRef.current !== nearbyId) {
+        lastReportedNearbyRef.current = nearbyId;
+        if (onNearbyBuildingChangeRef.current) {
+          onNearbyBuildingChangeRef.current(nearby);
+        }
+      }
 
       // ── Camera Panning & Follow Mode ──
       const cam = state.camera;
