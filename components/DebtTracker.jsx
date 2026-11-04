@@ -1,9 +1,25 @@
 import { useState, useEffect } from 'react';
 import { fireSuccessBurst, fireBigCelebration } from '@/lib/confetti';
 import { toast } from 'sonner';
-import { Plus, Check, RefreshCw, ArrowUpRight, ArrowDownLeft, CheckCircle2, Coins } from 'lucide-react';
+import {
+  Plus,
+  Check,
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CheckCircle2,
+  Coins,
+  Scale,
+  Stamp,
+  BookOpen,
+  History,
+} from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
-import { playSound } from '@/lib/soundEffects';
+import WoodPanel from '@/components/ui/WoodPanel';
+import PixelButton from '@/components/ui/PixelButton';
+import PixelBadge from '@/components/ui/PixelBadge';
+import { soundManager } from '@/lib/soundManager';
+import { eventBus, EVENTS } from '@/lib/eventBus';
 
 function cleanNote(note, personName) {
   if (!note) return '';
@@ -39,7 +55,10 @@ export default function DebtTracker() {
   }
 
   useEffect(() => {
-    fetchDebts();
+    const loadTimer = setTimeout(() => {
+      fetchDebts();
+    }, 0);
+    return () => clearTimeout(loadTimer);
   }, []);
 
   async function addDebt(e) {
@@ -54,12 +73,13 @@ export default function DebtTracker() {
     });
 
     if (res.ok) {
-      playSound('coin');
+      soundManager.playSfx('coin');
+      eventBus.emit(EVENTS.DEBT_CREATED, { person: person.trim(), amount: parsedAmount, direction });
       setPerson('');
       setAmount('');
       setNote('');
       setDirection('i_owe');
-      toast.success('Favor recorded in Pierre’s ledger 🪙');
+      toast.success('Favor recorded in Bram’s ledger 🪙');
       await fetchDebts();
     } else {
       toast.error('Failed to save record');
@@ -68,21 +88,24 @@ export default function DebtTracker() {
   }
 
   async function settleSingleDebt(debtId) {
-    playSound('coin');
+    soundManager.playSfx('stamp');
     fireSuccessBurst();
+    const target = debts.find((d) => d._id === debtId);
+    eventBus.emit(EVENTS.DEBT_SETTLED, { id: debtId, person: target?.person, amount: target?.amount });
     await fetch(`/api/debts/${debtId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ settled: true }),
     });
-    toast.success('Favor settled in gold!');
+    toast.success('Favor settled with wax seal!');
     fetchDebts();
   }
 
   async function settleAll(personName) {
-    playSound('fanfare');
+    soundManager.playSfx('fanfare');
     fireBigCelebration();
     const toSettle = debts.filter((d) => d.person === personName && !d.settled);
+    eventBus.emit(EVENTS.DEBT_SETTLED, { person: personName, count: toSettle.length });
     await Promise.all(
       toSettle.map((d) =>
         fetch(`/api/debts/${d._id}`, {
@@ -147,58 +170,81 @@ export default function DebtTracker() {
   }
 
   return (
-    <div className="animate-fade">
-      {/* Hero Summary Cards */}
-      <div className="grid-summary" style={{ marginBottom: 24 }}>
-        <div className="summary-card">
+    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 1. Hero Summary: The Brass Balance Scales */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 14,
+        }}
+      >
+        {/* You Owe Card */}
+        <WoodPanel variant="default" style={{ padding: '16px 18px', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span className="label">You Owe</span>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-rose)' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              You Owe (Payable)
+            </span>
+            <ArrowDownLeft size={16} color="#c2415a" />
           </div>
-          <div className="amount tabular-nums" style={{ color: 'var(--accent-rose)' }}>
+          <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: '#c2415a', fontFamily: 'var(--font-pixel, monospace)' }}>
             ₹{summary.totalOwe.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Unsettled payable</div>
-        </div>
-
-        <div className="summary-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span className="label">Owed to You</span>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-emerald)' }} />
+          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+            Unsettled tabs in valley
           </div>
-          <div className="amount tabular-nums" style={{ color: 'var(--accent-emerald)' }}>
+        </WoodPanel>
+
+        {/* Owed to You Card */}
+        <WoodPanel variant="default" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Owed to You (Receivable)
+            </span>
+            <ArrowUpRight size={16} color="#8fc45a" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: '#8fc45a', fontFamily: 'var(--font-pixel, monospace)' }}>
             ₹{summary.totalOwed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Unsettled receivable</div>
-        </div>
+          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+            Gold due from neighbors
+          </div>
+        </WoodPanel>
 
-        <div className="summary-card">
+        {/* Net Ledger Position */}
+        <WoodPanel variant="golden" style={{ padding: '16px 18px', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span className="label">Net Position</span>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: summary.net >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)',
-              }}
-            />
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Net Balance Position
+            </span>
+            <Scale size={16} color="#f2c230" />
           </div>
           <div
-            className="amount tabular-nums"
-            style={{ color: summary.net >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)' }}
+            className="tabular-nums"
+            style={{
+              fontSize: 22,
+              fontWeight: 800,
+              color: summary.net >= 0 ? '#8fc45a' : '#c2415a',
+              fontFamily: 'var(--font-pixel, monospace)',
+            }}
           >
             {summary.net >= 0 ? '+' : ''}₹{summary.net.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Overall balance</div>
-        </div>
+          <div style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4 }}>
+            {summary.net >= 0 ? 'Surplus in gold pouch' : 'Net deficit owed'}
+          </div>
+        </WoodPanel>
       </div>
 
-      {/* Add Debt Form Card */}
-      <div className="fih-card" style={{ marginBottom: 24 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 14 }}>
-          Record New Debt / Credit
-        </h3>
+      {/* 2. Inscribe in Ledger Form */}
+      <WoodPanel variant="default" style={{ padding: '18px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Coins size={16} color="#f2c230" />
+          <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#fdf6e2', margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
+            Inscribe New Tab in Bram’s Ledger
+          </h3>
+        </div>
+
         <form onSubmit={addDebt}>
           <div
             style={{
@@ -209,20 +255,12 @@ export default function DebtTracker() {
             }}
           >
             <div>
-              <label
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
-                  display: 'block',
-                  marginBottom: 6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                PERSON
+              <label style={{ fontSize: 11, color: '#c4b5a5', fontWeight: 700, display: 'block', marginBottom: 6, letterSpacing: '0.04em' }}>
+                PERSON / NEIGHBOR
               </label>
               <input
                 className="fih-input"
+                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
                 value={person}
                 onChange={(e) => setPerson(e.target.value)}
                 placeholder="e.g. Alex"
@@ -231,20 +269,12 @@ export default function DebtTracker() {
             </div>
 
             <div>
-              <label
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
-                  display: 'block',
-                  marginBottom: 6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                AMOUNT (₹)
+              <label style={{ fontSize: 11, color: '#c4b5a5', fontWeight: 700, display: 'block', marginBottom: 6, letterSpacing: '0.04em' }}>
+                GOLD AMOUNT (₹)
               </label>
               <input
                 className="fih-input tabular-nums"
+                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
                 type="number"
                 min="0.01"
                 step="0.01"
@@ -256,394 +286,275 @@ export default function DebtTracker() {
             </div>
 
             <div>
-              <label
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
-                  display: 'block',
-                  marginBottom: 6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                TYPE
+              <label style={{ fontSize: 11, color: '#c4b5a5', fontWeight: 700, display: 'block', marginBottom: 6, letterSpacing: '0.04em' }}>
+                DIRECTION
               </label>
               <select
                 className="fih-input"
+                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
                 value={direction}
                 onChange={(e) => setDirection(e.target.value)}
               >
-                <option value="i_owe">I owe them</option>
-                <option value="owed_to_me">They owe me</option>
+                <option value="i_owe">🔴 I owe them (Borrowed)</option>
+                <option value="owed_to_me">🟢 They owe me (Lent)</option>
               </select>
             </div>
 
             <div>
-              <label
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
-                  display: 'block',
-                  marginBottom: 6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                NOTE (OPTIONAL)
+              <label style={{ fontSize: 11, color: '#c4b5a5', fontWeight: 700, display: 'block', marginBottom: 6, letterSpacing: '0.04em' }}>
+                NOTE / FAVOR DETAILS
               </label>
               <input
                 className="fih-input"
+                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Dinner split"
+                placeholder="e.g. Dinner at saloon"
               />
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={adding}
-              style={{ minHeight: 42, padding: '0 20px' }}
-            >
-              <Plus size={16} />
-              <span>{adding ? 'Saving...' : 'Save Record'}</span>
-            </button>
+            <div>
+              <PixelButton
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={adding}
+                style={{ width: '100%', height: 40 }}
+              >
+                <Plus size={15} />
+                <span>{adding ? 'Inscribing...' : 'Record Tab'}</span>
+              </PixelButton>
+            </div>
           </div>
         </form>
-      </div>
+      </WoodPanel>
 
-      {/* View Switcher Controls */}
+      {/* 3. Navigation Controls: Active Balances vs Full Journal */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          gap: 12,
-          marginBottom: 16,
           flexWrap: 'wrap',
+          gap: 12,
         }}
       >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: 4,
-              background: 'var(--bg-sunken)',
-              padding: 3,
-              borderRadius: 10,
-              border: '1px solid var(--border-subtle)',
-            }}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <PixelButton
+            variant={activeTab === 'balances' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setActiveTab('balances')}
           >
-            <button
-              className={`btn ${activeTab === 'balances' ? 'btn-secondary' : 'btn-ghost'}`}
-              onClick={() => setActiveTab('balances')}
-              style={{ fontSize: 12, padding: '6px 12px', minHeight: 32 }}
-            >
-              Active Balances ({activeDebts.length})
-            </button>
-            <button
-              className={`btn ${activeTab === 'journal' ? 'btn-secondary' : 'btn-ghost'}`}
-              onClick={() => setActiveTab('journal')}
-              style={{ fontSize: 12, padding: '6px 12px', minHeight: 32 }}
-            >
-              Transaction Journal ({debts.length})
-            </button>
-          </div>
+            <Coins size={12} />
+            <span>Active Tabs ({Object.keys(byPerson).length} People)</span>
+          </PixelButton>
 
-          <button
-            className="btn btn-secondary"
-            onClick={fetchDebts}
-            style={{ fontSize: 12, padding: '6px 12px', minHeight: 32 }}
-            title="Refresh ledger"
+          <PixelButton
+            variant={activeTab === 'journal' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setActiveTab('journal')}
           >
-            <RefreshCw size={13} />
-            <span>Refresh</span>
-          </button>
+            <History size={12} />
+            <span>Journal Archive ({debts.length})</span>
+          </PixelButton>
         </div>
 
-        {activeTab === 'journal' && (
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['all', 'settled', 'active'].map((f) => (
-              <button
-                key={f}
-                className={`btn ${journalFilter === f ? 'btn-secondary' : 'btn-ghost'}`}
-                onClick={() => setJournalFilter(f)}
-                style={{
-                  fontSize: 12,
-                  padding: '4px 10px',
-                  minHeight: 32,
-                  textTransform: 'capitalize',
-                  fontWeight: journalFilter === f ? 600 : 500,
-                }}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        )}
+        <PixelButton
+          variant="secondary"
+          size="sm"
+          onClick={fetchDebts}
+          title="Refresh ledger"
+        >
+          <RefreshCw size={12} />
+          <span>Refresh</span>
+        </PixelButton>
       </div>
 
-      {/* View 1: Active Balances by Person */}
-      {activeTab === 'balances' &&
-        (Object.keys(byPerson).length === 0 ? (
-          <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No active debts</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-              All balances are settled! Check the Transaction Journal for full history.
-            </p>
-          </div>
-        ) : (
-          Object.entries(byPerson).map(([name, ds]) => {
-            const net = getPersonNet(ds);
+      {/* 4. Tab 1: Active Balances Grouped by Person */}
+      {activeTab === 'balances' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {Object.keys(byPerson).length === 0 ? (
+            <WoodPanel style={{ textAlign: 'center', padding: '48px 24px' }}>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>🦡⚖️</div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f2c230', margin: '0 0 6px 0' }}>
+                The ledger is completely clean!
+              </h3>
+              <p style={{ color: '#c4b5a5', fontSize: 13, margin: 0 }}>
+                Bram is polishing the scale in the quiet lantern light. All debts are settled and tabs cleared.
+              </p>
+            </WoodPanel>
+          ) : (
+            Object.entries(byPerson).map(([personName, personDebts]) => {
+              const net = getPersonNet(personDebts);
+              return (
+                <WoodPanel key={personName} variant="default" style={{ padding: '16px 18px' }}>
+                  {/* Person Header */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 10,
+                      marginBottom: 12,
+                      paddingBottom: 10,
+                      borderBottom: '1px solid rgba(123, 74, 40, 0.4)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2' }}>
+                          {personName}
+                        </span>
+                        <PixelBadge variant={net >= 0 ? 'success' : 'danger'}>
+                          {net >= 0 ? 'Owes You' : 'You Owe'} ₹{Math.abs(net).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </PixelBadge>
+                      </div>
+                      <span style={{ fontSize: 11, color: '#a38d7b', marginTop: 2, display: 'block' }}>
+                        {personDebts.length} active ledger record{personDebts.length === 1 ? '' : 's'}
+                      </span>
+                    </div>
 
-            return (
-              <div key={name} className="fih-card stagger-item" style={{ marginBottom: 16, padding: '20px' }}>
+                    <PixelButton
+                      variant="golden"
+                      size="sm"
+                      onClick={() => settleAll(personName)}
+                      title={`Settle all tabs with ${personName} with wax seal`}
+                    >
+                      <Stamp size={12} />
+                      <span>Settle All with {personName}</span>
+                    </PixelButton>
+                  </div>
+
+                  {/* Individual debts list */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {personDebts.map((d) => (
+                      <div
+                        key={d._id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '10px 12px',
+                          background: 'rgba(0,0,0,0.2)',
+                          borderRadius: 8,
+                          border: '1px solid rgba(123, 74, 40, 0.3)',
+                          gap: 10,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 13, color: d.direction === 'i_owe' ? '#c2415a' : '#8fc45a', fontWeight: 700 }}>
+                            {d.direction === 'i_owe' ? '🔴 You owe' : '🟢 Owes you'}
+                          </span>
+                          <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 700, color: '#fdf6e2' }}>
+                            ₹{d.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </span>
+                          {d.note && (
+                            <span style={{ fontSize: 12, color: '#c4b5a5', fontStyle: 'italic' }}>
+                              “{cleanNote(d.note, d.person)}”
+                            </span>
+                          )}
+                          <span style={{ fontSize: 10, color: '#a38d7b' }}>
+                            {formatDate(d.createdAt)}
+                          </span>
+                        </div>
+
+                        <PixelButton
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => settleSingleDebt(d._id)}
+                          title="Settle this specific tab"
+                          style={{ padding: '3px 8px', fontSize: 11 }}
+                        >
+                          <Check size={11} />
+                          <span>Settle</span>
+                        </PixelButton>
+                      </div>
+                    ))}
+                  </div>
+                </WoodPanel>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* 5. Tab 2: Journal Archive */}
+      {activeTab === 'journal' && (
+        <WoodPanel variant="default" style={{ padding: '16px 18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
+              Transaction Journal History
+            </h3>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {['all', 'active', 'settled'].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setJournalFilter(f)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 4,
+                    border: journalFilter === f ? '1px solid #f2c230' : '1px solid #7b4a28',
+                    background: journalFilter === f ? '#7b4a28' : '#2b1a11',
+                    color: journalFilter === f ? '#f2c230' : '#c4b5a5',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textTransform: 'capitalize',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {filteredJournal.length === 0 ? (
+              <p style={{ color: '#a38d7b', fontSize: 12, textAlign: 'center', padding: 16 }}>
+                No records matching this filter in Bram&apos;s journal.
+              </p>
+            ) : (
+              filteredJournal.map((d) => (
                 <div
+                  key={d._id}
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: 14,
-                    flexWrap: 'wrap',
-                    gap: 8,
+                    padding: '8px 12px',
+                    background: d.settled ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.25)',
+                    borderRadius: 6,
+                    border: '1px solid rgba(123, 74, 40, 0.25)',
+                    opacity: d.settled ? 0.75 : 1,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 10,
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        border: '1px solid rgba(99, 102, 241, 0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: 15,
-                        color: 'var(--accent-indigo)',
-                      }}
-                    >
-                      {name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: 15, fontWeight: 700 }}>{name}</h3>
-                      <div
-                        className="tabular-nums"
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color:
-                            net > 0
-                              ? 'var(--accent-emerald)'
-                              : net < 0
-                              ? 'var(--accent-rose)'
-                              : 'var(--text-muted)',
-                          marginTop: 2,
-                        }}
-                      >
-                        {net > 0
-                          ? `owes you ₹${net.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
-                          : net < 0
-                          ? `you owe ₹${Math.abs(net).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
-                          : 'All settled'}
-                      </div>
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <PixelBadge variant={d.settled ? 'success' : 'warning'}>
+                      {d.settled ? 'SEALED / SETTLED' : 'ACTIVE'}
+                    </PixelBadge>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: '#fdf6e2' }}>
+                      {d.person}
+                    </span>
+                    <span className="tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: d.direction === 'i_owe' ? '#c2415a' : '#8fc45a' }}>
+                      {d.direction === 'i_owe' ? '-₹' : '+₹'}{d.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                    {d.note && (
+                      <span style={{ fontSize: 11, color: '#c4b5a5', fontStyle: 'italic' }}>
+                        “{cleanNote(d.note, d.person)}”
+                      </span>
+                    )}
                   </div>
-
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => settleAll(name)}
-                    style={{ fontSize: 12, padding: '6px 14px', minHeight: 34 }}
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>Settle All</span>
-                  </button>
+                  <span style={{ fontSize: 10, color: '#a38d7b' }}>
+                    {formatDate(d.createdAt)}
+                  </span>
                 </div>
-
-                {/* Debt Entries */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-                  {ds.map((d) => (
-                    <div
-                      key={d._id}
-                      style={{
-                        fontSize: 13,
-                        background: 'var(--bg-sunken)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 10,
-                        padding: '10px 14px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 16,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10,
-                          flexWrap: 'wrap',
-                          minWidth: 0,
-                          flex: 1,
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
-                            fontWeight: 700,
-                            fontSize: 11,
-                            letterSpacing: '0.04em',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 3,
-                          }}
-                        >
-                          {d.direction === 'i_owe' ? (
-                            <>
-                              <ArrowUpRight size={12} /> YOU OWE
-                            </>
-                          ) : (
-                            <>
-                              <ArrowDownLeft size={12} /> OWES YOU
-                            </>
-                          )}
-                        </span>
-                        <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                          ₹{d.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                        {cleanNote(d.note, name) && (
-                          <span
-                            style={{
-                              color: 'var(--text-secondary)',
-                              fontSize: 12,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              maxWidth: 220,
-                            }}
-                          >
-                            · {cleanNote(d.note, name)}
-                          </span>
-                        )}
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                        <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                          {formatDate(d.createdAt)}
-                        </span>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => settleSingleDebt(d._id)}
-                          style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
-                          title="Settle this specific record"
-                        >
-                          <Check size={12} />
-                          <span>Settle</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })
-        ))}
-
-      {/* View 2: Transaction Journal & History */}
-      {activeTab === 'journal' &&
-        (filteredJournal.length === 0 ? (
-          <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No transactions in journal</h3>
+              ))
+            )}
           </div>
-        ) : (
-          <div className="fih-card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-              <table style={{ width: '100%', minWidth: 540, borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
-                <thead>
-                  <tr
-                    style={{
-                      background: 'var(--bg-sunken)',
-                      borderBottom: '1px solid var(--border-subtle)',
-                      color: 'var(--text-muted)',
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                    }}
-                  >
-                    <th style={{ padding: '14px 20px' }}>Date</th>
-                    <th style={{ padding: '14px 20px' }}>Person</th>
-                    <th style={{ padding: '14px 20px' }}>Direction</th>
-                    <th style={{ padding: '14px 20px' }}>Amount</th>
-                    <th style={{ padding: '14px 20px' }}>Note</th>
-                    <th style={{ padding: '14px 20px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredJournal.map((d) => (
-                    <tr
-                      key={d._id}
-                      style={{
-                        borderBottom: '1px solid var(--border-subtle)',
-                        opacity: d.settled ? 0.6 : 1,
-                      }}
-                    >
-                      <td className="tabular-nums" style={{ padding: '14px 20px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                        {formatDate(d.createdAt)}
-                      </td>
-                      <td style={{ padding: '14px 20px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {d.person}
-                      </td>
-                      <td style={{ padding: '14px 20px' }}>
-                        <span className={`badge ${d.direction === 'i_owe' ? 'badge-high' : 'badge-done'}`}>
-                          {d.direction === 'i_owe' ? 'YOU OWE' : 'OWES YOU'}
-                        </span>
-                      </td>
-                      <td
-                        className="tabular-nums"
-                        style={{
-                          padding: '14px 20px',
-                          fontWeight: 700,
-                          color: d.direction === 'i_owe' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
-                        }}
-                      >
-                        ₹{d.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>
-                        {d.note || '—'}
-                      </td>
-                      <td style={{ padding: '14px 20px' }}>
-                        {d.settled ? (
-                          <span className="badge badge-done" style={{ fontSize: 11 }}>
-                            Settled{' '}
-                            {d.settledDate
-                              ? `(${new Date(d.settledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })})`
-                              : ''}
-                          </span>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span className="badge badge-medium" style={{ fontSize: 11 }}>
-                              Active
-                            </span>
-                            <button
-                              className="btn btn-secondary"
-                              onClick={() => settleSingleDebt(d._id)}
-                              style={{ fontSize: 11, padding: '3px 8px', minHeight: 28 }}
-                              title="Settle this specific transaction"
-                            >
-                              <Check size={11} />
-                              <span>Settle</span>
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ))}
+        </WoodPanel>
+      )}
     </div>
   );
 }

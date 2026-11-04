@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
-import { CheckSquare, Clock, Calendar, CreditCard, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import {
+  CheckSquare,
+  Clock,
+  Calendar,
+  Coins,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Scale,
+  Sparkles,
+  Sprout,
+  BellRing,
+  Pin,
+} from 'lucide-react';
+import WoodPanel from '@/components/ui/WoodPanel';
+import PixelBadge from '@/components/ui/PixelBadge';
 
 export default function OverviewCards({ onNavigate, envMode }) {
   const [data, setData] = useState({
@@ -67,267 +81,189 @@ export default function OverviewCards({ onNavigate, envMode }) {
     };
   }, [envMode]);
 
-  const handleCardMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
-    e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
-  };
-
   return (
     <div
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
         gap: 14,
-        marginBottom: 28,
+        marginBottom: 24,
       }}
     >
-      {/* 1. To-dos metric */}
-      <div
+      {/* 1. To-dos metric (Chapter 1: Farmstead) */}
+      <WoodPanel
+        variant="default"
         onClick={() => onNavigate('todos')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
         style={{
-          padding: '18px 20px',
-          borderRadius: 16,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
+          padding: '16px 18px',
           cursor: 'pointer',
           position: 'relative',
+          transition: 'transform 0.15s ease',
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'none';
+        }}
+        title="Walk to The Farmstead"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Tasks & To-Dos</span>
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(99, 102, 241, 0.1)',
-              color: 'var(--accent-indigo)',
-            }}
-          >
-            <CheckSquare size={16} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
+            Farmstead Quests
           </span>
+          <Sprout size={16} color="#8fc45a" />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+            <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
               {data.loading ? '—' : data.todosCount}
             </span>
             {data.urgentTodos > 0 && (
-              <span
-                className="tabular-nums"
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: 'var(--badge-high-color)',
-                  background: 'var(--badge-high-bg)',
-                  border: '1px solid var(--badge-high-border)',
-                  padding: '2px 7px',
-                  borderRadius: 6,
-                }}
-              >
+              <PixelBadge variant="danger" size="sm">
                 {data.urgentTodos} urgent
-              </span>
+              </PixelBadge>
             )}
           </div>
-          {/* Micro sparkline */}
-          <svg width="48" height="20" viewBox="0 0 48 20" style={{ opacity: 0.6 }}>
-            <path d="M 0 16 Q 12 4, 24 12 T 48 6" fill="none" stroke="var(--accent-indigo)" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="48" cy="6" r="2.5" fill="var(--accent-indigo)" />
-          </svg>
+          <span style={{ fontSize: 18 }}>🌱</span>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
           {data.loading
-            ? 'Checking tasks...'
+            ? 'Tending crop plots...'
             : data.todosCount === 0
-            ? 'All caught up'
-            : `${data.todosCount} pending action item${data.todosCount === 1 ? '' : 's'}`}
+            ? 'All fields cleared'
+            : `${data.todosCount} crop plot${data.todosCount === 1 ? '' : 's'} ripening`}
         </div>
-      </div>
+      </WoodPanel>
 
-      {/* 2. Today's Reminders */}
-      <div
+      {/* 2. Today's Reminders (Chapter 4: Bell Tower) */}
+      <WoodPanel
+        variant="default"
         onClick={() => onNavigate('reminders')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
         style={{
-          padding: '18px 20px',
-          borderRadius: 16,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
+          padding: '16px 18px',
           cursor: 'pointer',
           position: 'relative',
+          transition: 'transform 0.15s ease',
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'none';
+        }}
+        title="Climb to The Bell Tower"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Today's Reminders</span>
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(245, 158, 11, 0.1)',
-              color: 'var(--accent-amber)',
-            }}
-          >
-            <Clock size={16} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#e07a3f', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
+            Belfry Chimes Today
           </span>
+          <BellRing size={16} color="#e07a3f" />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-              {data.loading ? '—' : data.remindersToday}
-            </span>
-          </div>
-          {/* Micro radar beacon */}
-          <div style={{ position: 'relative', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ position: 'absolute', width: 18, height: 18, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.2)', border: '1px solid var(--accent-amber)' }} className="animate-pulse" />
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-amber)' }} />
-          </div>
+          <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
+            {data.loading ? '—' : data.remindersToday}
+          </span>
+          <span style={{ fontSize: 18 }}>🔔</span>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
           {data.loading
-            ? 'Checking schedule...'
+            ? 'Checking belfry bells...'
             : data.remindersToday === 0
-            ? 'No alerts today'
-            : `${data.remindersToday} alert${data.remindersToday === 1 ? '' : 's'} scheduled`}
+            ? 'Quiet day in belfry'
+            : `${data.remindersToday} chime${data.remindersToday === 1 ? '' : 's'} queued today`}
         </div>
-      </div>
+      </WoodPanel>
 
-      {/* 3. Deadlines Soon */}
-      <div
+      {/* 3. Deadlines Soon (Chapter 3: Notice Board) */}
+      <WoodPanel
+        variant="default"
         onClick={() => onNavigate('deadlines')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
         style={{
-          padding: '18px 20px',
-          borderRadius: 16,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
+          padding: '16px 18px',
           cursor: 'pointer',
           position: 'relative',
+          transition: 'transform 0.15s ease',
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'none';
+        }}
+        title="Check Town Notice Board"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Due in 48 Hours</span>
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(244, 63, 94, 0.1)',
-              color: 'var(--accent-rose)',
-            }}
-          >
-            <Calendar size={16} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
+            Ripening in 48h
           </span>
+          <Pin size={16} color="#f2c230" />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-              {data.loading ? '—' : data.deadlinesSoon}
-            </span>
-          </div>
-          {/* Micro countdown graphic */}
-          <svg width="24" height="24" viewBox="0 0 24 24" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="12" cy="12" r="9" fill="none" stroke="var(--border-subtle)" strokeWidth="2.5" />
-            <circle cx="12" cy="12" r="9" fill="none" stroke="var(--accent-rose)" strokeWidth="2.5" strokeDasharray="56.5" strokeDashoffset="18" strokeLinecap="round" />
-          </svg>
+          <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
+            {data.loading ? '—' : data.deadlinesSoon}
+          </span>
+          <span style={{ fontSize: 18 }}>📌</span>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
           {data.loading
-            ? 'Checking due dates...'
+            ? 'Reading notice ribbons...'
             : data.deadlinesSoon === 0
-            ? 'Clear schedule ahead'
-            : `${data.deadlinesSoon} deadline${data.deadlinesSoon === 1 ? '' : 's'} approaching`}
+            ? 'Clear bulletin ahead'
+            : `${data.deadlinesSoon} notice${data.deadlinesSoon === 1 ? '' : 's'} due soon`}
         </div>
-      </div>
+      </WoodPanel>
 
-      {/* 4. Net Debt Balance */}
-      <div
+      {/* 4. Net Debt Balance (Chapter 2: Ledger Hut) */}
+      <WoodPanel
+        variant="golden"
         onClick={() => onNavigate('debts')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
         style={{
-          padding: '18px 20px',
-          borderRadius: 16,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
+          padding: '16px 18px',
           cursor: 'pointer',
           position: 'relative',
+          transition: 'transform 0.15s ease',
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'none';
+        }}
+        title="Inspect Bram's Ledger Hut"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Net Balance</span>
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background:
-                data.netDebt > 0
-                  ? 'rgba(16, 185, 129, 0.1)'
-                  : data.netDebt < 0
-                  ? 'rgba(244, 63, 94, 0.1)'
-                  : 'rgba(107, 114, 128, 0.1)',
-              color:
-                data.netDebt > 0
-                  ? 'var(--accent-emerald)'
-                  : data.netDebt < 0
-                  ? 'var(--accent-rose)'
-                  : 'var(--text-muted)',
-            }}
-          >
-            <CreditCard size={16} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
+            Net Ledger Gold
           </span>
+          <Scale size={16} color="#f2c230" />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <span
             className="tabular-nums"
             style={{
-              fontSize: 28,
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color:
-                data.netDebt > 0
-                  ? 'var(--accent-emerald)'
-                  : data.netDebt < 0
-                  ? 'var(--accent-rose)'
-                  : 'var(--text-primary)',
+              fontSize: 26,
+              fontWeight: 800,
+              fontFamily: 'var(--font-pixel, monospace)',
+              color: data.netDebt >= 0 ? '#8fc45a' : '#e05338',
             }}
           >
-            {data.loading ? '—' : `₹${Math.abs(data.netDebt).toLocaleString('en-IN')}`}
+            {data.loading ? '—' : `${data.netDebt >= 0 ? '+' : ''}₹${Math.abs(data.netDebt).toLocaleString('en-IN')}`}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', color: data.netDebt >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', color: data.netDebt >= 0 ? '#8fc45a' : '#e05338' }}>
             {data.netDebt >= 0 ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
           </div>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4 }}>
           {data.loading
-            ? 'Calculating balances...'
+            ? 'Balancing scale...'
             : data.netDebt > 0
-            ? 'Others owe you net'
+            ? 'Surplus in gold pouch'
             : data.netDebt < 0
-            ? 'You owe net'
-            : 'All personal balances settled'}
+            ? 'Net favors owed'
+            : 'All tabs balanced'}
         </div>
-      </div>
+      </WoodPanel>
     </div>
   );
 }

@@ -621,7 +621,7 @@ export default function InteractiveTelemetry({ onNavigate, envMode }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
-                Today's 24-Hour Horizon Orbit • Hover pins to reveal schedule
+                Today&apos;s 24-Hour Horizon Orbit • Hover pins to reveal schedule
               </div>
               <div className="tabular-nums" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
                 Current Time: <span style={{ color: 'var(--accent-emerald)' }}>{currentTimeString}</span> ({Math.round(currentTimePercent)}% of day)

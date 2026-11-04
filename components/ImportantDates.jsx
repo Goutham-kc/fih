@@ -1,8 +1,23 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, Plus, Trash2, RefreshCw, Calendar, Gift } from 'lucide-react';
+import {
+  Sparkles,
+  Plus,
+  Trash2,
+  RefreshCw,
+  Calendar,
+  Gift,
+  PartyPopper,
+  Flame,
+  Award,
+} from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
-import { playSound } from '@/lib/soundEffects';
+import WoodPanel from '@/components/ui/WoodPanel';
+import PixelButton from '@/components/ui/PixelButton';
+import PixelBadge from '@/components/ui/PixelBadge';
+import CharacterSprite from '@/components/character/CharacterSprite';
+import { soundManager } from '@/lib/soundManager';
+import { fireSuccessBurst } from '@/lib/confetti';
 
 function getDaysUntil(dateStr) {
   const now = new Date();
@@ -54,7 +69,10 @@ export default function ImportantDates() {
   }
 
   useEffect(() => {
-    fetchDates();
+    const loadTimer = setTimeout(() => {
+      fetchDates();
+    }, 0);
+    return () => clearTimeout(loadTimer);
   }, []);
 
   async function addDate(e) {
@@ -68,7 +86,8 @@ export default function ImportantDates() {
     });
 
     if (res.ok) {
-      playSound('fanfare');
+      soundManager.playSfx('fanfare');
+      fireSuccessBurst();
       setTitle('');
       setDate('');
       setRecurring('none');
@@ -89,9 +108,9 @@ export default function ImportantDates() {
   if (loading) {
     return (
       <div className="animate-fade">
-        <div className="fih-card" style={{ marginBottom: 24, height: 110 }}>
-          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 10, marginBottom: 12 }} />
-        </div>
+        <WoodPanel variant="default" style={{ marginBottom: 20, height: 110, padding: 16 }}>
+          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 6 }} />
+        </WoodPanel>
         <SkeletonLoader count={3} height={70} />
       </div>
     );
@@ -99,80 +118,93 @@ export default function ImportantDates() {
 
   const { thisWeek, thisMonth, later, past } = groupDates(dates);
 
-  function renderGroup(label, items, badgeColor) {
+  function renderGroup(label, items, badgeColor, iconEmoji) {
     if (!items.length) return null;
     return (
-      <div style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 24 }}>
         <div
           style={{
             fontSize: 11,
-            fontWeight: 700,
+            fontWeight: 800,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: badgeColor || 'var(--text-muted)',
-            marginBottom: 12,
+            color: badgeColor || '#c4b5a5',
+            marginBottom: 10,
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 8,
+            fontFamily: 'var(--font-pixel, monospace)',
           }}
         >
-          <span>{label}</span>
-          <span style={{ height: 1, flex: 1, background: 'var(--border-subtle)' }} />
+          <span>{iconEmoji} {label}</span>
+          <span style={{ height: 1, flex: 1, background: '#4d3324' }} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.map((d) => {
             const days = getDaysUntil(d.date);
+            const isToday = days === 0;
+            const isSoon = days > 0 && days <= 7;
+
             return (
-              <div
+              <WoodPanel
                 key={d._id}
-                className="fih-card stagger-item"
+                variant={isToday ? 'golden' : 'default'}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  padding: '16px 20px',
+                  padding: '14px 18px',
                   flexWrap: 'wrap',
                   gap: 12,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 700, fontSize: 14, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
                         {d.title}
                       </span>
                       {d.recurring !== 'none' && (
-                        <span className="badge badge-planned" style={{ textTransform: 'capitalize' }}>
-                          {d.recurring}
-                        </span>
+                        <PixelBadge variant="default" size="sm">
+                          {d.recurring === 'yearly' ? '🎂 ANNUAL' : '🔄 MONTHLY'}
+                        </PixelBadge>
                       )}
                     </div>
-                    <div className="tabular-nums" style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Calendar size={12} />
-                      Date: <strong style={{ color: 'var(--text-primary)' }}>{d.date}</strong>
+                    <div className="tabular-nums" style={{ fontSize: 12, color: '#c4b5a5', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-pixel, monospace)' }}>
+                      <Calendar size={12} color="#e07a3f" />
+                      Date: <strong style={{ color: '#fdf6e2' }}>{d.date}</strong>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                  <span
-                    className={`countdown-chip tabular-nums ${days === 0 ? 'today' : days > 0 && days <= 7 ? 'today' : 'upcoming'}`}
-                    style={{ fontSize: 12, padding: '4px 12px' }}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                  <PixelBadge
+                    variant={isToday ? 'warning' : isSoon ? 'warning' : days < 0 ? 'default' : 'success'}
+                    size="sm"
                   >
-                    {days === 0 ? 'Today' : days > 0 ? `In ${days} days` : `${Math.abs(days)} days ago`}
-                  </span>
+                    {days === 0 ? '🎉 Today!' : days > 0 ? `In ${days} days` : `${Math.abs(days)} days ago`}
+                  </PixelBadge>
+
                   <button
-                    className="btn btn-ghost btn-icon"
                     onClick={() => deleteDate(d._id, d.title)}
-                    style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 32 }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#8c705f',
+                      cursor: 'pointer',
+                      padding: 6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                     title="Delete date"
                     aria-label={`Delete date: ${d.title}`}
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
-              </div>
+              </WoodPanel>
             );
           })}
         </div>
@@ -181,23 +213,81 @@ export default function ImportantDates() {
   }
 
   return (
-    <div className="animate-fade">
-      {/* Create Form Card */}
-      <div className="fih-card" style={{ marginBottom: 24 }}>
+    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 1. Festival Grounds Hero Banner */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+          gap: 12,
+        }}
+      >
+        <WoodPanel variant="golden" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Village Festivals
+            </span>
+            <PartyPopper size={16} color="#f2c230" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
+            {dates.length}
+          </div>
+          <div style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4 }}>
+            Inscribed festival milestones
+          </div>
+        </WoodPanel>
+
+        <WoodPanel variant="default" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#8fc45a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Approaching Festivals
+            </span>
+            <Sparkles size={16} color="#8fc45a" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#8fc45a', fontFamily: 'var(--font-pixel, monospace)' }}>
+            {thisWeek.length + thisMonth.length}
+          </div>
+          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+            Gatherings in next 30 days
+          </div>
+        </WoodPanel>
+
+        <WoodPanel variant="dark" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Carrier Reminders
+            </span>
+            <span style={{ fontSize: 16 }}>🕊️</span>
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#c4b5a5', fontFamily: 'var(--font-pixel, monospace)' }}>
+            Active
+          </div>
+          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+            Automated WhatsApp chimes
+          </div>
+        </WoodPanel>
+      </div>
+
+      {/* 2. Inscribe Date Form Card */}
+      <WoodPanel variant="default" style={{ padding: '18px 20px', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em' }}>
-            Track Important Date / Milestone
-          </h3>
-          <button
-            className="btn btn-secondary"
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Gift size={16} color="#f2c230" />
+            <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#fdf6e2', margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
+              Inscribe Festival / Milestone on Calendar
+            </h3>
+          </div>
+          <PixelButton
+            variant="wood"
+            size="sm"
             onClick={fetchDates}
-            style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
             title="Refresh dates"
           >
-            <RefreshCw size={13} />
+            <RefreshCw size={12} />
             <span>Refresh</span>
-          </button>
+          </PixelButton>
         </div>
+
         <form onSubmit={addDate}>
           <div
             style={{
@@ -211,14 +301,14 @@ export default function ImportantDates() {
               <label
                 style={{
                   fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
+                  color: '#c4b5a5',
+                  fontWeight: 700,
                   display: 'block',
                   marginBottom: 6,
                   letterSpacing: '0.04em',
                 }}
               >
-                TITLE
+                MILESTONE TITLE
               </label>
               <input
                 className="fih-input"
@@ -226,6 +316,11 @@ export default function ImportantDates() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Mom's Birthday, Visa Renewal"
                 required
+                style={{
+                  background: '#241a15',
+                  borderColor: '#4d3324',
+                  color: '#fdf6e2',
+                }}
               />
             </div>
 
@@ -233,8 +328,8 @@ export default function ImportantDates() {
               <label
                 style={{
                   fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
+                  color: '#c4b5a5',
+                  fontWeight: 700,
                   display: 'block',
                   marginBottom: 6,
                   letterSpacing: '0.04em',
@@ -248,6 +343,11 @@ export default function ImportantDates() {
                 onChange={(e) => setDate(e.target.value)}
                 placeholder="e.g. 09-14 or 2026-11-20"
                 required
+                style={{
+                  background: '#241a15',
+                  borderColor: '#4d3324',
+                  color: '#fdf6e2',
+                }}
               />
             </div>
 
@@ -255,8 +355,8 @@ export default function ImportantDates() {
               <label
                 style={{
                   fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
+                  color: '#c4b5a5',
+                  fontWeight: 700,
                   display: 'block',
                   marginBottom: 6,
                   letterSpacing: '0.04em',
@@ -268,39 +368,50 @@ export default function ImportantDates() {
                 className="fih-input"
                 value={recurring}
                 onChange={(e) => setRecurring(e.target.value)}
+                style={{
+                  background: '#241a15',
+                  borderColor: '#4d3324',
+                  color: '#fdf6e2',
+                }}
               >
                 <option value="none">One-time Milestone</option>
-                <option value="yearly">Yearly (Birthday / Anniversary)</option>
-                <option value="monthly">Monthly Cycle</option>
+                <option value="yearly">🎂 Yearly (Birthday / Solstice)</option>
+                <option value="monthly">🔄 Monthly Cycle</option>
               </select>
             </div>
 
-            <button
+            <PixelButton
               type="submit"
-              className="btn btn-primary"
+              variant="golden"
               disabled={adding}
-              style={{ minHeight: 42, padding: '0 20px' }}
+              style={{ minHeight: 42, padding: '0 18px', width: '100%' }}
             >
               <Plus size={16} />
-              <span>{adding ? 'Saving...' : 'Save Date'}</span>
-            </button>
+              <span>{adding ? 'Inscribing...' : 'Inscribe Date'}</span>
+            </PixelButton>
           </div>
         </form>
-      </div>
+      </WoodPanel>
 
+      {/* 3. Grouped Dates Display */}
       {dates.length === 0 ? (
-        <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No important dates saved</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-            Add birthdays, milestones, or anniversaries to receive automated WhatsApp reminders.
+        <WoodPanel variant="default" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <CharacterSprite character="clover" state="idle" size={64} />
+          </div>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fdf6e2', marginBottom: 6, fontFamily: 'var(--font-pixel, monospace)' }}>
+            No festival dates inscribed yet
+          </h3>
+          <p style={{ color: '#a38d7b', fontSize: 13, maxWidth: 440, margin: '0 auto' }}>
+            Add birthdays, milestones, or village gatherings to receive automated carrier-pigeon reminders before the celebration.
           </p>
-        </div>
+        </WoodPanel>
       ) : (
         <>
-          {renderGroup('This Week', thisWeek, 'var(--accent-amber)')}
-          {renderGroup('This Month', thisMonth, 'var(--accent-indigo)')}
-          {renderGroup('Upcoming Later', later, 'var(--accent-violet)')}
-          {renderGroup('Past Events', past, 'var(--text-muted)')}
+          {renderGroup('This Week’s Celebrations', thisWeek, '#f2c230', '🎉')}
+          {renderGroup('This Month’s Gatherings', thisMonth, '#6888c8', '🌸')}
+          {renderGroup('Later in the Year', later, '#8fc45a', '🍂')}
+          {renderGroup('Past Solstices & Memories', past, '#a38d7b', '❄️')}
         </>
       )}
     </div>

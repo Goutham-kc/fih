@@ -1,18 +1,34 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Clock, Plus, Trash2, RefreshCw, Check, Calendar, Mail } from 'lucide-react';
+import {
+  Clock,
+  Plus,
+  Trash2,
+  RefreshCw,
+  Check,
+  Calendar,
+  Bell,
+  BellRing,
+  BellOff,
+  Sparkles,
+} from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
-import { playSound } from '@/lib/soundEffects';
+import WoodPanel from '@/components/ui/WoodPanel';
+import PixelButton from '@/components/ui/PixelButton';
+import PixelBadge from '@/components/ui/PixelBadge';
+import CharacterSprite from '@/components/character/CharacterSprite';
+import { soundManager } from '@/lib/soundManager';
+import { eventBus, EVENTS } from '@/lib/eventBus';
 
 export default function ReminderBoard() {
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'history'
-
   const [title, setTitle] = useState('');
   const [remindAt, setRemindAt] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   const fetchReminders = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -31,7 +47,18 @@ export default function ReminderBoard() {
   };
 
   useEffect(() => {
-    fetchReminders();
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 30000);
+
+    const loadTimer = setTimeout(() => {
+      fetchReminders();
+    }, 0);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(loadTimer);
+    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -48,7 +75,8 @@ export default function ReminderBoard() {
       });
 
       if (res.ok) {
-        playSound('mail');
+        soundManager.playSfx('bell');
+        eventBus.emit(EVENTS.REMINDER_CREATED, { title: title.trim() });
         setTitle('');
         setRemindAt('');
         toast.success('Pigeon dispatch scheduled 📬');
@@ -78,6 +106,10 @@ export default function ReminderBoard() {
 
   const toggleSent = async (id, currentSent) => {
     try {
+      soundManager.playSfx('bell');
+      if (!currentSent) {
+        eventBus.emit(EVENTS.REMINDER_FIRED, { id });
+      }
       const res = await fetch(`/api/reminders/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -109,19 +141,159 @@ export default function ReminderBoard() {
   };
 
   const getRelativeBadge = (dateStr) => {
-    const diff = new Date(dateStr) - new Date();
-    if (diff < 0) return { text: 'Overdue / Pending Trigger', color: 'var(--accent-rose)', bg: 'var(--badge-high-bg)', border: 'var(--badge-high-border)' };
+    const diff = new Date(dateStr).getTime() - now;
+    if (diff < 0) return { text: 'Overdue / Pending Trigger', color: '#e05338', bg: '#2b1411', border: '#78261e' };
     const mins = Math.floor(diff / (1000 * 60));
-    if (mins < 60) return { text: `In ${mins} min${mins === 1 ? '' : 's'}`, color: 'var(--accent-amber)', bg: 'var(--badge-medium-bg)', border: 'var(--badge-medium-border)' };
+    if (mins < 60) return { text: `In ${mins} min${mins === 1 ? '' : 's'}`, color: '#f2c230', bg: '#2b220e', border: '#785b18' };
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return { text: `In ${hours} hr${hours === 1 ? '' : 's'}`, color: 'var(--accent-indigo)', bg: 'var(--badge-planned-bg)', border: 'var(--border-subtle)' };
+    if (hours < 24) return { text: `In ${hours} hr${hours === 1 ? '' : 's'}`, color: '#6888c8', bg: '#1c2438', border: '#3b4b6b' };
     const days = Math.floor(hours / 24);
-    return { text: `In ${days} day${days === 1 ? '' : 's'}`, color: 'var(--accent-emerald)', bg: 'var(--badge-low-bg)', border: 'var(--badge-low-border)' };
+    return { text: `In ${days} day${days === 1 ? '' : 's'}`, color: '#8fc45a', bg: '#1c2814', border: '#3b5423' };
   };
 
   return (
-    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* View Switcher & Header Controls */}
+    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 1. Bell Tower Hero Summary Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+          gap: 12,
+        }}
+      >
+        <WoodPanel variant="golden" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Active Belfry Bells
+            </span>
+            <BellRing size={16} color="#f2c230" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
+            {upcomingReminders.length}
+          </div>
+          <div style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4 }}>
+            Strung along tower rope
+          </div>
+        </WoodPanel>
+
+        <WoodPanel variant="default" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#e07a3f', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Next Chime Due
+            </span>
+            <Clock size={16} color="#e07a3f" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: '#e07a3f', fontFamily: 'var(--font-pixel, monospace)', marginTop: 4 }}>
+            {upcomingReminders.length > 0 ? getRelativeBadge(upcomingReminders[0].remindAt).text : 'No chimes queued'}
+          </div>
+          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+            Hoot is watching the clock
+          </div>
+        </WoodPanel>
+
+        <WoodPanel variant="dark" style={{ padding: '16px 18px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Silent Bells Archive
+            </span>
+            <BellOff size={16} color="#a38d7b" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#c4b5a5', fontFamily: 'var(--font-pixel, monospace)' }}>
+            {historyReminders.length}
+          </div>
+          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+            Past dispatched dispatches
+          </div>
+        </WoodPanel>
+      </div>
+
+      {/* 2. Tie a New Bell Form */}
+      <WoodPanel variant="default" style={{ padding: '18px 20px', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <Bell size={16} color="#f2c230" />
+          <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#fdf6e2', margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
+            Tie a New Bell to the Belfry
+          </h3>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+              gap: 12,
+              alignItems: 'end',
+            }}
+          >
+            <div>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: '#c4b5a5',
+                  fontWeight: 700,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                REMINDER TITLE
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Call Vet, Review Academy Scroll..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="fih-input"
+                required
+                style={{
+                  background: '#241a15',
+                  borderColor: '#4d3324',
+                  color: '#fdf6e2',
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: '#c4b5a5',
+                  fontWeight: 700,
+                  display: 'block',
+                  marginBottom: 6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                CHIME AT (DATE & TIME)
+              </label>
+              <input
+                type="datetime-local"
+                value={remindAt}
+                onChange={(e) => setRemindAt(e.target.value)}
+                className="fih-input tabular-nums"
+                required
+                style={{
+                  background: '#241a15',
+                  borderColor: '#4d3324',
+                  color: '#fdf6e2',
+                }}
+              />
+            </div>
+
+            <PixelButton
+              type="submit"
+              variant="golden"
+              disabled={submitting}
+              style={{ minHeight: 42, padding: '0 18px', width: '100%' }}
+            >
+              <Plus size={16} />
+              <span>{submitting ? 'Tying...' : 'Tie Bell'}</span>
+            </PixelButton>
+          </div>
+        </form>
+      </WoodPanel>
+
+      {/* 3. View Switcher & Controls */}
       <div
         style={{
           display: 'flex',
@@ -131,147 +303,69 @@ export default function ReminderBoard() {
           gap: 12,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            gap: 4,
-            background: 'var(--bg-sunken)',
-            border: '1px solid var(--border-subtle)',
-            padding: 3,
-            borderRadius: 10,
-          }}
-        >
-          <button
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <PixelButton
+            variant={activeTab === 'upcoming' ? 'golden' : 'wood'}
+            size="sm"
             onClick={() => setActiveTab('upcoming')}
-            className={`btn ${activeTab === 'upcoming' ? 'btn-secondary' : 'btn-ghost'}`}
-            style={{
-              padding: '6px 14px',
-              fontSize: 12,
-              fontWeight: activeTab === 'upcoming' ? 600 : 500,
-              minHeight: 32,
-            }}
           >
-            Upcoming ({upcomingReminders.length})
-          </button>
-          <button
+            <BellRing size={13} />
+            <span>Upcoming Bells ({upcomingReminders.length})</span>
+          </PixelButton>
+
+          <PixelButton
+            variant={activeTab === 'history' ? 'golden' : 'wood'}
+            size="sm"
             onClick={() => setActiveTab('history')}
-            className={`btn ${activeTab === 'history' ? 'btn-secondary' : 'btn-ghost'}`}
-            style={{
-              padding: '6px 14px',
-              fontSize: 12,
-              fontWeight: activeTab === 'history' ? 600 : 500,
-              minHeight: 32,
-            }}
           >
-            Sent / Past ({historyReminders.length})
-          </button>
+            <BellOff size={13} />
+            <span>Silent Bells Drawer ({historyReminders.length})</span>
+          </PixelButton>
         </div>
 
-        <button
+        <PixelButton
+          variant="wood"
+          size="sm"
           onClick={() => fetchReminders(true)}
-          className="btn btn-secondary"
-          style={{ fontSize: 12, padding: '4px 12px', minHeight: 32 }}
+          title="Refresh belfry"
         >
           <RefreshCw
-            size={13}
+            size={12}
             style={{
               transform: refreshing ? 'rotate(360deg)' : 'none',
               transition: 'transform 0.4s ease',
             }}
           />
           <span>Refresh</span>
-        </button>
+        </PixelButton>
       </div>
 
-      {/* Set New Reminder Form Card */}
-      <form onSubmit={handleSubmit} className="fih-card">
-        <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 14 }}>
-          Set New Reminder Alert
-        </h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
-            gap: 12,
-            alignItems: 'end',
-          }}
-        >
-          <div>
-            <label
-              style={{
-                fontSize: 11,
-                color: 'var(--text-muted)',
-                fontWeight: 600,
-                display: 'block',
-                marginBottom: 6,
-                letterSpacing: '0.04em',
-              }}
-            >
-              TITLE
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Call Mom, Review PR..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="fih-input"
-              required
-            />
-          </div>
-
-          <div>
-            <label
-              style={{
-                fontSize: 11,
-                color: 'var(--text-muted)',
-                fontWeight: 600,
-                display: 'block',
-                marginBottom: 6,
-                letterSpacing: '0.04em',
-              }}
-            >
-              REMIND AT
-            </label>
-            <input
-              type="datetime-local"
-              value={remindAt}
-              onChange={(e) => setRemindAt(e.target.value)}
-              className="fih-input tabular-nums"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={submitting}
-            style={{ minHeight: 42, padding: '0 20px' }}
-          >
-            <Plus size={16} />
-            <span>{submitting ? 'Setting...' : 'Set Reminder'}</span>
-          </button>
-        </div>
-      </form>
-
-      {/* List Display */}
+      {/* 4. Reminder Bells List */}
       {loading ? (
-        <SkeletonLoader count={3} height={70} />
+        <SkeletonLoader count={3} height={80} />
       ) : activeTab === 'upcoming' ? (
         upcomingReminders.length === 0 ? (
-          <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No upcoming reminders</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-              All caught up! Use the form above or message your WhatsApp bot to schedule one.
+          <WoodPanel variant="default" style={{ textAlign: 'center', padding: '48px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <CharacterSprite character="hoot" state="sleep" size={64} />
+            </div>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fdf6e2', marginBottom: 6, fontFamily: 'var(--font-pixel, monospace)' }}>
+              The belfry is still. Hoot is snoozing peacefully.
+            </h3>
+            <p style={{ color: '#a38d7b', fontSize: 13, maxWidth: 440, margin: '0 auto' }}>
+              All reminder bells are silent. Tie a new bell to the tower garland above or send a message via Wren on WhatsApp.
             </p>
-          </div>
+          </WoodPanel>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {upcomingReminders.map((r) => {
+            {upcomingReminders.map((r, idx) => {
               const badge = getRelativeBadge(r.remindAt);
+              const isNext = idx === 0;
+
               return (
-                <div
+                <WoodPanel
                   key={r._id}
-                  className="fih-card stagger-item"
+                  variant={isNext ? 'golden' : 'default'}
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -279,130 +373,174 @@ export default function ReminderBoard() {
                     flexWrap: 'wrap',
                     gap: 12,
                     padding: '16px 20px',
+                    position: 'relative',
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      <span style={{ fontSize: 18 }}>🔔</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
                         {r.title}
                       </span>
+                      {isNext && (
+                        <PixelBadge variant="warning" size="sm">
+                          ⚡ NEXT CHIME
+                        </PixelBadge>
+                      )}
                       <span
                         className="tabular-nums"
                         style={{
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 700,
                           padding: '2px 8px',
-                          borderRadius: 6,
+                          borderRadius: 3,
                           background: badge.bg,
                           color: badge.color,
                           border: `1px solid ${badge.border}`,
+                          fontFamily: 'var(--font-pixel, monospace)',
+                          textTransform: 'uppercase',
                         }}
                       >
                         {badge.text}
                       </span>
                     </div>
+
                     <span
                       className="tabular-nums"
                       style={{
                         fontSize: 12,
-                        color: 'var(--text-secondary)',
+                        color: '#c4b5a5',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 4,
+                        gap: 6,
+                        fontFamily: 'var(--font-pixel, monospace)',
                       }}
                     >
-                      <Calendar size={12} />
+                      <Calendar size={13} color="#e07a3f" />
                       {formatDateTime(r.remindAt)}
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    <button
+                    <PixelButton
+                      variant="golden"
+                      size="sm"
                       onClick={() => toggleSent(r._id, r.sent)}
-                      className="btn btn-secondary"
-                      style={{ fontSize: 12, padding: '6px 12px', minHeight: 34 }}
+                      style={{ padding: '6px 12px' }}
                     >
                       <Check size={13} />
-                      <span>Mark Sent</span>
-                    </button>
+                      <span>Ring & Mark Sent</span>
+                    </PixelButton>
+
                     <button
                       onClick={() => deleteReminder(r._id, r.title)}
-                      className="btn btn-ghost btn-icon"
-                      style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 34 }}
-                      title="Delete reminder"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#8c705f',
+                        cursor: 'pointer',
+                        padding: 6,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      title="Delete reminder bell"
                       aria-label={`Delete reminder: ${r.title}`}
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
-                </div>
+                </WoodPanel>
               );
             })}
           </div>
         )
       ) : historyReminders.length === 0 ? (
-        <div className="fih-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No sent reminder history</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-            Completed alerts will appear here for audit history.
+        <WoodPanel variant="default" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fdf6e2', marginBottom: 6, fontFamily: 'var(--font-pixel, monospace)' }}>
+            No silent bells in the drawer
+          </h3>
+          <p style={{ color: '#a38d7b', fontSize: 13, maxWidth: 440, margin: '0 auto' }}>
+            Completed alerts and rung chimes will rest here in the belfry archive.
           </p>
-        </div>
+        </WoodPanel>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {historyReminders.map((r) => (
-            <div
+            <WoodPanel
               key={r._id}
-              className="fih-card"
+              variant="dark"
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 gap: 12,
-                padding: '16px 20px',
-                opacity: 0.7,
+                padding: '14px 18px',
+                opacity: 0.75,
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: 'var(--text-secondary)',
-                    textDecoration: 'line-through',
-                  }}
-                >
-                  {r.title}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>🔕</span>
+                  <span
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: '#a38d7b',
+                      textDecoration: 'line-through',
+                      fontFamily: 'var(--font-pixel, monospace)',
+                    }}
+                  >
+                    {r.title}
+                  </span>
+                </div>
                 <span
                   className="tabular-nums"
-                  style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}
+                  style={{
+                    fontSize: 11,
+                    color: '#8c705f',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontFamily: 'var(--font-pixel, monospace)',
+                  }}
                 >
-                  <Clock size={12} />
+                  <Clock size={11} />
                   Triggered: {formatDateTime(r.sentAt || r.remindAt)}
                 </span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <button
+                <PixelButton
+                  variant="wood"
+                  size="sm"
                   onClick={() => toggleSent(r._id, r.sent)}
-                  className="btn btn-ghost"
-                  style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
-                  title="Move back to upcoming"
+                  style={{ fontSize: 11, padding: '4px 10px' }}
+                  title="Move bell back to active belfry garland"
                 >
                   Reopen
-                </button>
+                </PixelButton>
+
                 <button
                   onClick={() => deleteReminder(r._id, r.title)}
-                  className="btn btn-ghost btn-icon"
-                  style={{ color: 'var(--text-muted)', padding: '6px 8px', minHeight: 32 }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#8c705f',
+                    cursor: 'pointer',
+                    padding: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                   title="Delete record"
                   aria-label={`Delete reminder: ${r.title}`}
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={14} />
                 </button>
               </div>
-            </div>
+            </WoodPanel>
           ))}
         </div>
       )}
