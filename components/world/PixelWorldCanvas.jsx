@@ -84,12 +84,12 @@ export const BUILDING_HITBOXES = [
     icon: '🎪',
     doorX: 28 * TILE_SIZE,
     doorY: 19 * TILE_SIZE,
-    minX: 25 * TILE_SIZE,
-    minY: 16 * TILE_SIZE,
-    maxX: 31 * TILE_SIZE,
-    maxY: 21 * TILE_SIZE,
+    minX: 24 * TILE_SIZE,
+    minY: 14 * TILE_SIZE,
+    maxX: 32 * TILE_SIZE,
+    maxY: 20 * TILE_SIZE,
     bannerX: 28 * TILE_SIZE,
-    bannerY: 16 * TILE_SIZE - 6,
+    bannerY: 14 * TILE_SIZE - 6,
   },
   {
     id: 'watchlist',
@@ -293,8 +293,8 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
-  // 8. Chapter 5: The Festival Grounds Gazebo canopy (tx: 26-29, ty: 17-18)
-  if (tx >= 26 && tx <= 29 && ty >= 17 && ty <= 18) {
+  // 8. Chapter 5: The Festival Grounds stage & canopy (tx: 26-29, ty: 16-18)
+  if (tx >= 26 && tx <= 29 && ty >= 16 && ty <= 18) {
     return false;
   }
 
@@ -426,7 +426,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null, festival_grounds: null },
     loaded: false,
     camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
     targetCamera: { x: 18 * 16, y: 12 * 16 },
@@ -456,6 +456,7 @@ export default function PixelWorldCanvas({
       { key: 'notice_board', src: '/assets/buildings/notice_board.png' },
       { key: 'bank', src: '/assets/buildings/bank.png' },
       { key: 'bell_tower', src: '/assets/buildings/bell_tower.png' },
+      { key: 'festival_grounds', src: '/assets/buildings/festival_grounds.png' },
     ];
 
     let count = 0;
@@ -1066,18 +1067,27 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 6. Chapter 5: The Festival Grounds (x: 28, y: 19) ──
+      // ── 6. Chapter 5: The Festival Grounds (New Custom Festival Grounds) ──
       renderables.push({
-        y: 20 * TILE_SIZE,
+        y: 19 * TILE_SIZE + 6,
         render: () => {
-          const gx = 27 * TILE_SIZE;
-          const gy = 17 * TILE_SIZE;
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx, gy, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + TILE_SIZE, gy, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx - TILE_SIZE, gy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + 2 * TILE_SIZE, gy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx - TILE_SIZE, gy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + TILE_SIZE, gy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const festImg = state.images.festival_grounds;
+          if (festImg) {
+            const bW = 128;
+            const bH = 94;
+            const bX = 28 * TILE_SIZE - bW / 2; // 448 - 64 = 384px
+            const bY = 20 * TILE_SIZE - bH + 4; // 320 - 94 + 4 = 230px
+            ctx.drawImage(festImg, bX, bY, bW, bH);
+          } else {
+            const gx = 27 * TILE_SIZE;
+            const gy = 17 * TILE_SIZE;
+            ctx.drawImage(tileset, 7 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx, gy, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 7 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + TILE_SIZE, gy, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx - TILE_SIZE, gy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + 2 * TILE_SIZE, gy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx - TILE_SIZE, gy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + TILE_SIZE, gy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
         },
       });
 

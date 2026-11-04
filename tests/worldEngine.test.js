@@ -180,6 +180,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitTower).not.toBeNull();
     expect(hitTower.id).toBe('reminders');
     expect(hitTower.name).toBe('The Bell Tower');
+
+    // Clicking on the new Festival Grounds pavilion (at tx: 28, ty: 16) hits The Festival Grounds
+    const hitFestival = getHitBuilding(28 * 16, 16 * 16);
+    expect(hitFestival).not.toBeNull();
+    expect(hitFestival.id).toBe('dates');
+    expect(hitFestival.name).toBe('The Festival Grounds');
+  });
+
+  it('detects entrance proximity for the custom Festival Grounds', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing on the cobblestone apron at (tx: 28, ty: 19) detects The Festival Grounds within range
+    const nearby = getNearbyBuilding(28 * 16, 19 * 16, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('dates');
   });
 
   it('detects entrance proximity for the custom Bell Tower', async () => {

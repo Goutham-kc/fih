@@ -59,6 +59,13 @@ The Overworld exploration experience features authentic autotiled dirt paths, so
 
 ---
 
+### 1d. The Festival Grounds Pavilion (Custom Sprite Integration)
+*The grand open-air Festival Grounds (Chapter 5: Milestones & Celebrations) features a majestic wooden pavilion stage with a striped circus-tent canopy, festive fabric bunting, rich draped curtains, hanging amber glass lanterns, wooden speaker's podium, market stalls ("TREATS", "BLOOMS", "WARES"), rows of garden benches, overflowing floral planters, and a circular cobblestone dance plaza seamlessly connecting to the Southeast Festival Lane.*
+
+![Custom Festival Grounds Pavilion in Live Overworld](/C:/Users/gouth/.gemini/antigravity/brain/7a513e8a-e2f0-4f3b-8051-22e22a3a0e1e/overworld-navigation/overworld-festival-custom-desktop.png)
+
+---
+
 ### 2. The Custom Farmstead House & Front Porch Proximity
 *The custom 16-bit house model rendered in the live world, complete with stone chimney, wooden door, flowerbox, glowing lantern, and stone doorstep aligning with the farm lane.*
 
@@ -117,6 +124,7 @@ The Overworld exploration experience features authentic autotiled dirt paths, so
 - [x] **Mobile Panel-Only Mode:** Canvas is completely unmounted on mobile viewports (`window.innerWidth <= 768px`) with zero canvas CPU/touch overhead, defaulting directly to chapter panels (`todos`).
 - [x] **Touch-Optimized Mobile Hotbar:** Displays all 8 chapters neatly across mobile screen width without wrapping or scrolling.
 - [x] **Mobile Resident Banner:** Inline resident dialogue banner inside the parchment container keeping lore intact.
+- [x] **Custom Festival Grounds Pavilion Integrated:** Extracted transparent PNG placed at `/public/assets/buildings/festival_grounds.png` and rendered in the live canvas loop with striped stage canopy, market stalls, flower planter boxes, and cobblestone dance plaza.
 - [x] **Custom Belfry Clock & Bell Tower Integrated:** Extracted transparent PNG placed at `/public/assets/buildings/bell_tower.png` and rendered in the live canvas loop with brass weather vane and clock face.
 - [x] **Custom Bank / Ledger Model Integrated:** Extracted transparent PNG placed at `/public/assets/buildings/bank.png` and rendered in the live canvas loop with Bram the Badger Factor and oak teller desk.
 - [x] **Custom Notice Board Model Integrated:** Extracted transparent PNG placed at `/public/assets/buildings/notice_board.png` and rendered in the live canvas loop.
@@ -129,6 +137,6 @@ The Overworld exploration experience features authentic autotiled dirt paths, so
 - [x] **Consistent 2-Tile Road Width:** Major roads, avenues, and chapter branch lanes are all 32px (2 tiles wide).
 - [x] **Panel Only Proximity Key:** `[P]` opens directly in Panel Only mode from the world map.
 - [x] **Global Escape Handler:** Restores the village canvas from any mode on desktop; stays gracefully in panels on mobile.
-- [x] **Automated Tests:** **54 / 54 passing** in Vitest.
+- [x] **Automated Tests:** **55 / 55 passing** in Vitest.
 - [x] **ESLint:** **0 errors / 0 warnings**.
 - [x] **Production Build:** Clean Next.js 16 Turbopack compilation.
