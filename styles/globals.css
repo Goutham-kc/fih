@@ -1,11 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+/* ── Self-Hosted 16-Bit Pixel Fonts (OFL License) ────────────────────────── */
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('/fonts/PressStart2P-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('/fonts/Silkscreen-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('/fonts/Silkscreen-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ── Precision Ledger Design Tokens ────────────────────────────────────────── */
 :root, [data-theme="dark"] {
   color-scheme: dark;
 
+  --font-pixel-display:      'Press Start 2P', monospace;
+  --font-pixel-body:         'Silkscreen', monospace;
   --font-display:            'Instrument Serif', Georgia, serif;
-  --font-sans:               'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans:               'Silkscreen', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Surfaces & Backgrounds - Deep Obsidian & Titanium */
   --bg-dark:                 #090a0f;
@@ -1131,43 +1156,138 @@ select.input option, select.fih-input option {
   }
 }
 
-.pixel-btn:hover {
-  transform: translateY(-2px);
-}
-
-.pixel-btn:active {
-  transform: translateY(2px);
-  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.4) !important;
+/* ── 16-Bit RPG True Stepped Pixel Frames (Zero Border Radius) ─────────────── */
+.pixel-frame,
+.pixel-wood-card,
+.pixel-parchment-card,
+.fih-card,
+.rpg-panel {
+  border-radius: 0 !important;
 }
 
 .pixel-wood-card {
-  background: linear-gradient(180deg, #2b1a11 0%, #1a0f08 100%);
-  border: 3px solid #7b4a28;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(201, 143, 85, 0.3);
-  border-radius: 14px;
+  background: #2b1a11;
+  border: 4px solid #1a0f08;
+  outline: 2px solid #7b4a28;
+  box-shadow: inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #120b06, 0 4px 0 #0c0704;
+  color: #fdf6e2;
 }
 
 .pixel-parchment-card {
-  background: linear-gradient(180deg, #fdf6e2 0%, #f4e4bc 100%);
-  border: 3px solid #7b4a28;
-  box-shadow: 0 4px 16px rgba(59, 42, 30, 0.15), inset 0 2px 0 #ffffff;
-  color: #3b2a1e;
-  border-radius: 14px;
+  background: #fdf6e2;
+  border: 4px solid #452817;
+  outline: 2px solid #a66538;
+  box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #d4c29a, 0 4px 0 #2b1a11;
+  color: #2b1a11;
 }
 
-.pixel-wax-seal {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #c2415a;
-  border: 1.5px solid #7f1d1d;
-  box-shadow: 0 2px 5px rgba(194, 65, 90, 0.5);
-  display: inline-flex;
+.pixel-btn,
+.btn-pixel {
+  border-radius: 0 !important;
+  font-family: var(--font-pixel-display);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 14px;
+  cursor: pointer;
+  background: #7b4a28;
+  color: #fdf6e2;
+  border: 2px solid #1a0f08;
+  box-shadow: inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06;
+  transition: none;
+}
+
+.pixel-btn:hover,
+.btn-pixel:hover {
+  background: #8b532d;
+  box-shadow: inset 2px 2px 0 #b87c48, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06;
+  transform: none;
+}
+
+.pixel-btn:active,
+.btn-pixel:active {
+  box-shadow: inset 2px 2px 0 #120b06, inset -2px -2px 0 #a36c3a, 0 1px 0 #120b06;
+  transform: translateY(2px);
+}
+
+.pixel-btn.btn-gold,
+.btn-pixel.btn-gold {
+  background: #eab308;
+  color: #1a0f08;
+  border-color: #713f12;
+  box-shadow: inset 2px 2px 0 #fef08a, inset -2px -2px 0 #854d0e, 0 3px 0 #422006;
+}
+
+.pixel-btn.btn-gold:hover,
+.btn-pixel.btn-gold:hover {
+  background: #facc15;
+}
+
+/* 16-Bit RPG Toolbar / Hotbar */
+.rpg-hotbar {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #2b1a11;
+  border: 3px solid #1a0f08;
+  box-shadow: inset 2px 2px 0 #7b4a28, inset -2px -2px 0 #120b06, 0 6px 20px rgba(0,0,0,0.7);
+  z-index: 100;
+}
+
+.rpg-hotbar-slot {
+  width: 44px;
+  height: 44px;
+  background: #1a0f08;
+  border: 2px solid #452817;
+  box-shadow: inset 2px 2px 0 #0c0704, inset -2px -2px 0 #784323;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #fef2f2;
-  font-size: 10px;
-  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  border-radius: 0;
 }
+
+.rpg-hotbar-slot.active {
+  border-color: #facc15;
+  box-shadow: inset 2px 2px 0 #ca8a04, inset -2px -2px 0 #fde047, 0 0 8px rgba(250, 204, 21, 0.6);
+}
+
+.rpg-hotbar-slot.active::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #facc15;
+}
+
+/* 16-Bit RPG Dialogue Box */
+.rpg-dialogue-box {
+  background: #2b1a11;
+  border: 4px solid #1a0f08;
+  outline: 2px solid #7b4a28;
+  box-shadow: inset 3px 3px 0 #a36c3a, inset -3px -3px 0 #120b06, 0 8px 30px rgba(0,0,0,0.8);
+  border-radius: 0 !important;
+  color: #fdf6e2;
+  font-family: var(--font-pixel-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.pixel-cursor-hand {
+  cursor: url('/assets/ui/ui_atlas.png'), pointer;
+}
+
 
 

@@ -4,7 +4,7 @@ export default function PixelButton({
   children,
   onClick,
   type = 'button',
-  variant = 'primary', // 'primary' | 'secondary' | 'danger' | 'ghost' | 'wood'
+  variant = 'primary', // 'primary' | 'secondary' | 'danger' | 'ghost' | 'wood' | 'golden'
   size = 'md', // 'sm' | 'md' | 'lg'
   disabled = false,
   soundType = 'click',
@@ -20,41 +20,48 @@ export default function PixelButton({
 
   const getVariantStyles = () => {
     switch (variant) {
+      case 'golden':
+        return {
+          background: '#eab308',
+          color: '#1a0f08',
+          border: '2px solid #713f12',
+          boxShadow: 'inset 2px 2px 0 #fef08a, inset -2px -2px 0 #854d0e, 0 3px 0 #422006',
+        };
       case 'primary':
         return {
-          background: 'linear-gradient(180deg, #c98f55 0%, #a36c3a 100%)',
-          color: '#ffffff',
+          background: '#c98f55',
+          color: '#1a0f08',
           border: '2px solid #54331a',
-          boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 #4a2811, 0 3px 0 #3b2a1e',
+          boxShadow: 'inset 2px 2px 0 #fde047, inset -2px -2px 0 #784323, 0 3px 0 #2b1a11',
         };
       case 'secondary':
+      case 'wood':
         return {
-          background: 'linear-gradient(180deg, #f4e4bc 0%, #e5cca0 100%)',
-          color: '#3b2a1e',
-          border: '2px solid #a36c3a',
-          boxShadow: 'inset 0 2px 0 #ffffff, inset 0 -2px 0 #c98f55, 0 3px 0 #7b4a28',
+          background: '#7b4a28',
+          color: '#fdf6e2',
+          border: '2px solid #1a0f08',
+          boxShadow: 'inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06',
         };
       case 'danger':
         return {
-          background: 'linear-gradient(180deg, #c2415a 0%, #991b1b 100%)',
+          background: '#dc2626',
           color: '#ffffff',
           border: '2px solid #5a0c1a',
-          boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 #4c0519, 0 3px 0 #28030d',
+          boxShadow: 'inset 2px 2px 0 #fca5a5, inset -2px -2px 0 #991b1b, 0 3px 0 #450a0a',
         };
       case 'ghost':
         return {
           background: 'transparent',
-          color: 'var(--pv-ink, inherit)',
+          color: '#fdf6e2',
           border: '2px solid transparent',
           boxShadow: 'none',
         };
-      case 'wood':
       default:
         return {
-          background: 'linear-gradient(180deg, #8fc45a 0%, #5e9440 100%)',
-          color: '#ffffff',
-          border: '2px solid #365922',
-          boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 #2a451b, 0 3px 0 #1b2e10',
+          background: '#7b4a28',
+          color: '#fdf6e2',
+          border: '2px solid #1a0f08',
+          boxShadow: 'inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06',
         };
     }
   };
@@ -62,12 +69,12 @@ export default function PixelButton({
   const getSizeStyles = () => {
     switch (size) {
       case 'sm':
-        return { padding: '4px 10px', fontSize: 11, minHeight: 32 };
+        return { padding: '4px 10px', fontSize: 10, minHeight: 30 };
       case 'lg':
-        return { padding: '10px 22px', fontSize: 14, minHeight: 46 };
+        return { padding: '10px 20px', fontSize: 13, minHeight: 44 };
       case 'md':
       default:
-        return { padding: '6px 14px', fontSize: 12, minHeight: 38 };
+        return { padding: '6px 14px', fontSize: 11, minHeight: 36 };
     }
   };
 
@@ -82,13 +89,13 @@ export default function PixelButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 6,
-        fontFamily: 'var(--font-sans, inherit)',
-        fontWeight: 700,
-        letterSpacing: '0.02em',
-        borderRadius: 8,
+        fontFamily: 'var(--font-pixel-display)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        borderRadius: 0,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.6 : 1,
-        transition: 'transform 80ms ease, box-shadow 80ms ease',
+        transition: 'none',
         userSelect: 'none',
         ...getVariantStyles(),
         ...getSizeStyles(),

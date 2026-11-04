@@ -12,14 +12,10 @@ export default function DevModeIndicator({ envMode, onToggle, disabled }) {
         alignItems: 'center',
         gap: 6,
         padding: '3px 10px',
-        borderRadius: 8,
-        background: isDev
-          ? 'linear-gradient(135deg, rgba(242, 194, 48, 0.22) 0%, rgba(196, 150, 21, 0.15) 100%)'
-          : 'linear-gradient(135deg, rgba(143, 196, 90, 0.22) 0%, rgba(94, 148, 64, 0.15) 100%)',
-        border: `2px solid ${isDev ? 'var(--pv-gold, #f2c230)' : 'var(--pv-grass-light, #8fc45a)'}`,
-        boxShadow: isDev
-          ? '0 2px 8px rgba(242, 194, 48, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-          : '0 2px 8px rgba(143, 196, 90, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+        borderRadius: 0,
+        background: isDev ? '#78350f' : '#064e3b',
+        border: `2px solid ${isDev ? '#f59e0b' : '#10b981'}`,
+        boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.2), 0 2px 0 #120b06',
         cursor: onToggle ? 'pointer' : 'default',
         userSelect: 'none',
       }}

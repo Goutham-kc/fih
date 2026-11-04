@@ -173,3 +173,5 @@ export function getContextualDialogue(tab, { timeOfDay = 'day', weather = 'clear
   const tales = chapter.tales || [];
   return tales[0] || chapter.day || 'Welcome to Pixel Valley!';
 }
+
+export default VILLAGE_DIALOGUE;
