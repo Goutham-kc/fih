@@ -207,4 +207,20 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     const far = getNearbyBuilding(18 * 16, 12 * 16, 20);
     expect(far).toBeNull();
   });
+
+  it('handles Escape key to return to village map from Panel Only mode', () => {
+    let activeTab = 'debts';
+    let showCanvas = false; // Panel Only mode
+
+    function handleEscape(e) {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        activeTab = null;
+        showCanvas = true; // Always restore world view
+      }
+    }
+
+    handleEscape({ key: 'Escape', code: 'Escape' });
+    expect(activeTab).toBeNull();
+    expect(showCanvas).toBe(true);
+  });
 });

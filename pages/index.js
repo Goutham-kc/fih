@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import TodoList from '@/components/TodoList';
 import DebtTracker from '@/components/DebtTracker';
@@ -104,7 +104,7 @@ export default function Dashboard() {
     }
   }, [router.isReady, router.query.tab]);
 
-  const handleTabChange = (tabId, options = {}) => {
+  const handleTabChange = useCallback((tabId, options = {}) => {
     soundManager.playSfx('wood');
     if (options.panelOnly !== undefined) {
       setShowCanvas(!options.panelOnly);
@@ -118,16 +118,38 @@ export default function Dashboard() {
       delete q.tab;
       router.replace({ query: q }, undefined, { shallow: true });
     }
-  };
+  }, [router]);
 
-  const handleCloseChapter = () => {
+  const handleCloseChapter = useCallback(() => {
     soundManager.playSfx('wood');
     setShowCanvas(true);
     setActiveTab(null);
     const q = { ...router.query };
     delete q.tab;
     router.replace({ query: q }, undefined, { shallow: true });
-  };
+  }, [router]);
+
+  // Global Escape key listener: works reliably in BOTH Split World and Panel Only modes
+  useEffect(() => {
+    function handleGlobalKeyDown(e) {
+      if (e.code === 'Escape' || e.key === 'Escape') {
+        const tag = document.activeElement?.tagName?.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+          // Blur the active form input first
+          document.activeElement.blur();
+          return;
+        }
+
+        if (activeTab) {
+          e.preventDefault();
+          handleCloseChapter();
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [activeTab, handleCloseChapter]);
 
   async function switchEnvMode(newMode) {
     if (newMode === envMode || updatingEnv) return;
@@ -252,27 +274,26 @@ export default function Dashboard() {
         }}
       >
         {/* ── 1. The Interactive Top-Down Canvas World (Section 3) ── */}
-        {showCanvas && (
-          <div
-            className="world-canvas-wrapper"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: 1,
+        <div
+          className="world-canvas-wrapper"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            display: showCanvas ? 'block' : 'none',
+          }}
+        >
+          <PixelWorldCanvas
+            activeTab={activeTab}
+            debtsData={debts}
+            reducedMotion={reducedMotion}
+            onNavigateToChapter={handleTabChange}
+            onCloseChapter={handleCloseChapter}
+            onSelectDebt={() => {
+              setPanelMinimized(false);
             }}
-          >
-            <PixelWorldCanvas
-              activeTab={activeTab}
-              debtsData={debts}
-              reducedMotion={reducedMotion}
-              onNavigateToChapter={handleTabChange}
-              onCloseChapter={handleCloseChapter}
-              onSelectDebt={() => {
-                setPanelMinimized(false);
-              }}
-            />
-          </div>
-        )}
+          />
+        </div>
 
         {/* ── 2. Top Pixel HUD (Section 5) ── */}
         <header
