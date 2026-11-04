@@ -100,28 +100,62 @@ This document lists every sprite, frame layout, and coordinate in `/public/asset
 
 ---
 
-## 3. Building Sprites (`/public/assets/buildings/`)
+## 3. World Geometry & Building Sprites (`/public/assets/buildings/`)
+
+The Pixel Valley overworld map is structured on a **64 × 64 tile grid** (1024 × 1024 px) with 16 px tile size, partitioned into three continuous environments:
+- **Zone A (Dense Outer Forest):** 6–8 tiles of natural woodland borders (oaks, pines, blossoms, mushrooms, fallen logs, mossy rocks) enclosing the village.
+- **Zone B (Central Village Clearing):** Hand-cut cobblestone plaza (`tx: 28..36, ty: 28..36`) featuring the Central Stone Fountain at `(32, 31)`, The Notice Board at `(32, 35)`, street lanterns, flowerbeds, and wooden resting benches.
+- **Zone C (Outer Location Clearings):** Dedicated landscaped environments for each of the 8 village chapters plus the Sky Post.
+
+### 64 × 64 Building Coordinate Registry:
+| Building / Landmark | Resident | Chapter | Sprite / Model | Center `(tx, ty)` | Entrance Pad `(doorX, doorY)` | Solid Obstacle `[tx1..tx2, ty1..ty2]` | Hitbox Bounds `[minX..maxX, minY..maxY]` |
+|:---|:---|:---|:---|:---|:---|:---|:---|
+| **Central Stone Fountain** | — | — | `stone_fountain` (tileset) | `(32, 31)` | `(32*16, 32*16)` | `[32..32, 31..31]` | `[30*16..34*16, 30*16..33*16]` |
+| **The Notice Board** | Marigold | Ch. 4 (Town Deadlines) | Custom `notice_board.png` | `(32, 35)` | `(32*16, 36*16)` | `[31..33, 35..35]` | `[30*16..34*16, 32*16..36*16]` |
+| **The Bell Tower** | Hoot | Ch. 3 (Belfry Alerts) | Custom `bell_tower.png` | `(32, 10)` | `(32*16, 14*16)` | `[31..33, 9..13]` | `[30*16..34*16, 7*16..14*16]` |
+| **The Farmstead** | Pip | Ch. 1 (Daily Quests) | Custom `farmhouse.png` | `(14, 12)` | `(14*16, 14*16)` | `[12..16, 10..13]` | `[11*16..17*16, 9*16..15*16]` |
+| **The Ledger Bank** | Bram | Ch. 2 (Gold Ledger) | Custom `bank.png` | `(50, 12)` | `(50*16, 14*16)` | `[48..52, 10..13]` | `[47*16..53*16, 9*16..15*16]` |
+| **The Archive Cellar** | Moss | Ch. 7 (The Chronicle) | `cellar_stone` & books | `(12, 32)` | `(12*16, 33*16)` | `[10..13, 30..32]` | `[9*16..15*16, 29*16..34*16]` |
+| **The Toolshed Workbench** | Rowan | Ch. 8 (Toolshed Workshop) | `toolshed_rack` & anvil | `(16, 22)` | `(16*16, 23*16)` | `[15..17, 21..22]` | `[14*16..18*16, 20*16..24*16]` |
+| **Sky Post** | Wren | Dispatches | `courier_post` (tileset) | `(48, 24)` | `(48*16, 25*16)` | `[47..49, 23..24]` | `[46*16..50*16, 22*16..26*16]` |
+| **The Festival Grounds** | Clover | Ch. 5 (Festival Grounds) | Custom `festival_grounds.png` | `(16, 48)` | `(16*16, 51*16)` | `[14..18, 47..49]` | `[12*16..20*16, 44*16..52*16]` |
+| **The Moonlight Cinema** | Juniper | Ch. 6 (Moonlight Cinema) | Custom `moonlight_cinema.png` | `(48, 48)` | `(48*16, 51*16)` | `[46..50, 47..49]` | `[44*16..52*16, 44*16..52*16]` |
+| **Woodland Pond & Footbridge**| — | Water Feature | Animated water & wooden bridge| `(32, 41)` | `(32*16, 41*16)` | `[30..34, 40..43]` (excl. 32)| — |
+
+### Custom Building Sprite Specifications:
 
 ### The Farmstead Cabin (`farmhouse.png`)
 - **Source:** User Custom Sprite (Cropped to 741×771 px, transparent alpha background)
-- **World Rendering:** Scaled to 76×79 world px (placed at world coordinates x: 92, y: 37)
+- **World Rendering:** Scaled to 76×79 world px (placed at world coordinates x: 186, y: 149)
 - **Features:** Terracotta tiled roof with twin gables, stone masonry chimney on right, rustic wooden door with stone doorstep, wooden flowerbox planter with pink blossoms, blue-paned window, glowing amber lantern, attic dormer window, cut-stone foundation.
-- **Interactive Role:** Chapter 1: The Farmstead (Daily Quests / Todos). Door entrance at world position `(8 * 16, 7 * 16 + 4)`.
+- **Interactive Role:** Chapter 1: The Farmstead (Daily Quests / Todos). Door entrance at world position `(14 * 16, 14 * 16)`.
 
 ### The Notice Board (`notice_board.png`)
 - **Source:** User Custom Sprite (Cropped to 752×665 px, transparent alpha background)
-- **World Rendering:** Scaled to 52×46 world px (placed at world coordinates x: 262, y: 200)
+- **World Rendering:** Scaled to 52×46 world px (placed at world coordinates x: 486, y: 520)
 - **Features:** Timber support posts with stone footing pedestals and pink flower shrubs, terracotta shingled canopy roof, multi-page pinned community notices (house sketch parchment, central town manifest with torn lower hem, list docket, botanical flower illustration).
-- **Interactive Role:** Chapter 4: The Notice Board (Town Deadlines). Viewing pad at world position `(18 * 16, 16 * 16)`.
+- **Interactive Role:** Chapter 4: The Notice Board (Town Deadlines). Viewing pad at world position `(32 * 16, 36 * 16)`.
 
 ### The Ledger Bank (`bank.png`)
 - **Source:** User Custom Sprite (Cropped to 862×862 px, transparent alpha background)
-- **World Rendering:** Scaled to 86×86 world px (placed at world coordinates x: 373, y: 94)
+- **World Rendering:** Scaled to 86×86 world px (placed at world coordinates x: 757, y: 142)
 - **Features:** Neoclassical stone portico with pediment, gold coin medallion, carved "BANK" lintel, four fluted columns, twin royal blue banners with gold coin medallions, double arched wooden doors with brass rings, tiered stone steps with flanking carved scroll balustrades, and vibrant red and gold flower planter boxes.
-- **Interactive Role:** Chapter 2: The Ledger Hut (Gold Ledger & Tab Inscriptions / Debts). Front doorstep at world position `(26 * 16, 11 * 16)`, with Bram the Badger Factor standing beside the right balustrade alongside his oak teller stand, brass balance scales, and gold coin sacks.
+- **Interactive Role:** Chapter 2: The Ledger Hut (Gold Ledger & Tab Inscriptions / Debts). Front doorstep at world position `(50 * 16, 14 * 16)`, with Bram the Badger Factor standing beside the right balustrade alongside his oak teller stand, brass balance scales, and gold coin sacks.
 
 ### The Belfry Clock & Bell Tower (`bell_tower.png`)
 - **Source:** User Custom Sprite (Cropped to 443×945 px, transparent alpha background)
-- **World Rendering:** Scaled to 46×98 world px (placed at world coordinates x: 265, y: 0)
+- **World Rendering:** Scaled to 46×98 world px (placed at world coordinates x: 489, y: 128)
 - **Features:** Soaring multi-tiered stone clock and bell tower with brass arrow weather vane, conical terracotta tile roof, golden circular clock face with Roman numerals and blue clock hands, slender arched stained-glass windows, arched double wooden entrance doors, and flanking blooming rose flowerboxes on cut-stone plinths.
-- **Interactive Role:** Chapter 3: The Bell Tower (Belfry Alerts & Reminders / Reminders). Front doorstep at world position `(18 * 16, 6 * 16)` facing North Belfry Avenue.
+- **Interactive Role:** Chapter 3: The Bell Tower (Belfry Alerts & Reminders / Reminders). Front doorstep at world position `(32 * 16, 14 * 16)` facing North Belfry Avenue.
+
+### The Festival Grounds Pavilion (`festival_grounds.png`)
+- **Source:** User Custom Sprite (Cropped to 853×626 px, transparent alpha background)
+- **World Rendering:** Scaled to 128×94 world px (placed at world coordinates x: 192, y: 742)
+- **Features:** Festive striped timber pavilion stage, hanging brass and paper party lanterns, theatrical drapery, wood speaker's lectern, circular stone dance floor apron, market stalls ("TREATS", "BLOOMS", "WARES"), decorative bunting, and wooden benches.
+- **Interactive Role:** Chapter 5: The Festival Grounds (Milestones & Calendar / Dates). Dance floor apron at world position `(16 * 16, 51 * 16)`.
+
+### The Moonlight Cinema Amphitheater (`moonlight_cinema.png`)
+- **Source:** User Custom Sprite (Cropped to 853×619 px, transparent alpha background)
+- **World Rendering:** Scaled to 128×93 world px (placed at world coordinates x: 704, y: 743)
+- **Features:** Open-air woodland amphitheater, carved wooden cinema screen with crescent moon and star pediment crest, purple and twilight blue drapery, hanging star & moon string lanterns, tickets booth, popcorn machine wagon cart, concentric tiered wooden viewing benches, and street lamps.
+- **Interactive Role:** Chapter 6: The Moonlight Cinema (Watchlist & Screenings / Watchlist). Audience entrance at world position `(48 * 16, 51 * 16)`.

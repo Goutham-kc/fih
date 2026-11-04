@@ -147,48 +147,48 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
 
   it('detects building clicks with getHitBuilding', async () => {
     const { getHitBuilding } = await import('../components/world/PixelWorldCanvas');
-    // Ledger hut is around tx: 26, ty: 9 (416, 144)
-    const hit = getHitBuilding(26 * 16, 9 * 16);
+    // Ledger hut / bank is around tx: 50, ty: 12 (800, 192)
+    const hit = getHitBuilding(50 * 16, 12 * 16);
     expect(hit).not.toBeNull();
     expect(hit.id).toBe('debts');
     expect(hit.name).toBe('The Ledger Hut');
 
-    // Central fountain at (18*16, 12*16) is not a building
-    const miss = getHitBuilding(18 * 16, 12 * 16);
+    // Central fountain at (32*16, 31*16) is not a building
+    const miss = getHitBuilding(32 * 16, 31 * 16);
     expect(miss).toBeNull();
 
-    // Clicking anywhere on the new Farmhouse (roof/walls at tx: 8, ty: 5) hits The Farmstead
-    const hitHouse = getHitBuilding(8 * 16, 5 * 16);
+    // Clicking anywhere on the new Farmhouse (roof/walls at tx: 14, ty: 12) hits The Farmstead
+    const hitHouse = getHitBuilding(14 * 16, 12 * 16);
     expect(hitHouse).not.toBeNull();
     expect(hitHouse.id).toBe('todos');
     expect(hitHouse.name).toBe('The Farmstead');
 
-    // Clicking on the new Notice Board (at tx: 18, ty: 14) hits The Notice Board
-    const hitBoard = getHitBuilding(18 * 16, 14 * 16);
+    // Clicking on the new Notice Board (at tx: 32, ty: 34) hits The Notice Board
+    const hitBoard = getHitBuilding(32 * 16, 34 * 16);
     expect(hitBoard).not.toBeNull();
     expect(hitBoard.id).toBe('deadlines');
     expect(hitBoard.name).toBe('The Notice Board');
 
-    // Clicking on the new Bank (at tx: 26, ty: 7) hits The Ledger Hut
-    const hitBank = getHitBuilding(26 * 16, 7 * 16);
+    // Clicking on the new Bank (at tx: 50, ty: 11) hits The Ledger Hut
+    const hitBank = getHitBuilding(50 * 16, 11 * 16);
     expect(hitBank).not.toBeNull();
     expect(hitBank.id).toBe('debts');
     expect(hitBank.name).toBe('The Ledger Hut');
 
-    // Clicking on the new Bell Tower clock face (at tx: 18, ty: 3) hits The Bell Tower
-    const hitTower = getHitBuilding(18 * 16, 3 * 16);
+    // Clicking on the new Bell Tower clock face (at tx: 32, ty: 10) hits The Bell Tower
+    const hitTower = getHitBuilding(32 * 16, 10 * 16);
     expect(hitTower).not.toBeNull();
     expect(hitTower.id).toBe('reminders');
     expect(hitTower.name).toBe('The Bell Tower');
 
-    // Clicking on the new Festival Grounds pavilion (at tx: 28, ty: 16) hits The Festival Grounds
-    const hitFestival = getHitBuilding(28 * 16, 16 * 16);
+    // Clicking on the new Festival Grounds pavilion (at tx: 16, ty: 48) hits The Festival Grounds
+    const hitFestival = getHitBuilding(16 * 16, 48 * 16);
     expect(hitFestival).not.toBeNull();
     expect(hitFestival.id).toBe('dates');
     expect(hitFestival.name).toBe('The Festival Grounds');
 
-    // Clicking on the new Moonlight Cinema screen (at tx: 6, ty: 16) hits The Moonlight Cinema
-    const hitCinema = getHitBuilding(6 * 16, 16 * 16);
+    // Clicking on the new Moonlight Cinema screen (at tx: 48, ty: 48) hits The Moonlight Cinema
+    const hitCinema = getHitBuilding(48 * 16, 48 * 16);
     expect(hitCinema).not.toBeNull();
     expect(hitCinema.id).toBe('watchlist');
     expect(hitCinema.name).toBe('The Moonlight Cinema');
@@ -197,8 +197,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('detects entrance proximity for the custom Moonlight Cinema', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing on the entrance pad at (tx: 6, ty: 19) detects The Moonlight Cinema within range
-    const nearby = getNearbyBuilding(6 * 16, 19 * 16, 36);
+    // Standing on the entrance pad at (tx: 48, ty: 51) detects The Moonlight Cinema within range
+    const nearby = getNearbyBuilding(48 * 16, 51 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('watchlist');
   });
@@ -206,8 +206,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('detects entrance proximity for the custom Festival Grounds', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing on the cobblestone apron at (tx: 28, ty: 19) detects The Festival Grounds within range
-    const nearby = getNearbyBuilding(28 * 16, 19 * 16, 36);
+    // Standing on the cobblestone apron at (tx: 16, ty: 51) detects The Festival Grounds within range
+    const nearby = getNearbyBuilding(16 * 16, 51 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('dates');
   });
@@ -215,8 +215,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('detects entrance proximity for the custom Bell Tower', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing outside the front steps at (tx: 18, ty: 6) detects The Bell Tower within range
-    const nearby = getNearbyBuilding(18 * 16, 6 * 16, 36);
+    // Standing outside the front steps at (tx: 32, ty: 14) detects The Bell Tower within range
+    const nearby = getNearbyBuilding(32 * 16, 14 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('reminders');
   });
@@ -224,8 +224,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('detects entrance proximity for the custom Bank / Ledger', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing outside the front steps at (tx: 26, ty: 12) detects The Ledger Hut within range
-    const nearby = getNearbyBuilding(26 * 16, 12 * 16, 36);
+    // Standing outside the front steps at (tx: 50, ty: 14) detects The Ledger Hut within range
+    const nearby = getNearbyBuilding(50 * 16, 14 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('debts');
   });
@@ -233,8 +233,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('detects viewing pad proximity for the custom Notice Board', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing on the viewing pad in front of the board at (tx: 18, ty: 16) detects The Notice Board
-    const nearby = getNearbyBuilding(18 * 16, 16 * 16, 36);
+    // Standing on the viewing pad in front of the board at (tx: 32, ty: 36) detects The Notice Board
+    const nearby = getNearbyBuilding(32 * 16, 36 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('deadlines');
   });
@@ -242,8 +242,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('detects front porch door proximity for the custom Farmstead house', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing outside the porch doorstep at (tx: 8, ty: 7) detects The Farmstead within range
-    const nearby = getNearbyBuilding(8 * 16, 7 * 16 + 4, 36);
+    // Standing outside the porch doorstep at (tx: 14, ty: 14) detects The Farmstead within range
+    const nearby = getNearbyBuilding(14 * 16, 14 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('todos');
   });
@@ -251,60 +251,61 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   it('validates walkable areas and detects obstacles like pond and bounds', async () => {
     const { isWalkable } = await import('../components/world/PixelWorldCanvas');
     // Plaza path is walkable
-    expect(isWalkable(18 * 16, 12 * 16)).toBe(true);
+    expect(isWalkable(32 * 16, 33 * 16)).toBe(true);
 
-    // Pond at tx: 13, ty: 17 is impassable water
-    expect(isWalkable(13 * 16, 17 * 16)).toBe(false);
+    // Pond at tx: 30, ty: 41 is impassable water
+    expect(isWalkable(30 * 16, 41 * 16)).toBe(false);
+
+    // Footbridge across pond at tx: 32, ty: 41 is walkable
+    expect(isWalkable(32 * 16, 41 * 16)).toBe(true);
 
     // Out of map bounds is impassable
     expect(isWalkable(0, 0)).toBe(false);
-    expect(isWalkable(38 * 16, 26 * 16)).toBe(false);
+    expect(isWalkable(64 * 16, 64 * 16)).toBe(false);
   });
 
   it('prevents walking through houses, building walls, counters, and obstacles', async () => {
     const { isWalkable } = await import('../components/world/PixelWorldCanvas');
 
-    // 1. Chapter 1: The Farmstead Cabin walls & roof (tx: 6-9, ty: 4-6) are solid
-    expect(isWalkable(7 * 16, 5 * 16)).toBe(false);
-    expect(isWalkable(8 * 16, 6 * 16)).toBe(false);
+    // 1. Chapter 1: The Farmstead Cabin walls & roof (tx: 12-16, ty: 10-13) are solid
+    expect(isWalkable(14 * 16, 11 * 16)).toBe(false);
+    expect(isWalkable(14 * 16, 14 * 16)).toBe(true); // farm porch doorstep is walkable
 
-    // 2. Chapter 2: The Ledger Hut (tx: 24-28, ty: 7-9) and Bram's Counter (tx: 25-27, ty: 10-11) are solid
-    expect(isWalkable(26 * 16, 8 * 16)).toBe(false); // inside hut
-    expect(isWalkable(26 * 16, 11 * 16)).toBe(false); // counter table
-    expect(isWalkable(26 * 16, 12 * 16)).toBe(true); // cobblestones in front of counter
+    // 2. Chapter 2: The Ledger Hut / Bank (tx: 48-52, ty: 10-13) is solid
+    expect(isWalkable(50 * 16, 11 * 16)).toBe(false);
+    expect(isWalkable(50 * 16, 14 * 16)).toBe(true); // steps in front of bank
 
-    // 3. Chapter 3: The Bell Tower masonry (tx: 17-18, ty: 2-4) is solid
-    expect(isWalkable(17 * 16, 3 * 16)).toBe(false);
-    expect(isWalkable(18 * 16, 6 * 16)).toBe(true); // door approach is walkable
+    // 3. Chapter 3: The Bell Tower masonry (tx: 31-33, ty: 9-13) is solid
+    expect(isWalkable(32 * 16, 11 * 16)).toBe(false);
+    expect(isWalkable(32 * 16, 14 * 16)).toBe(true); // door approach is walkable
 
-    // 4. Chapter 4: The Notice Board posts (tx: 17-19, ty: 15) are solid
-    expect(isWalkable(18 * 16, 15 * 16)).toBe(false);
-    expect(isWalkable(18 * 16, 16 * 16)).toBe(true); // in front of board is walkable
+    // 4. Chapter 4: The Notice Board posts (tx: 31-33, ty: 35) are solid
+    expect(isWalkable(32 * 16, 35 * 16)).toBe(false);
+    expect(isWalkable(32 * 16, 36 * 16)).toBe(true); // in front of board is walkable
 
-    // 5. Chapter 5: The Festival Grounds Gazebo (tx: 26-29, ty: 17-18) is solid
-    expect(isWalkable(28 * 16, 17 * 16)).toBe(false);
-    expect(isWalkable(28 * 16, 19 * 16)).toBe(true); // festival entrance is walkable
+    // 5. Chapter 5: The Festival Grounds stage (tx: 14-18, ty: 47-49) is solid
+    expect(isWalkable(16 * 16, 48 * 16)).toBe(false);
+    expect(isWalkable(16 * 16, 51 * 16)).toBe(true); // festival entrance is walkable
 
-    // 6. Chapter 6: The Moonlight Cinema screen (tx: 4-7, ty: 18) is solid
-    expect(isWalkable(5 * 16, 18 * 16)).toBe(false);
-    expect(isWalkable(6 * 16, 19 * 16)).toBe(true); // seating is walkable
+    // 6. Chapter 6: The Moonlight Cinema screen (tx: 46-50, ty: 47-49) is solid
+    expect(isWalkable(48 * 16, 48 * 16)).toBe(false);
+    expect(isWalkable(48 * 16, 51 * 16)).toBe(true); // seating is walkable
 
-    // 7. Chapter 7: The Archive Cellar stone walls (tx: 26-29, ty: 2-3) are solid
-    expect(isWalkable(28 * 16, 2 * 16)).toBe(false);
-    expect(isWalkable(28 * 16, 4 * 16)).toBe(true); // cellar door is walkable
+    // 7. Chapter 7: The Archive Cellar stone walls (tx: 10-13, ty: 30-32) are solid
+    expect(isWalkable(12 * 16, 31 * 16)).toBe(false);
+    expect(isWalkable(12 * 16, 33 * 16)).toBe(true); // cellar door is walkable
 
-    // 8. Chapter 8: The Toolshed Workbench & Forge (tx: 7-9, ty: 2-3) is solid
-    expect(isWalkable(8 * 16, 3 * 16)).toBe(false);
-    expect(isWalkable(6 * 16, 3 * 16)).toBe(true); // clearing beside toolshed is walkable
-    expect(isWalkable(8 * 16, 7 * 16)).toBe(true); // farm porch outside cabin door is walkable
+    // 8. Chapter 8: The Toolshed Workbench & Forge (tx: 15-17, ty: 21-22) is solid
+    expect(isWalkable(16 * 16, 21 * 16)).toBe(false);
+    expect(isWalkable(16 * 16, 23 * 16)).toBe(true); // clearing beside toolshed is walkable
 
-    // 9. Central Village Fountain basin (tx: 18, ty: 11) is solid
-    expect(isWalkable(18 * 16, 11 * 16)).toBe(false);
-    expect(isWalkable(18 * 16, 12 * 16)).toBe(true); // fountain apron is walkable
+    // 9. Central Village Fountain basin (tx: 32, ty: 31) is solid
+    expect(isWalkable(32 * 16, 31 * 16)).toBe(false);
+    expect(isWalkable(32 * 16, 32 * 16)).toBe(true); // fountain apron is walkable
 
-    // 10. Fences block movement, but farm gate (tx: 8-9, ty: 8) allows passage
-    expect(isWalkable(5 * 16, 8 * 16)).toBe(false); // garden fence
-    expect(isWalkable(8 * 16, 8 * 16)).toBe(true); // farm gate opening
+    // 10. Fences block movement, but farm gate allows passage
+    expect(isWalkable(11 * 16, 16 * 16)).toBe(false); // garden fence
+    expect(isWalkable(14 * 16, 16 * 16)).toBe(true); // farm gate opening
   });
 
   it('computes normalized velocity vectors from keyboard inputs', async () => {
@@ -334,13 +335,13 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     const { getNearbyBuilding, BUILDING_HITBOXES } = await import('../components/world/PixelWorldCanvas');
     expect(BUILDING_HITBOXES.length).toBe(8);
 
-    // Stand right at the Ledger door (26*16, 11*16)
-    const nearHut = getNearbyBuilding(26 * 16, 11 * 16, 30);
+    // Stand right at the Ledger door (50*16, 14*16)
+    const nearHut = getNearbyBuilding(50 * 16, 14 * 16, 30);
     expect(nearHut).not.toBeNull();
     expect(nearHut.id).toBe('debts');
 
     // Stand in center plaza far from all doors
-    const far = getNearbyBuilding(18 * 16, 12 * 16, 20);
+    const far = getNearbyBuilding(32 * 16, 30 * 16, 20);
     expect(far).toBeNull();
   });
 
@@ -366,75 +367,77 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
   it('correctly identifies all village dirt thoroughfares and lanes', async () => {
     const { isVillagePath } = await import('../components/world/PixelWorldCanvas');
 
-    // Main East-West Thoroughfare
-    expect(isVillagePath(10, 12)).toBe(true);
-    expect(isVillagePath(22, 13)).toBe(true);
-
     // North Belfry Avenue
-    expect(isVillagePath(17, 7)).toBe(true);
-    expect(isVillagePath(18, 9)).toBe(true);
+    expect(isVillagePath(31, 20)).toBe(true);
+    expect(isVillagePath(32, 24)).toBe(true);
 
-    // South Notice Board Avenue
-    expect(isVillagePath(17, 17)).toBe(true);
-    expect(isVillagePath(18, 19)).toBe(true);
+    // West Archive Way
+    expect(isVillagePath(20, 32)).toBe(true);
+    expect(isVillagePath(16, 33)).toBe(true);
 
-    // Northwest Farmstead Lane
-    expect(isVillagePath(8, 8)).toBe(true);
-    expect(isVillagePath(9, 10)).toBe(true);
+    // Northwest Farm Road
+    expect(isVillagePath(20, 20)).toBe(true);
+    expect(isVillagePath(14, 18)).toBe(true);
 
-    // Southwest Moonlight Cinema Lane
-    expect(isVillagePath(6, 15)).toBe(true);
-    expect(isVillagePath(7, 18)).toBe(true);
+    // Northeast Bank Boulevard
+    expect(isVillagePath(42, 20)).toBe(true);
+    expect(isVillagePath(50, 18)).toBe(true);
 
-    // Northeast Archive Cellar Lane
-    expect(isVillagePath(27, 6)).toBe(true);
-    expect(isVillagePath(28, 8)).toBe(true);
+    // Southwest Festival Avenue
+    expect(isVillagePath(20, 44)).toBe(true);
+    expect(isVillagePath(16, 48)).toBe(true);
 
-    // Southeast Festival Grounds Lane
-    expect(isVillagePath(27, 15)).toBe(true);
-    expect(isVillagePath(28, 18)).toBe(true);
+    // Southeast Cinema Boulevard
+    expect(isVillagePath(42, 44)).toBe(true);
+    expect(isVillagePath(48, 48)).toBe(true);
+
+    // South Avenue to Pond
+    expect(isVillagePath(31, 38)).toBe(true);
 
     // Open Meadow (non-paths)
     expect(isVillagePath(2, 2)).toBe(false);
-    expect(isVillagePath(35, 10)).toBe(false);
-    expect(isVillagePath(14, 14)).toBe(false);
+    expect(isVillagePath(60, 60)).toBe(false);
+    expect(isVillagePath(32, 30)).toBe(false);
   });
 
   it('correctly identifies cobblestone plazas, platforms, and building aprons', async () => {
     const { isVillageCobble } = await import('../components/world/PixelWorldCanvas');
 
     // Central Plaza surrounding Fountain
-    expect(isVillageCobble(18, 12)).toBe(true);
-    expect(isVillageCobble(16, 11)).toBe(true);
-    expect(isVillageCobble(20, 13)).toBe(true);
+    expect(isVillageCobble(32, 30)).toBe(true);
+    expect(isVillageCobble(28, 28)).toBe(true);
+    expect(isVillageCobble(36, 36)).toBe(true);
 
     // Ledger Hut Porch & Customer Apron
-    expect(isVillageCobble(26, 11)).toBe(true);
-    expect(isVillageCobble(24, 12)).toBe(true);
+    expect(isVillageCobble(50, 14)).toBe(true);
+    expect(isVillageCobble(49, 13)).toBe(true);
 
     // Bell Tower Platform
-    expect(isVillageCobble(17, 4)).toBe(true);
+    expect(isVillageCobble(32, 14)).toBe(true);
 
     // Archive Cellar Pad
-    expect(isVillageCobble(27, 3)).toBe(true);
+    expect(isVillageCobble(12, 33)).toBe(true);
 
     // Notice Board Viewing Pad
-    expect(isVillageCobble(18, 15)).toBe(true);
+    expect(isVillageCobble(32, 36)).toBe(true);
 
     // Toolshed Apron
-    expect(isVillageCobble(8, 3)).toBe(true);
+    expect(isVillageCobble(16, 23)).toBe(true);
 
     // Farmstead Porch Apron
-    expect(isVillageCobble(8, 6)).toBe(true);
+    expect(isVillageCobble(14, 14)).toBe(true);
 
     // Moonlight Cinema Entrance Pad
-    expect(isVillageCobble(6, 19)).toBe(true);
+    expect(isVillageCobble(48, 51)).toBe(true);
 
     // Festival Grounds Apron
-    expect(isVillageCobble(28, 19)).toBe(true);
+    expect(isVillageCobble(16, 51)).toBe(true);
+
+    // Wooden bridge / stone embankment across pond
+    expect(isVillageCobble(32, 41)).toBe(true);
 
     // Open Meadow or pure dirt path
-    expect(isVillageCobble(10, 12)).toBe(false);
+    expect(isVillageCobble(31, 20)).toBe(false);
     expect(isVillageCobble(2, 2)).toBe(false);
   });
 
@@ -442,9 +445,9 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
     const { isGround } = await import('../components/world/PixelWorldCanvas');
 
     // Dirt path
-    expect(isGround(10, 12)).toBe(true);
+    expect(isGround(31, 20)).toBe(true);
     // Cobble plaza
-    expect(isGround(18, 12)).toBe(true);
+    expect(isGround(32, 30)).toBe(true);
     // Meadow
     expect(isGround(2, 2)).toBe(false);
   });
@@ -452,24 +455,24 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
   it('autotiles dirt path edges and cobblestones with authentic 16-bit fringe tiles', async () => {
     const { getPathTileInfo } = await import('../components/world/PixelWorldCanvas');
 
-    // Horizontal Main Street Top Edge (ty: 12) -> dirt_edge_top (col: 5, row: 0)
-    const topEdge = getPathTileInfo(10, 12);
+    // Horizontal West Archive Way Top Edge (ty: 32) -> dirt_edge_top (col: 5, row: 0)
+    const topEdge = getPathTileInfo(20, 32);
     expect(topEdge).toEqual({ col: 5, row: 0 });
 
-    // Horizontal Main Street Bottom Edge (ty: 13) -> dirt_edge_bottom (col: 6, row: 0)
-    const bottomEdge = getPathTileInfo(10, 13);
+    // Horizontal West Archive Way Bottom Edge (ty: 33) -> dirt_edge_bottom (col: 6, row: 0)
+    const bottomEdge = getPathTileInfo(20, 33);
     expect(bottomEdge).toEqual({ col: 6, row: 0 });
 
-    // Vertical North Avenue Left Edge (tx: 17, ty: 7) -> dirt_edge_left (col: 0, row: 6)
-    const leftEdge = getPathTileInfo(17, 7);
+    // Vertical North Belfry Avenue Left Edge (tx: 31, ty: 20) -> dirt_edge_left (col: 0, row: 6)
+    const leftEdge = getPathTileInfo(31, 20);
     expect(leftEdge).toEqual({ col: 0, row: 6 });
 
-    // Vertical North Avenue Right Edge (tx: 18, ty: 7) -> dirt_edge_right (col: 1, row: 6)
-    const rightEdge = getPathTileInfo(18, 7);
+    // Vertical North Belfry Avenue Right Edge (tx: 32, ty: 20) -> dirt_edge_right (col: 1, row: 6)
+    const rightEdge = getPathTileInfo(32, 20);
     expect(rightEdge).toEqual({ col: 1, row: 6 });
 
-    // Central Plaza Cobblestone (tx: 18, ty: 12) -> cobble_square (col: 4, row: 1)
-    const cobbleTile = getPathTileInfo(18, 12);
+    // Central Plaza Cobblestone (tx: 32, ty: 30) -> cobble_square (col: 4, row: 1)
+    const cobbleTile = getPathTileInfo(32, 30);
     expect(cobbleTile).toEqual({ col: 4, row: 1 });
 
     // Non-path meadow returns null

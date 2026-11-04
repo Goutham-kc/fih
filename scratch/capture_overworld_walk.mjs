@@ -343,26 +343,26 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
 
       const scale = ${isMobile ? 3 : 4};
       const TILE_SIZE = 16;
-      const MAP_W = 38;
-      const MAP_H = 26;
+      const MAP_W = 64;
+      const MAP_H = 64;
 
       const BUILDINGS = [
-        { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 2*16-6 },
-        { id: 'reminders', label: '🔔 Belfry Alerts', bx: 18*16, by: 10 },
-        { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 6*16-6 },
-        { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 13*16-12 },
-        { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 14*16-6 },
-        { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 14*16-6 },
-        { id: 'audit', label: '📜 Archive Cellar', bx: 28*16, by: 2*16-6 },
-        { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 4*16, by: 2*16-6 },
+        { id: 'todos', label: '🌾 Daily Quests', bx: 14*16, by: 9*16-6 },
+        { id: 'reminders', label: '🔔 Belfry Alerts', bx: 32*16, by: 7*16-6 },
+        { id: 'debts', label: '🪙 Gold Ledger', bx: 50*16, by: 9*16-6 },
+        { id: 'deadlines', label: '📋 Town Deadlines', bx: 32*16, by: 32*16-6 },
+        { id: 'dates', label: '🎪 Festival Grounds', bx: 16*16, by: 44*16-6 },
+        { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 48*16, by: 44*16-6 },
+        { id: 'audit', label: '📜 Archive Cellar', bx: 12*16, by: 29*16-6 },
+        { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 16*16, by: 20*16-6 },
       ];
 
       function drawWorld() {
         const viewW = Math.floor(canvas.width / scale);
         const viewH = Math.floor(canvas.height / scale);
 
-        const camX = ${isOverworld ? pipPos.x : 26 * 16};
-        const camY = ${isOverworld ? pipPos.y : 11 * 16};
+        const camX = ${isOverworld ? pipPos.x : 50 * 16};
+        const camY = ${isOverworld ? pipPos.y : 14 * 16};
 
         ctx.save();
         ctx.scale(scale, scale);
@@ -372,26 +372,38 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         ctx.translate(offsetX, offsetY);
 
         function isVillageCobble(tx, ty) {
-          if (tx >= 16 && tx <= 20 && ty >= 11 && ty <= 13) return true;
-          if (tx >= 24 && tx <= 28 && ty >= 11 && ty <= 13) return true;
-          if (tx >= 17 && tx <= 18 && ty >= 4 && ty <= 5) return true;
-          if (tx >= 27 && tx <= 28 && ty >= 3 && ty <= 4) return true;
-          if (tx >= 17 && tx <= 18 && ty >= 15 && ty <= 16) return true;
-          if (tx >= 7 && tx <= 9 && ty >= 3 && ty <= 4) return true;
-          if (tx >= 7 && tx <= 9 && ty >= 6 && ty <= 7) return true;
-          if (tx >= 5 && tx <= 7 && ty >= 19 && ty <= 20) return true;
-          if (tx >= 27 && tx <= 29 && ty >= 19 && ty <= 20) return true;
+          if (tx >= 28 && tx <= 36 && ty >= 28 && ty <= 36) return true;
+          if (tx >= 48 && tx <= 52 && ty >= 13 && ty <= 15) return true;
+          if (tx >= 30 && tx <= 34 && ty >= 13 && ty <= 15) return true;
+          if (tx >= 13 && tx <= 15 && ty >= 13 && ty <= 15) return true;
+          if (tx >= 11 && tx <= 13 && ty >= 32 && ty <= 34) return true;
+          if (tx >= 15 && tx <= 17 && ty >= 22 && ty <= 24) return true;
+          if (tx >= 31 && tx <= 33 && ty >= 35 && ty <= 37) return true;
+          if (tx >= 15 && tx <= 17 && ty >= 50 && ty <= 52) return true;
+          if (tx >= 47 && tx <= 49 && ty >= 50 && ty <= 52) return true;
+          if (tx === 32 && ty >= 40 && ty <= 43) return true;
           return false;
         }
 
         function isVillagePath(tx, ty) {
-          if (ty >= 12 && ty <= 13 && tx >= 6 && tx <= 28) return true;
-          if (tx >= 17 && tx <= 18 && ty >= 5 && ty <= 11) return true;
-          if (tx >= 17 && tx <= 18 && ty >= 13 && ty <= 20) return true;
-          if (tx >= 8 && tx <= 9 && ty >= 7 && ty <= 12) return true;
-          if (tx >= 6 && tx <= 7 && ty >= 12 && ty <= 20) return true;
-          if (tx >= 27 && tx <= 28 && ty >= 4 && ty <= 12) return true;
-          if (tx >= 27 && tx <= 28 && ty >= 12 && ty <= 20) return true;
+          if (tx >= 31 && tx <= 32 && ty >= 14 && ty <= 28) return true;
+          if (tx >= 12 && tx <= 28 && ty >= 32 && ty <= 33) return true;
+          if (tx >= 31 && tx <= 32 && ty >= 36 && ty <= 40) return true;
+          if (ty >= 20 && ty <= 21 && tx >= 14 && tx <= 28) return true;
+          if (tx >= 27 && tx <= 28 && ty >= 21 && ty <= 28) return true;
+          if (tx >= 14 && tx <= 15 && ty >= 14 && ty <= 21) return true;
+          if (ty >= 20 && ty <= 21 && tx >= 36 && tx <= 50) return true;
+          if (tx >= 36 && tx <= 37 && ty >= 21 && ty <= 28) return true;
+          if (tx >= 49 && tx <= 50 && ty >= 14 && ty <= 21) return true;
+          if (tx >= 27 && tx <= 28 && ty >= 36 && ty <= 44) return true;
+          if (ty >= 44 && ty <= 45 && tx >= 16 && tx <= 28) return true;
+          if (tx >= 16 && tx <= 17 && ty >= 45 && ty <= 51) return true;
+          if (tx >= 36 && tx <= 37 && ty >= 36 && ty <= 44) return true;
+          if (ty >= 44 && ty <= 45 && tx >= 36 && tx <= 48) return true;
+          if (tx >= 47 && tx <= 48 && ty >= 45 && ty <= 51) return true;
+          if (tx >= 15 && tx <= 16 && ty >= 21 && ty <= 24) return true;
+          if (tx >= 47 && tx <= 48 && ty >= 21 && ty <= 25) return true;
+          if (tx >= 31 && tx <= 32 && ty >= 43 && ty <= 48) return true;
           return false;
         }
 
@@ -428,12 +440,12 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         // Layer 1: Ground
         for (let ty = 0; ty < MAP_H; ty++) {
           for (let tx = 0; tx < MAP_W; tx++) {
-            const isPond = tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18;
-            if (isPond) {
+            const isPondWater = tx >= 30 && tx <= 34 && ty >= 40 && ty <= 43 && tx !== 32;
+            if (isPondWater) {
               ctx.drawImage(tilesetImg, 0, 16, 16, 16, tx * 16, ty * 16, 16, 16);
               continue;
             }
-            const isGarden = tx >= 5 && tx <= 7 && ty >= 9 && ty <= 10;
+            const isGarden = tx >= 11 && tx <= 13 && ty >= 15 && ty <= 16;
             if (isGarden) {
               ctx.drawImage(tilesetImg, 7 * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
               continue;
@@ -449,54 +461,57 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         }
 
         // Layer 2: Fences
-        for (let fx = 4; fx <= 7; fx++) {
-          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 8 * 16, 16, 16);
+        for (let fx = 10; fx <= 13; fx++) {
+          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 16 * 16, 16, 16);
         }
-        ctx.drawImage(tilesetImg, 3 * 16, 16, 16, 16, 10 * 16, 8 * 16, 16, 16);
-        for (let fx = 20; fx <= 23; fx++) {
-          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 14 * 16, 16, 16);
+        for (let fx = 16; fx <= 17; fx++) {
+          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 16 * 16, 16, 16);
+        }
+        for (let by = 40; by <= 43; by++) {
+          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, 31 * 16, by * 16, 16, 16);
+          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, 33 * 16, by * 16, 16, 16);
         }
 
         const renderables = [];
 
         // Farmstead (New Custom House)
         renderables.push({
-          y: 7 * 16 + 2,
+          y: 14 * 16 + 2,
           render: () => {
             const hW = 76, hH = 79;
-            const hX = 5.5 * 16 + 4, hY = 7 * 16 - hH + 4;
+            const hX = 14 * 16 - hW / 2, hY = 14 * 16 - hH + 4;
             ctx.drawImage(farmhouseImg, hX, hY, hW, hH);
-            ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 5 * 16, 9 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 6 * 16, 9 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 7 * 16, 10 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, 9 * 16, 12 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 11 * 16, 15 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 12 * 16, 15 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 13 * 16, 16 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, 15 * 16, 14 * 16, 16, 16);
           }
         });
 
         // Chapter 2: The Bank / Ledger
         renderables.push({
-          y: 11 * 16 + 4,
+          y: 14 * 16 + 4,
           render: () => {
             const bW = 86, bH = 86;
-            const bX = 26 * 16 - bW / 2;
-            const bY = 11 * 16 + 4 - bH;
+            const bX = 50 * 16 - bW / 2;
+            const bY = 14 * 16 + 4 - bH;
             ctx.drawImage(bankImg, bX, bY, bW, bH);
           }
         });
 
         // Bram
         renderables.push({
-          y: 11 * 16 + 6,
+          y: 14 * 16 + 6,
           render: () => {
-            ctx.drawImage(bramImg, 0, 0, 24, 32, 28 * 16 - 10, 10 * 16 + 4, 24, 32);
+            ctx.drawImage(bramImg, 0, 0, 24, 32, 52 * 16 - 10, 13 * 16 + 4, 24, 32);
           }
         });
 
         // Ledger Counter Table / Stand
         renderables.push({
-          y: 11 * 16 + 8,
+          y: 14 * 16 + 8,
           render: () => {
-            const px = 28 * 16 - 4, py = 11 * 16 + 2;
+            const px = 52 * 16 - 4, py = 14 * 16 + 2;
             ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, px, py, 16, 16);
             ctx.drawImage(tilesetImg, 6 * 16, 16, 16, 16, px, py, 16, 16);
             ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, px - 4, py + 2, 16, 16);
@@ -506,53 +521,127 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
 
         // Chapter 3: Bell Tower (New Custom Bell Tower)
         renderables.push({
-          y: 6 * 16,
+          y: 14 * 16,
           render: () => {
             const bW = 46, bH = 98;
-            const bX = 18 * 16 - bW / 2;
-            const bY = 0;
+            const bX = 32 * 16 - bW / 2;
+            const bY = 14 * 16 - bH + 2;
             ctx.drawImage(bellTowerImg, bX, bY, bW, bH);
           }
         });
 
         // Notice Board (New Custom Notice Board)
         renderables.push({
-          y: 15 * 16 + 6,
+          y: 35 * 16 + 6,
           render: () => {
             const bW = 52, bH = 46;
-            const bX = 18 * 16 - bW / 2;
-            const bY = 15 * 16 - bH + 6;
+            const bX = 32 * 16 - bW / 2;
+            const bY = 35 * 16 - bH + 6;
             ctx.drawImage(noticeBoardImg, bX, bY, bW, bH);
+          }
+        });
+
+        // Central Stone Fountain
+        renderables.push({
+          y: 32 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 5 * 16, 64, 16, 16, 32 * 16, 31 * 16, 16, 16);
           }
         });
 
         // Chapter 5: Festival Grounds (New Custom Festival Grounds)
         renderables.push({
-          y: 19 * 16 + 6,
+          y: 51 * 16 + 6,
           render: () => {
             const bW = 128, bH = 94;
-            const bX = 28 * 16 - bW / 2;
-            const bY = 20 * 16 - bH + 4;
+            const bX = 16 * 16 - bW / 2;
+            const bY = 52 * 16 - bH + 4;
             ctx.drawImage(festivalGroundsImg, bX, bY, bW, bH);
           }
         });
 
         // Chapter 6: Moonlight Cinema (New Custom Moonlight Cinema)
         renderables.push({
-          y: 19 * 16 + 6,
+          y: 51 * 16 + 6,
           render: () => {
             const bW = 128, bH = 93;
-            const bX = 6 * 16 - bW / 2;
-            const bY = 20 * 16 - bH + 4;
+            const bX = 48 * 16 - bW / 2;
+            const bY = 52 * 16 - bH + 4;
             ctx.drawImage(moonlightCinemaImg, bX, bY, bW, bH);
           }
         });
 
-        // Fountain
+        // Archive Cellar
         renderables.push({
-          y: 13 * 16,
+          y: 33 * 16,
           render: () => {
-            ctx.drawImage(tilesetImg, 5 * 16, 64, 16, 16, 18 * 16, 11 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, 11 * 16, 30 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, 12 * 16, 30 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 48, 16, 16, 13 * 16, 31 * 16, 16, 16);
+          }
+        });
+
+        // Toolshed Workbench
+        renderables.push({
+          y: 23 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 6 * 16, 32, 16, 16, 15 * 16, 21 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 48, 16, 16, 17 * 16, 22 * 16, 16, 16);
+          }
+        });
+
+        // Sky Post
+        renderables.push({
+          y: 25 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, 48 * 16, 24 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, 47 * 16, 24 * 16, 16, 16);
+          }
+        });
+
+        // Plaza Lanterns & Benches
+        [{ x: 28, y: 28 }, { x: 36, y: 28 }, { x: 28, y: 36 }, { x: 36, y: 36 }].forEach(lp => {
+          renderables.push({
+            y: (lp.y + 1) * 16,
+            render: () => ctx.drawImage(tilesetImg, 7 * 16, 64, 16, 16, lp.x * 16, lp.y * 16, 16, 16)
+          });
+        });
+        [{ x: 30, y: 31 }, { x: 34, y: 31 }].forEach(bp => {
+          renderables.push({
+            y: (bp.y + 1) * 16,
+            render: () => ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, bp.x * 16, bp.y * 16, 16, 16)
+          });
+        });
+
+        // Trees
+        const trees = [
+          { x: 9, y: 10, type: 'oak' }, { x: 18, y: 10, type: 'oak' },
+          { x: 8, y: 31, type: 'oak' }, { x: 26, y: 22, type: 'oak' }, { x: 38, y: 22, type: 'oak' },
+          { x: 29, y: 9, type: 'pine' }, { x: 35, y: 9, type: 'pine' }, { x: 18, y: 21, type: 'pine' },
+          { x: 9, y: 34, type: 'blossom' }, { x: 24, y: 12, type: 'blossom' }, { x: 40, y: 12, type: 'blossom' }
+        ];
+        trees.forEach(tr => {
+          if (tr.type === 'pine') {
+            renderables.push({
+              y: (tr.y + 1) * 16,
+              render: () => ctx.drawImage(tilesetImg, 4 * 16, 80, 16, 16, tr.x * 16, tr.y * 16, 16, 16)
+            });
+          } else if (tr.type === 'blossom') {
+            renderables.push({
+              y: (tr.y + 1) * 16,
+              render: () => {
+                ctx.drawImage(tilesetImg, 2 * 16, 80, 16, 16, tr.x * 16, (tr.y - 1) * 16, 16, 16);
+                ctx.drawImage(tilesetImg, 3 * 16, 80, 16, 16, tr.x * 16, tr.y * 16, 16, 16);
+              }
+            });
+          } else {
+            renderables.push({
+              y: (tr.y + 1) * 16,
+              render: () => {
+                ctx.drawImage(tilesetImg, 0, 80, 16, 16, tr.x * 16, (tr.y - 1) * 16, 16, 16);
+                ctx.drawImage(tilesetImg, 1 * 16, 80, 16, 16, tr.x * 16, tr.y * 16, 16, 16);
+              }
+            });
           }
         });
 
@@ -645,8 +734,8 @@ server.listen(PORT, async () => {
   const page = await browser.newPage();
 
 
-  // 0a. Initial Login/Refresh: Shows Welcome Dialogue & Controls Pill
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: false, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  // 0a. Initial Login/Refresh: Shows Welcome Dialogue & Controls Pill (at Central Plaza Fountain)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: false, pipPos: { x: 32 * 16, y: 33 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -654,8 +743,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-welcome-desktop.png') });
   console.log('✓ Captured overworld-welcome-desktop.png (initial login view)');
 
-  // 0b. Open World Roaming (interacted, walking path): Welcome and controls hidden, clean view
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 21 * 16, y: 12 * 16, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  // 0b. Open World Roaming: Pip walking North Belfry Avenue towards the Bell Tower
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 32 * 16, y: 22 * 16, dir: 3 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -663,8 +752,13 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-desktop.png') });
   console.log('✓ Captured updated overworld-map-desktop.png (roaming unobstructed)');
 
+  // 0b-full. Complete 64x64 Forest Village Map Overview (Central Plaza & surrounding Woodland)
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-forest-village-64x64-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-forest-village-64x64-desktop.png') });
+  console.log('✓ Captured overworld-forest-village-64x64-desktop.png (full forest village overview)');
+
   // 0c. Default Overworld Map Mobile
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: true, panelOnly: false });
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 32 * 16, y: 33 * 16, dir: 0 }, nearbyBuilding: null, isMobile: true, panelOnly: false });
   await page.setViewport({ width: 390, height: 844 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -672,8 +766,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-mobile.png') });
   console.log('✓ Captured updated overworld-map-mobile.png');
 
-  // 0d. Pip outside the new custom Farmstead House
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 8 * 16, y: 7 * 16 + 4, dir: 3 }, nearbyBuilding: 'The Farmstead', isMobile: false, panelOnly: false });
+  // 0d. Pip outside the new custom Farmstead House (Northwest Clearing)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 14 * 16, y: 14 * 16, dir: 3 }, nearbyBuilding: 'The Farmstead', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -681,8 +775,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-farmstead-custom-house-desktop.png') });
   console.log('✓ Captured overworld-farmstead-custom-house-desktop.png');
 
-  // 0e. Pip outside the new custom Notice Board
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 18 * 16, y: 16 * 16, dir: 3 }, nearbyBuilding: 'The Notice Board', isMobile: false, panelOnly: false });
+  // 0e. Pip outside the new custom Notice Board (Central Plaza)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 32 * 16, y: 36 * 16, dir: 3 }, nearbyBuilding: 'The Notice Board', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -690,8 +784,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-notice-board-custom-desktop.png') });
   console.log('✓ Captured overworld-notice-board-custom-desktop.png');
 
-  // 0f. Pip outside the new custom Bank (Ledger)
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 12 * 16, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
+  // 0f. Pip outside the new custom Bank (Northeast Ledger Clearing)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 50 * 16, y: 14 * 16, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -699,8 +793,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-bank-custom-desktop.png') });
   console.log('✓ Captured overworld-bank-custom-desktop.png');
 
-  // 0g. Pip outside the new custom Bell Tower
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 18 * 16, y: 6 * 16 + 4, dir: 3 }, nearbyBuilding: 'The Bell Tower', isMobile: false, panelOnly: false });
+  // 0g. Pip outside the new custom Bell Tower (North Landmark)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 32 * 16, y: 14 * 16, dir: 3 }, nearbyBuilding: 'The Bell Tower', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -708,8 +802,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-bell-tower-custom-desktop.png') });
   console.log('✓ Captured overworld-bell-tower-custom-desktop.png');
 
-  // 0h. Pip outside the new custom Festival Grounds
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 28 * 16, y: 19 * 16 + 2, dir: 3 }, nearbyBuilding: 'The Festival Grounds', isMobile: false, panelOnly: false });
+  // 0h. Pip outside the new custom Festival Grounds (Southwest Clearing)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 16 * 16, y: 51 * 16, dir: 3 }, nearbyBuilding: 'The Festival Grounds', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -717,8 +811,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-festival-custom-desktop.png') });
   console.log('✓ Captured overworld-festival-custom-desktop.png');
 
-  // 0i. Pip outside the new custom Moonlight Cinema
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 6 * 16, y: 19 * 16 + 2, dir: 3 }, nearbyBuilding: 'The Moonlight Cinema', isMobile: false, panelOnly: false });
+  // 0i. Pip outside the new custom Moonlight Cinema (Southeast Woodland Clearing)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 48 * 16, y: 51 * 16, dir: 3 }, nearbyBuilding: 'The Moonlight Cinema', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -726,8 +820,8 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-cinema-custom-desktop.png') });
   console.log('✓ Captured overworld-cinema-custom-desktop.png');
 
-  // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Ledger Hut)
-  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
+  // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Bank)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 50 * 16, y: 14 * 16, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -736,7 +830,7 @@ server.listen(PORT, async () => {
   console.log('✓ Captured updated overworld-walk-proximity-desktop.png');
 
   // 2. Entered Ledger Hut in Split World View (with Panel Only toggle in header)
-  currentHTML = buildHTML({ activeTab: 'debts', hasInteracted: true, pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  currentHTML = buildHTML({ activeTab: 'debts', hasInteracted: true, pipPos: { x: 48 * 16, y: 14 * 16, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
@@ -745,7 +839,7 @@ server.listen(PORT, async () => {
   console.log('✓ Captured updated overworld-entered-ledger-desktop.png');
 
   // 3. Entered in Fullscreen "Panel Only" View
-  currentHTML = buildHTML({ activeTab: 'debts', hasInteracted: true, pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: true });
+  currentHTML = buildHTML({ activeTab: 'debts', hasInteracted: true, pipPos: { x: 48 * 16, y: 14 * 16, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: true });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
