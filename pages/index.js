@@ -28,7 +28,7 @@ import OverviewCards from '@/components/OverviewCards';
 import AnalyticsPulse from '@/components/AnalyticsPulse';
 import InteractiveTelemetry from '@/components/InteractiveTelemetry';
 import PixelValleyHUD from '@/components/PixelValleyHUD';
-import PixelValleyAtmosphere from '@/components/PixelValleyAtmosphere';
+import VillageWorld from '@/components/world/VillageWorld';
 import TabStoryBanner from '@/components/TabStoryBanner';
 import { playSound } from '@/lib/soundEffects';
 
@@ -168,7 +168,7 @@ export default function Dashboard() {
         <meta name="description" content="Precision Personal Life Operations & WhatsApp Chronicle" />
       </Head>
 
-      <PixelValleyAtmosphere />
+      <VillageWorld activeTab={activeTab} />
       {/* Ambient Radial Accent */}
       <div className="ambient-glow" style={{ top: -80, left: '20%' }} />
 

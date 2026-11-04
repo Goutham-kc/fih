@@ -5,17 +5,67 @@ import {
   Coins,
   Sparkles,
   Scroll,
+  Volume2,
+  VolumeX,
+  Compass,
+  CloudRain,
+  Snowflake,
+  Wind,
 } from 'lucide-react';
 import DevModeIndicator from '@/components/ui/DevModeIndicator';
+import { soundManager } from '@/lib/soundManager';
+import { eventBus, EVENTS } from '@/lib/eventBus';
+import { getDateSeededWeather } from '@/components/world/WeatherEngine';
 
 export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }) {
   const [time, setTime] = useState(new Date());
+  const [soundMuted, setSoundMuted] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [currentWeather, setCurrentWeather] = useState('clear');
   const [hudData, setHudData] = useState({
     todos: [],
     debts: [],
     reminders: [],
     loading: true,
   });
+
+  useEffect(() => {
+    // Hydrate sound & motion on client mount
+    setSoundMuted(soundManager.isMuted());
+    setCurrentWeather(getDateSeededWeather(new Date()));
+
+    const savedRm = localStorage.getItem('pv_reduced_motion');
+    if (savedRm !== null) {
+      setReducedMotion(savedRm === 'true');
+    } else {
+      setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+
+    const unsubSound = eventBus.on(EVENTS.SOUND_TOGGLED, ({ muted }) => setSoundMuted(muted));
+    const unsubMotion = eventBus.on(EVENTS.MOTION_TOGGLED, ({ reducedMotion: rm }) => setReducedMotion(rm));
+    const unsubWeather = eventBus.on(EVENTS.WEATHER_CHANGED, ({ weather: w }) => {
+      if (w === 'auto') setCurrentWeather(getDateSeededWeather(new Date()));
+      else setCurrentWeather(w);
+    });
+
+    return () => {
+      unsubSound();
+      unsubMotion();
+      unsubWeather();
+    };
+  }, []);
+
+  function handleToggleSound() {
+    const next = soundManager.toggleMute();
+    setSoundMuted(next);
+  }
+
+  function handleToggleMotion() {
+    const next = !reducedMotion;
+    setReducedMotion(next);
+    localStorage.setItem('pv_reduced_motion', String(next));
+    eventBus.emit(EVENTS.MOTION_TOGGLED, { reducedMotion: next });
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 10000);
@@ -249,6 +299,97 @@ export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }
                 onToggle={onSwitchEnvMode ? () => onSwitchEnvMode(envMode === 'live' ? 'development' : 'live') : undefined}
                 disabled={updatingEnv}
               />
+
+              {/* Weather Indicator Badge */}
+              <div
+                title={`Valley Weather: ${currentWeather}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                  background: 'rgba(79, 155, 209, 0.15)',
+                  border: '1px solid rgba(79, 155, 209, 0.3)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: '#4f9bd1',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {currentWeather === 'rain' && <CloudRain size={12} />}
+                {currentWeather === 'snow' && <Snowflake size={12} />}
+                {currentWeather === 'breeze' && <Wind size={12} />}
+                {currentWeather === 'fireflies' && <Sparkles size={12} />}
+                {(currentWeather === 'clear' || !['rain', 'snow', 'breeze', 'fireflies'].includes(currentWeather)) && <Sun size={12} />}
+                <span>{currentWeather}</span>
+              </div>
+
+              {/* Messenger Bird (Wren) Indicator */}
+              <div
+                title="Wren the Messenger Bird: WhatsApp Gateway Ready"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                  background: 'rgba(143, 196, 90, 0.15)',
+                  border: '1px solid rgba(143, 196, 90, 0.3)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: '#8fc45a',
+                }}
+              >
+                <span>🕊️ Wren</span>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#8fc45a' }} />
+              </div>
+
+              {/* Quick Sound Toggle */}
+              <button
+                type="button"
+                onClick={handleToggleSound}
+                title={soundMuted ? 'Sound Muted — Click to activate' : 'Sound Active — Click to mute'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                  background: soundMuted ? 'rgba(194, 65, 90, 0.15)' : 'rgba(143, 196, 90, 0.15)',
+                  border: `1px solid ${soundMuted ? 'rgba(194, 65, 90, 0.4)' : 'rgba(143, 196, 90, 0.4)'}`,
+                  color: soundMuted ? '#c2415a' : '#8fc45a',
+                  cursor: 'pointer',
+                  fontSize: 10,
+                  fontWeight: 700,
+                }}
+              >
+                {soundMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                <span>{soundMuted ? 'MUTED' : 'AUDIO'}</span>
+              </button>
+
+              {/* Quick Motion Toggle */}
+              <button
+                type="button"
+                onClick={handleToggleMotion}
+                title={reducedMotion ? 'Reduced Motion Active — Click to enable full parallax' : 'Full Parallax Active — Click to reduce motion'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                  background: 'rgba(201, 143, 85, 0.15)',
+                  border: '1px solid rgba(201, 143, 85, 0.35)',
+                  color: '#fdf6e2',
+                  cursor: 'pointer',
+                  fontSize: 10,
+                  fontWeight: 700,
+                }}
+              >
+                <Compass size={12} color="#f2c230" />
+                <span>{reducedMotion ? 'STATIC' : 'MOTION'}</span>
+              </button>
             </div>
           </div>
         </div>
