@@ -119,3 +119,9 @@ This document lists every sprite, frame layout, and coordinate in `/public/asset
 - **World Rendering:** Scaled to 86×86 world px (placed at world coordinates x: 373, y: 94)
 - **Features:** Neoclassical stone portico with pediment, gold coin medallion, carved "BANK" lintel, four fluted columns, twin royal blue banners with gold coin medallions, double arched wooden doors with brass rings, tiered stone steps with flanking carved scroll balustrades, and vibrant red and gold flower planter boxes.
 - **Interactive Role:** Chapter 2: The Ledger Hut (Gold Ledger & Tab Inscriptions / Debts). Front doorstep at world position `(26 * 16, 11 * 16)`, with Bram the Badger Factor standing beside the right balustrade alongside his oak teller stand, brass balance scales, and gold coin sacks.
+
+### The Belfry Clock & Bell Tower (`bell_tower.png`)
+- **Source:** User Custom Sprite (Cropped to 443×945 px, transparent alpha background)
+- **World Rendering:** Scaled to 46×98 world px (placed at world coordinates x: 265, y: 0)
+- **Features:** Soaring multi-tiered stone clock and bell tower with brass arrow weather vane, conical terracotta tile roof, golden circular clock face with Roman numerals and blue clock hands, slender arched stained-glass windows, arched double wooden entrance doors, and flanking blooming rose flowerboxes on cut-stone plinths.
+- **Interactive Role:** Chapter 3: The Bell Tower (Belfry Alerts & Reminders / Reminders). Front doorstep at world position `(18 * 16, 6 * 16)` facing North Belfry Avenue.

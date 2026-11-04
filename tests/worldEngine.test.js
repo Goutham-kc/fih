@@ -174,6 +174,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitBank).not.toBeNull();
     expect(hitBank.id).toBe('debts');
     expect(hitBank.name).toBe('The Ledger Hut');
+
+    // Clicking on the new Bell Tower clock face (at tx: 18, ty: 3) hits The Bell Tower
+    const hitTower = getHitBuilding(18 * 16, 3 * 16);
+    expect(hitTower).not.toBeNull();
+    expect(hitTower.id).toBe('reminders');
+    expect(hitTower.name).toBe('The Bell Tower');
+  });
+
+  it('detects entrance proximity for the custom Bell Tower', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing outside the front steps at (tx: 18, ty: 6) detects The Bell Tower within range
+    const nearby = getNearbyBuilding(18 * 16, 6 * 16, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('reminders');
   });
 
   it('detects entrance proximity for the custom Bank / Ledger', async () => {

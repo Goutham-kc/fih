@@ -43,11 +43,11 @@ export const BUILDING_HITBOXES = [
     doorX: 18 * TILE_SIZE,
     doorY: 6 * TILE_SIZE,
     minX: 16 * TILE_SIZE,
-    minY: 2 * TILE_SIZE,
+    minY: 0,
     maxX: 21 * TILE_SIZE,
-    maxY: 8 * TILE_SIZE,
+    maxY: 7 * TILE_SIZE,
     bannerX: 18 * TILE_SIZE,
-    bannerY: 2 * TILE_SIZE - 6,
+    bannerY: 10,
   },
   {
     id: 'debts',
@@ -283,8 +283,8 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
-  // 6. Chapter 3: The Bell Tower masonry (tx: 17-18, ty: 2-4)
-  if (tx >= 17 && tx <= 18 && ty >= 2 && ty <= 4) {
+  // 6. Chapter 3: The Bell Tower masonry (tx: 17-19, ty: 1-5)
+  if (tx >= 17 && tx <= 19 && ty >= 1 && ty <= 5) {
     return false;
   }
 
@@ -426,7 +426,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null },
     loaded: false,
     camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
     targetCamera: { x: 18 * 16, y: 12 * 16 },
@@ -455,6 +455,7 @@ export default function PixelWorldCanvas({
       { key: 'farmhouse', src: '/assets/buildings/farmhouse.png' },
       { key: 'notice_board', src: '/assets/buildings/notice_board.png' },
       { key: 'bank', src: '/assets/buildings/bank.png' },
+      { key: 'bell_tower', src: '/assets/buildings/bell_tower.png' },
     ];
 
     let count = 0;
@@ -1008,22 +1009,31 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 3. Chapter 3: The Bell Tower (x: 18, y: 5) ──
+      // ── 3. Chapter 3: The Bell Tower (New Custom Bell Tower) ──
       renderables.push({
-        y: 7 * TILE_SIZE,
+        y: 6 * TILE_SIZE,
         render: () => {
-          const tx = 17 * TILE_SIZE;
-          const ty = 2 * TILE_SIZE;
-          ctx.drawImage(tileset, 0, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 0, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx + TILE_SIZE, ty, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 1 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.save();
-          ctx.translate(tx + TILE_SIZE + 8, ty + TILE_SIZE + 4);
-          ctx.rotate(state.bellSwing);
-          ctx.drawImage(tileset, 2 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, 0, TILE_SIZE, TILE_SIZE);
-          ctx.restore();
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx + TILE_SIZE, ty + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const towerImg = state.images.bell_tower;
+          if (towerImg) {
+            const bW = 46;
+            const bH = 98;
+            const bX = 18 * TILE_SIZE - bW / 2; // 265px
+            const bY = 6 * TILE_SIZE - bH + 2; // 0px
+            ctx.drawImage(towerImg, bX, bY, bW, bH);
+          } else {
+            const tx = 17 * TILE_SIZE;
+            const ty = 2 * TILE_SIZE;
+            ctx.drawImage(tileset, 0, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 0, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx + TILE_SIZE, ty, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 1 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty + TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.save();
+            ctx.translate(tx + TILE_SIZE + 8, ty + TILE_SIZE + 4);
+            ctx.rotate(state.bellSwing);
+            ctx.drawImage(tileset, 2 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, 0, TILE_SIZE, TILE_SIZE);
+            ctx.restore();
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx + TILE_SIZE, ty + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
         },
       });
 
