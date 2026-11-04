@@ -144,4 +144,67 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
       expect(typeof anchor.chapterTitle).toBe('string');
     });
   });
+
+  it('detects building clicks with getHitBuilding', async () => {
+    const { getHitBuilding } = await import('../components/world/PixelWorldCanvas');
+    // Ledger hut is around tx: 26, ty: 9 (416, 144)
+    const hit = getHitBuilding(26 * 16, 9 * 16);
+    expect(hit).not.toBeNull();
+    expect(hit.id).toBe('debts');
+    expect(hit.name).toBe('The Ledger Hut');
+
+    // Central fountain at (18*16, 12*16) is not a building
+    const miss = getHitBuilding(18 * 16, 12 * 16);
+    expect(miss).toBeNull();
+  });
+
+  it('validates walkable areas and detects obstacles like pond and bounds', async () => {
+    const { isWalkable } = await import('../components/world/PixelWorldCanvas');
+    // Plaza path is walkable
+    expect(isWalkable(18 * 16, 12 * 16)).toBe(true);
+
+    // Pond at tx: 13, ty: 17 is impassable water
+    expect(isWalkable(13 * 16, 17 * 16)).toBe(false);
+
+    // Out of map bounds is impassable
+    expect(isWalkable(0, 0)).toBe(false);
+    expect(isWalkable(38 * 16, 26 * 16)).toBe(false);
+  });
+
+  it('computes normalized velocity vectors from keyboard inputs', async () => {
+    const { getKeyboardVelocity } = await import('../components/world/PixelWorldCanvas');
+    // Up only
+    const up = getKeyboardVelocity(new Set(['KeyW']));
+    expect(up.vx).toBe(0);
+    expect(up.vy).toBe(-1);
+
+    // Right Arrow
+    const right = getKeyboardVelocity(new Set(['ArrowRight']));
+    expect(right.vx).toBe(1);
+    expect(right.vy).toBe(0);
+
+    // Diagonal Up-Right
+    const diag = getKeyboardVelocity(new Set(['KeyW', 'KeyD']));
+    expect(diag.vx).toBeCloseTo(Math.SQRT1_2, 3);
+    expect(diag.vy).toBeCloseTo(-Math.SQRT1_2, 3);
+
+    // Opposing keys cancel out
+    const cancel = getKeyboardVelocity(new Set(['KeyW', 'KeyS']));
+    expect(cancel.vx).toBe(0);
+    expect(cancel.vy).toBe(0);
+  });
+
+  it('identifies nearby buildings within interaction distance', async () => {
+    const { getNearbyBuilding, BUILDING_HITBOXES } = await import('../components/world/PixelWorldCanvas');
+    expect(BUILDING_HITBOXES.length).toBe(8);
+
+    // Stand right at the Ledger door (26*16, 11*16)
+    const nearHut = getNearbyBuilding(26 * 16, 11 * 16, 30);
+    expect(nearHut).not.toBeNull();
+    expect(nearHut.id).toBe('debts');
+
+    // Stand in center plaza far from all doors
+    const far = getNearbyBuilding(18 * 16, 12 * 16, 20);
+    expect(far).toBeNull();
+  });
 });

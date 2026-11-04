@@ -21,7 +21,8 @@ import { CHARACTER_META } from '@/components/character/CharacterSprite';
 
 export default function Dashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('debts'); // Default to Chapter 2: The Ledger Hut for vertical slice
+  // Default to null (Overworld Exploration Map View) unless ?tab= is in URL
+  const [activeTab, setActiveTab] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [envMode, setEnvMode] = useState('live');
   const [updatingEnv, setUpdatingEnv] = useState(false);
@@ -106,7 +107,21 @@ export default function Dashboard() {
   const handleTabChange = (tabId) => {
     soundManager.playSfx('wood');
     setActiveTab(tabId);
-    router.replace({ query: { ...router.query, tab: tabId } }, undefined, { shallow: true });
+    if (tabId) {
+      router.replace({ query: { ...router.query, tab: tabId } }, undefined, { shallow: true });
+    } else {
+      const q = { ...router.query };
+      delete q.tab;
+      router.replace({ query: q }, undefined, { shallow: true });
+    }
+  };
+
+  const handleCloseChapter = () => {
+    soundManager.playSfx('wood');
+    setActiveTab(null);
+    const q = { ...router.query };
+    delete q.tab;
+    router.replace({ query: q }, undefined, { shallow: true });
   };
 
   async function switchEnvMode(newMode) {
@@ -181,14 +196,23 @@ export default function Dashboard() {
   // Time of Day & Contextual Dialogue
   const currentHour = time.getHours();
   const timeOfDay = currentHour < 12 ? 'morning' : currentHour < 17 ? 'day' : currentHour < 21 ? 'evening' : 'night';
-  const chapterDialogue = dialogueContent[activeTab] || dialogueContent.debts;
-  const currentResidentId = chapterDialogue?.character || 'pip';
-  const residentMeta = CHARACTER_META[currentResidentId] || { name: 'Resident', title: 'Villager' };
-  const residentFullName = `${residentMeta.name} ${residentMeta.title}`;
-  const dialogueLine = getContextualDialogue(activeTab, {
-    timeOfDay,
-    weather: currentWeather,
-  });
+
+  let currentResidentId = 'pip';
+  let residentFullName = 'Pip the Farmhand';
+  let chapterTitle = 'Pixel Valley Overworld';
+  let dialogueLine = 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk. Click any house or walk up and press [E] to enter.';
+
+  if (activeTab) {
+    const chapterDialogue = dialogueContent[activeTab] || dialogueContent.debts;
+    currentResidentId = chapterDialogue?.character || 'pip';
+    const residentMeta = CHARACTER_META[currentResidentId] || { name: 'Resident', title: 'Villager' };
+    residentFullName = `${residentMeta.name} ${residentMeta.title}`;
+    chapterTitle = chapterDialogue.chapterTitle || 'Village Chapter';
+    dialogueLine = getContextualDialogue(activeTab, {
+      timeOfDay,
+      weather: currentWeather,
+    });
+  }
 
   function renderTabContent() {
     switch (activeTab) {
@@ -200,7 +224,7 @@ export default function Dashboard() {
       case 'watchlist': return <Watchlist key={`watchlist-${envMode}`} />;
       case 'audit': return <AuditLogView key={`audit-${envMode}`} />;
       case 'settings': return <SettingsView key="settings" envMode={envMode} onSwitchEnvMode={switchEnvMode} updatingEnv={updatingEnv} />;
-      default: return <DebtTracker key={`debts-${envMode}`} />;
+      default: return null;
     }
   }
 
@@ -209,6 +233,7 @@ export default function Dashboard() {
       <Head>
         <title>fih — Pixel Valley (16-Bit RPG)</title>
         <meta name="description" content="16-Bit Top-Down Farming RPG Personal Operating System" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
       <div
@@ -235,6 +260,8 @@ export default function Dashboard() {
               activeTab={activeTab}
               debtsData={debts}
               reducedMotion={reducedMotion}
+              onNavigateToChapter={handleTabChange}
+              onCloseChapter={handleCloseChapter}
               onSelectDebt={() => {
                 setPanelMinimized(false);
               }}
@@ -242,158 +269,208 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── 2. Top-Left Pixel HUD (Section 5) ── */}
+        {/* ── 2. Top Pixel HUD (Section 5) ── */}
         <header
           className="pixel-wood-card"
           style={{
             position: 'fixed',
             top: 12,
             left: 14,
+            right: activeTab && showCanvas ? '510px' : '14px',
             zIndex: 80,
             padding: '8px 12px',
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 10,
             borderWidth: 3,
+            transition: 'right 0.2s ease',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 16 }}>🌾</span>
-            <span
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 16 }}>🌾</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-pixel-display)',
+                  fontSize: 11,
+                  color: '#facc15',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                Pixel Valley
+              </span>
+            </div>
+
+            {/* Persistent Dev Mode Indicator */}
+            <DevModeIndicator
+              envMode={envMode}
+              onToggle={() => switchEnvMode(envMode === 'live' ? 'development' : 'live')}
+              disabled={updatingEnv}
+            />
+
+            {/* Clock & Season */}
+            <div
+              className="tabular-nums"
               style={{
-                fontFamily: 'var(--font-pixel-display)',
-                fontSize: 11,
-                color: '#facc15',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
+                fontSize: 12,
+                color: '#fdf6e2',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
-              Pixel Valley
-            </span>
+              <span>{seasonEmoji} {dayName}. {dayOfMonth}</span>
+              <span style={{ color: '#facc15' }}>• {timeStr}</span>
+            </div>
+
+            {/* Gold Pouch */}
+            <div
+              className="tabular-nums"
+              style={{
+                fontSize: 12,
+                color: netGold >= 0 ? '#8fc45a' : '#f87171',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <span>🪙 {netGold >= 0 ? '+' : ''}₹{Math.abs(netGold).toLocaleString('en-IN')}g</span>
+            </div>
+
+            {/* Weather Pill */}
+            <div style={{ fontSize: 11, color: '#60a5fa', textTransform: 'capitalize' }}>
+              {currentWeather === 'rain' ? '🌧️ Rain' : currentWeather === 'snow' ? '❄️ Snow' : '☀️ Clear'}
+            </div>
           </div>
 
-          {/* Persistent Dev Mode Indicator */}
-          <DevModeIndicator
-            envMode={envMode}
-            onToggle={() => switchEnvMode(envMode === 'live' ? 'development' : 'live')}
-            disabled={updatingEnv}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Keyboard Guide Pill */}
+            {!activeTab && (
+              <div
+                style={{
+                  fontSize: 10,
+                  color: '#fef08a',
+                  background: 'rgba(26, 15, 8, 0.85)',
+                  padding: '4px 8px',
+                  border: '1px solid #784323',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>🎮 WASD / Arrows to Walk • Click or [E] to Enter</span>
+              </div>
+            )}
 
-          {/* Clock & Season */}
-          <div
-            className="tabular-nums"
-            style={{
-              fontSize: 12,
-              color: '#fdf6e2',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <span>{seasonEmoji} {dayName}. {dayOfMonth}</span>
-            <span style={{ color: '#facc15' }}>• {timeStr}</span>
+            {/* Village Map Button when panel is open */}
+            {activeTab && (
+              <button
+                type="button"
+                className="btn-pixel btn-gold"
+                onClick={handleCloseChapter}
+                style={{ padding: '3px 8px', fontSize: 9 }}
+                title="Return to Village Map (Esc / M)"
+              >
+                🗺️ Village Map (Esc)
+              </button>
+            )}
+
+            {/* Accessible View Toggle */}
+            <button
+              type="button"
+              className="btn-pixel"
+              onClick={() => setShowCanvas(!showCanvas)}
+              style={{ padding: '3px 8px', fontSize: 9 }}
+              title="Toggle between 16-bit Top-down World and Plain Ledger view"
+            >
+              {showCanvas ? '📜 Panel Only' : '🗺️ Show World'}
+            </button>
           </div>
-
-          {/* Gold Pouch */}
-          <div
-            className="tabular-nums"
-            style={{
-              fontSize: 12,
-              color: netGold >= 0 ? '#8fc45a' : '#f87171',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <span>🪙 {netGold >= 0 ? '+' : ''}₹{Math.abs(netGold).toLocaleString('en-IN')}g</span>
-          </div>
-
-          {/* Weather Pill */}
-          <div style={{ fontSize: 11, color: '#60a5fa', textTransform: 'capitalize' }}>
-            {currentWeather === 'rain' ? '🌧️ Rain' : currentWeather === 'snow' ? '❄️ Snow' : '☀️ Clear'}
-          </div>
-
-          {/* Accessible View Toggle */}
-          <button
-            type="button"
-            className="btn-pixel"
-            onClick={() => setShowCanvas(!showCanvas)}
-            style={{ padding: '3px 8px', fontSize: 9 }}
-            title="Toggle between 16-bit Top-down World and Plain Ledger view"
-          >
-            {showCanvas ? '📜 Panel Only' : '🗺️ Show World'}
-          </button>
         </header>
 
         {/* ── 3. Data Lives In The World: Side Parchment Panel (Section 4) ── */}
-        <div
-          className={`rpg-parchment-stage ${showCanvas ? 'over-world' : 'fullscreen'}`}
-          style={{
-            position: 'fixed',
-            zIndex: 60,
-            overflowY: 'auto',
-          }}
-        >
+        {activeTab && (
           <div
-            className="pixel-parchment-card"
+            className={`rpg-parchment-stage ${showCanvas ? 'over-world' : 'fullscreen'}`}
             style={{
-              padding: '18px 20px',
-              minHeight: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
+              position: 'fixed',
+              zIndex: 60,
+              overflowY: 'auto',
             }}
           >
-            {/* Parchment Header & Minimize/Maximize */}
             <div
+              className="pixel-parchment-card"
               style={{
+                padding: '18px 20px',
+                minHeight: '100%',
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '2px dashed #452817',
-                paddingBottom: 8,
+                flexDirection: 'column',
+                gap: 16,
               }}
             >
-              <div>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-pixel-display)',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: '#452817',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  {CHAPTER_ANCHORS[activeTab]?.name || 'Ledger Hut'}
-                </span>
-                <div style={{ fontSize: 11, color: '#784323', marginTop: 2 }}>
-                  16-bit RPG Ledger • Bound to live records
+              {/* Parchment Header & Close/Minimize */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '2px dashed #452817',
+                  paddingBottom: 8,
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-pixel-display)',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: '#452817',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {CHAPTER_ANCHORS[activeTab]?.name || 'Ledger Hut'}
+                  </span>
+                  <div style={{ fontSize: 11, color: '#784323', marginTop: 2 }}>
+                    16-bit RPG Ledger • Bound to live records
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="button"
+                    className="btn-pixel btn-gold"
+                    onClick={handleCloseChapter}
+                    style={{ padding: '4px 8px', fontSize: 9 }}
+                    title="Return to Village Map (Esc)"
+                  >
+                    🗺️ Village Map (Esc)
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-pixel"
+                    onClick={() => setPanelMinimized(!panelMinimized)}
+                    style={{ padding: '4px 8px', fontSize: 9 }}
+                    title="Minimize/Expand Parchment Panel"
+                  >
+                    {panelMinimized ? '▲ Open' : '▼ Min'}
+                  </button>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                  type="button"
-                  className="btn-pixel btn-gold"
-                  onClick={() => setPanelMinimized(!panelMinimized)}
-                  style={{ padding: '4px 8px', fontSize: 9 }}
-                  title="Minimize/Expand Parchment Panel"
-                >
-                  {panelMinimized ? '▲ Open Ledger' : '▼ Minimize'}
-                </button>
-              </div>
+              {/* Active Data Component */}
+              {!panelMinimized && (
+                <div style={{ flex: 1 }}>
+                  {renderTabContent()}
+                </div>
+              )}
             </div>
-
-            {/* Active Data Component */}
-            {!panelMinimized && (
-              <div style={{ flex: 1 }}>
-                {renderTabContent()}
-              </div>
-            )}
           </div>
-        </div>
+        )}
 
         {/* ── 4. Bottom RPG Dialogue Box (Section 5) ── */}
         <div
@@ -409,7 +486,7 @@ export default function Dashboard() {
           <RPGDialogueBox
             character={currentResidentId}
             name={residentFullName}
-            chapterName={chapterDialogue.chapterTitle || 'Village Chapter'}
+            chapterName={chapterTitle}
             text={dialogueLine}
           />
         </div>
@@ -440,7 +517,7 @@ export default function Dashboard() {
 
         @media (max-width: 768px) {
           .world-canvas-wrapper {
-            height: 38vh !important;
+            height: ${activeTab ? '38vh !important' : '100vh !important'};
             bottom: auto !important;
           }
           .rpg-parchment-stage.over-world {
@@ -451,7 +528,11 @@ export default function Dashboard() {
             width: auto !important;
           }
           .rpg-dialogue-wrapper {
-            display: none; /* Collapsed on small phone viewports to give space to parchment data */
+            display: ${activeTab ? 'none' : 'block'};
+            bottom: 72px !important;
+            left: 8px !important;
+            right: 8px !important;
+            max-width: none !important;
           }
         }
       `}</style>

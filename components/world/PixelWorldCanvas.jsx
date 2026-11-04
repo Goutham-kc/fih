@@ -19,8 +19,176 @@ export const CHAPTER_ANCHORS = {
   settings: { x: 8, y: 4, name: 'The Toolshed Workbench', resident: 'rowan', chapterTitle: 'Chapter 8: The Toolshed' },
 };
 
+// Interactive Building Hitboxes for Click & Proximity Navigation
+export const BUILDING_HITBOXES = [
+  {
+    id: 'todos',
+    name: 'The Farmstead',
+    label: 'Daily Quests',
+    icon: '🌾',
+    doorX: 8 * TILE_SIZE,
+    doorY: 12 * TILE_SIZE,
+    minX: 5 * TILE_SIZE,
+    minY: 4 * TILE_SIZE,
+    maxX: 11 * TILE_SIZE,
+    maxY: 11 * TILE_SIZE,
+    bannerX: 8 * TILE_SIZE,
+    bannerY: 4 * TILE_SIZE - 6,
+  },
+  {
+    id: 'reminders',
+    name: 'The Bell Tower',
+    label: 'Belfry Alerts',
+    icon: '🔔',
+    doorX: 18 * TILE_SIZE,
+    doorY: 6 * TILE_SIZE,
+    minX: 16 * TILE_SIZE,
+    minY: 2 * TILE_SIZE,
+    maxX: 21 * TILE_SIZE,
+    maxY: 8 * TILE_SIZE,
+    bannerX: 18 * TILE_SIZE,
+    bannerY: 2 * TILE_SIZE - 6,
+  },
+  {
+    id: 'debts',
+    name: 'The Ledger Hut',
+    label: 'Gold Ledger',
+    icon: '🪙',
+    doorX: 26 * TILE_SIZE,
+    doorY: 11 * TILE_SIZE,
+    minX: 23 * TILE_SIZE,
+    minY: 7 * TILE_SIZE,
+    maxX: 29 * TILE_SIZE,
+    maxY: 12 * TILE_SIZE,
+    bannerX: 26 * TILE_SIZE,
+    bannerY: 7 * TILE_SIZE - 6,
+  },
+  {
+    id: 'deadlines',
+    name: 'The Notice Board',
+    label: 'Town Deadlines',
+    icon: '📋',
+    doorX: 18 * TILE_SIZE,
+    doorY: 16 * TILE_SIZE,
+    minX: 16 * TILE_SIZE,
+    minY: 14 * TILE_SIZE,
+    maxX: 21 * TILE_SIZE,
+    maxY: 18 * TILE_SIZE,
+    bannerX: 18 * TILE_SIZE,
+    bannerY: 14 * TILE_SIZE - 6,
+  },
+  {
+    id: 'dates',
+    name: 'The Festival Grounds',
+    label: 'Festival Grounds',
+    icon: '🎪',
+    doorX: 28 * TILE_SIZE,
+    doorY: 19 * TILE_SIZE,
+    minX: 25 * TILE_SIZE,
+    minY: 16 * TILE_SIZE,
+    maxX: 31 * TILE_SIZE,
+    maxY: 21 * TILE_SIZE,
+    bannerX: 28 * TILE_SIZE,
+    bannerY: 16 * TILE_SIZE - 6,
+  },
+  {
+    id: 'watchlist',
+    name: 'The Moonlight Cinema',
+    label: 'Moonlight Cinema',
+    icon: '🎬',
+    doorX: 6 * TILE_SIZE,
+    doorY: 19 * TILE_SIZE,
+    minX: 3 * TILE_SIZE,
+    minY: 17 * TILE_SIZE,
+    maxX: 9 * TILE_SIZE,
+    maxY: 21 * TILE_SIZE,
+    bannerX: 6 * TILE_SIZE,
+    bannerY: 17 * TILE_SIZE - 6,
+  },
+  {
+    id: 'audit',
+    name: 'The Archive Cellar',
+    label: 'Archive Cellar',
+    icon: '📜',
+    doorX: 28 * TILE_SIZE,
+    doorY: 4 * TILE_SIZE,
+    minX: 25 * TILE_SIZE,
+    minY: 2 * TILE_SIZE,
+    maxX: 31 * TILE_SIZE,
+    maxY: 7 * TILE_SIZE,
+    bannerX: 28 * TILE_SIZE,
+    bannerY: 2 * TILE_SIZE - 6,
+  },
+  {
+    id: 'settings',
+    name: 'The Toolshed Workbench',
+    label: 'Toolshed Workshop',
+    icon: '🛠️',
+    doorX: 8 * TILE_SIZE,
+    doorY: 4 * TILE_SIZE,
+    minX: 6 * TILE_SIZE,
+    minY: 2 * TILE_SIZE,
+    maxX: 11 * TILE_SIZE,
+    maxY: 7 * TILE_SIZE,
+    bannerX: 8 * TILE_SIZE,
+    bannerY: 2 * TILE_SIZE - 6,
+  },
+];
+
+export function getHitBuilding(wx, wy) {
+  for (const b of BUILDING_HITBOXES) {
+    if (wx >= b.minX && wx <= b.maxX && wy >= b.minY && wy <= b.maxY) {
+      return b;
+    }
+  }
+  return null;
+}
+
+export function isWalkable(wx, wy) {
+  // Map boundaries (prevent walking off world)
+  if (wx < 2 * TILE_SIZE || wx > 36 * TILE_SIZE || wy < 3 * TILE_SIZE || wy > 24 * TILE_SIZE) {
+    return false;
+  }
+  // Pond collision: tx 12-15, ty 16-18
+  const tx = Math.floor(wx / TILE_SIZE);
+  const ty = Math.floor(wy / TILE_SIZE);
+  if (tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18) {
+    return false;
+  }
+  return true;
+}
+
+export function getKeyboardVelocity(activeKeys) {
+  let vx = 0;
+  let vy = 0;
+  if (activeKeys.has('KeyW') || activeKeys.has('ArrowUp')) vy -= 1;
+  if (activeKeys.has('KeyS') || activeKeys.has('ArrowDown')) vy += 1;
+  if (activeKeys.has('KeyA') || activeKeys.has('ArrowLeft')) vx -= 1;
+  if (activeKeys.has('KeyD') || activeKeys.has('ArrowRight')) vx += 1;
+
+  if (vx !== 0 && vy !== 0) {
+    const len = Math.hypot(vx, vy);
+    vx /= len;
+    vy /= len;
+  }
+  return { vx, vy };
+}
+
+export function getNearbyBuilding(pipX, pipY, threshold = 40) {
+  let closest = null;
+  let minDist = threshold;
+  for (const b of BUILDING_HITBOXES) {
+    const dist = Math.hypot(pipX - b.doorX, pipY - b.doorY);
+    if (dist < minDist) {
+      minDist = dist;
+      closest = b;
+    }
+  }
+  return closest;
+}
+
 export default function PixelWorldCanvas({
-  activeTab = 'debts',
+  activeTab = null, // null or 'map' = Full Overworld Exploration Mode
   debtsData = [],
   todosData = [],
   remindersData = [],
@@ -30,25 +198,34 @@ export default function PixelWorldCanvas({
   auditData = [],
   envMode = 'live',
   onSelectDebt,
+  onNavigateToChapter,
+  onCloseChapter,
   reducedMotion = false,
   className = '',
   style = {},
 }) {
   const canvasRef = useRef(null);
+  const activeKeysRef = useRef(new Set());
+  const [nearbyBuildingState, setNearbyBuildingState] = useState(null);
+
   const stateRef = useRef({
     images: { tileset: null, pip: null, bram: null },
     loaded: false,
-    camera: { x: 26 * 16, y: 11 * 16 },
-    targetCamera: { x: 26 * 16, y: 11 * 16 },
-    pip: { x: 22 * 16, y: 12 * 16, dir: 2, frame: 0, walking: false }, // dir: 0=D, 1=L, 2=R, 3=U
+    camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
+    targetCamera: { x: 18 * 16, y: 12 * 16 },
+    pip: { x: 18 * 16, y: 13 * 16, dir: 0, frame: 0, walking: false }, // Spawn at fountain
+    clickTarget: null, // { x, y, buildingId }
+    hoverBuilding: null,
+    nearbyBuilding: null,
     bram: { frame: 0, talking: false },
     animFrame: 0,
     waterFrame: 0,
     scaleFactor: 4,
-    scaleTilt: 0, // -1 = owe, 0 = level, +1 = owed
+    scaleTilt: 0,
     activeDebtsCount: 2,
     bellSwing: 0,
     fountainFrame: 0,
+    isOverworldMode: !activeTab || activeTab === 'map',
   });
 
   // 1. Load 16-bit sprite sheets
@@ -81,19 +258,24 @@ export default function PixelWorldCanvas({
 
   // 2. Synchronize active chapter anchor & debt data
   useEffect(() => {
-    const anchor = CHAPTER_ANCHORS[activeTab] || CHAPTER_ANCHORS.debts;
-    const targetX = anchor.x * TILE_SIZE;
-    const targetY = anchor.y * TILE_SIZE;
+    const isOverworld = !activeTab || activeTab === 'map';
+    stateRef.current.isOverworldMode = isOverworld;
 
-    stateRef.current.targetCamera = { x: targetX, y: targetY };
+    if (!isOverworld) {
+      const anchor = CHAPTER_ANCHORS[activeTab] || CHAPTER_ANCHORS.debts;
+      const targetX = anchor.x * TILE_SIZE;
+      const targetY = anchor.y * TILE_SIZE;
 
-    if (reducedMotion) {
-      stateRef.current.camera = { x: targetX, y: targetY };
-      stateRef.current.pip.x = targetX - 24;
-      stateRef.current.pip.y = targetY + 8;
-      stateRef.current.pip.walking = false;
-    } else {
-      stateRef.current.pip.walking = true;
+      stateRef.current.targetCamera = { x: targetX, y: targetY };
+
+      if (reducedMotion) {
+        stateRef.current.camera = { x: targetX, y: targetY };
+        stateRef.current.pip.x = targetX - 24;
+        stateRef.current.pip.y = targetY + 8;
+        stateRef.current.pip.walking = false;
+      } else {
+        stateRef.current.pip.walking = true;
+      }
     }
   }, [activeTab, reducedMotion]);
 
@@ -108,7 +290,118 @@ export default function PixelWorldCanvas({
     stateRef.current.scaleTilt = net > 0 ? 1 : net < 0 ? -1 : 0;
   }, [debtsData]);
 
-  // 3. Main Render Loop with Camera Panning & Depth Sorting
+  // 3. Keyboard Controls: WASD, Arrow Keys, [E] Interact, [Esc] Back to Map
+  useEffect(() => {
+    function handleKeyDown(e) {
+      // Ignore if user is typing in a form field
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+      const code = e.code;
+      const movementCodes = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+
+      if (movementCodes.includes(code)) {
+        if (code.startsWith('Arrow')) {
+          e.preventDefault(); // Prevent scrolling page with arrow keys
+        }
+        activeKeysRef.current.add(code);
+        stateRef.current.clickTarget = null; // Keyboard cancels click waypoint
+      } else if (code === 'KeyE' || code === 'Space') {
+        const nearby = stateRef.current.nearbyBuilding;
+        if (nearby && onNavigateToChapter) {
+          e.preventDefault();
+          soundManager.playSfx('wood');
+          onNavigateToChapter(nearby.id);
+        }
+      } else if (code === 'Escape') {
+        if (activeTab && onCloseChapter) {
+          e.preventDefault();
+          soundManager.playSfx('wood');
+          onCloseChapter();
+        }
+      }
+    }
+
+    function handleKeyUp(e) {
+      activeKeysRef.current.delete(e.code);
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [activeTab, onNavigateToChapter, onCloseChapter]);
+
+  // 4. Mouse / Touch Interactions (Click to Walk & Open House, Hover Indicators)
+  const handleCanvasMouseMove = useCallback((e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const scale = stateRef.current.scaleFactor || 4;
+    const cam = stateRef.current.camera;
+    const viewW = Math.floor(canvas.clientWidth / scale);
+    const viewH = Math.floor(canvas.clientHeight / scale);
+
+    const screenX = mouseX / scale;
+    const screenY = mouseY / scale;
+    const worldX = screenX - Math.floor(viewW / 2 - cam.x);
+    const worldY = screenY - Math.floor(viewH / 2 - cam.y);
+
+    const hit = getHitBuilding(worldX, worldY);
+    stateRef.current.hoverBuilding = hit;
+    canvas.style.cursor = hit ? 'pointer' : 'default';
+  }, []);
+
+  const handleCanvasClick = useCallback((e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const scale = stateRef.current.scaleFactor || 4;
+    const cam = stateRef.current.camera;
+    const viewW = Math.floor(canvas.clientWidth / scale);
+    const viewH = Math.floor(canvas.clientHeight / scale);
+
+    const screenX = mouseX / scale;
+    const screenY = mouseY / scale;
+    const worldX = screenX - Math.floor(viewW / 2 - cam.x);
+    const worldY = screenY - Math.floor(viewH / 2 - cam.y);
+
+    const hit = getHitBuilding(worldX, worldY);
+
+    if (hit) {
+      soundManager.playSfx('wood');
+      // If already at the door, navigate immediately
+      const pip = stateRef.current.pip;
+      const dist = Math.hypot(pip.x - hit.doorX, pip.y - hit.doorY);
+      if (dist < 32 && onNavigateToChapter) {
+        onNavigateToChapter(hit.id);
+      } else {
+        // Set auto-walk target to the door of this building
+        stateRef.current.clickTarget = {
+          x: hit.doorX,
+          y: hit.doorY,
+          buildingId: hit.id,
+        };
+      }
+    } else if (isWalkable(worldX, worldY)) {
+      soundManager.playSfx('click');
+      stateRef.current.clickTarget = {
+        x: worldX,
+        y: worldY,
+        buildingId: null,
+      };
+    }
+  }, [onNavigateToChapter]);
+
+  // 5. Main Render Loop with Keyboard Movement, Camera Panning, and Depth Sorting
   useEffect(() => {
     let animId;
     let lastTime = performance.now();
@@ -124,7 +417,7 @@ export default function PixelWorldCanvas({
       const state = stateRef.current;
       if (!state.loaded) return;
 
-      const dt = (currentTime - lastTime) / 1000;
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
       tickCounter++;
 
@@ -143,37 +436,6 @@ export default function PixelWorldCanvas({
         state.bram.frame = (state.bram.frame + 1) % 2;
       }
 
-      // Smooth camera pan towards target anchor
-      const cam = state.camera;
-      const tCam = state.targetCamera;
-      const lerpSpeed = reducedMotion ? 1 : 0.08;
-      cam.x += (tCam.x - cam.x) * lerpSpeed;
-      cam.y += (tCam.y - cam.y) * lerpSpeed;
-
-      // Pip character walking towards current anchor along path
-      const pip = state.pip;
-      const destX = tCam.x - 20;
-      const destY = tCam.y + 12;
-      const dx = destX - pip.x;
-      const dy = destY - pip.y;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist > 3 && !reducedMotion) {
-        pip.walking = true;
-        const walkSpeed = 60 * dt;
-        pip.x += (dx / dist) * Math.min(dist, walkSpeed);
-        pip.y += (dy / dist) * Math.min(dist, walkSpeed);
-
-        // Determine face direction
-        if (Math.abs(dx) > Math.abs(dy)) {
-          pip.dir = dx > 0 ? 2 : 1; // 2=Right, 1=Left
-        } else {
-          pip.dir = dy > 0 ? 0 : 3; // 0=Down, 3=Up
-        }
-      } else {
-        pip.walking = false;
-      }
-
       // Compute Integer Scaling Factor (3x mobile, 4x desktop)
       const isMobile = canvas.clientWidth < 640;
       const scale = isMobile ? 3 : 4;
@@ -187,13 +449,116 @@ export default function PixelWorldCanvas({
         canvas.height = canvas.clientHeight;
       }
 
+      const pip = state.pip;
+
+      // ── Process Keyboard Controls (WASD / Arrows) ──
+      const activeKeys = activeKeysRef.current;
+      const { vx, vy } = getKeyboardVelocity(activeKeys);
+
+      if (vx !== 0 || vy !== 0) {
+        pip.walking = true;
+        const speed = 75 * dt;
+        const nextX = pip.x + vx * speed;
+        const nextY = pip.y + vy * speed;
+
+        // Collision test using Pip's foot position (x + 8, y + 28)
+        if (isWalkable(nextX + 8, nextY + 28)) {
+          pip.x = nextX;
+          pip.y = nextY;
+        } else {
+          // Slide along X or Y axis if partial direction is walkable
+          if (isWalkable(nextX + 8, pip.y + 28)) {
+            pip.x = nextX;
+          } else if (isWalkable(pip.x + 8, nextY + 28)) {
+            pip.y = nextY;
+          }
+        }
+
+        // Determine face direction
+        if (Math.abs(vy) > Math.abs(vx)) {
+          pip.dir = vy > 0 ? 0 : 3; // 0=Down, 3=Up
+        } else {
+          pip.dir = vx > 0 ? 2 : 1; // 2=Right, 1=Left
+        }
+      } else if (state.clickTarget) {
+        // ── Process Click-to-Move Target ──
+        const target = state.clickTarget;
+        const dx = target.x - pip.x;
+        const dy = target.y - pip.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 3) {
+          pip.walking = true;
+          const walkSpeed = 70 * dt;
+          pip.x += (dx / dist) * Math.min(dist, walkSpeed);
+          pip.y += (dy / dist) * Math.min(dist, walkSpeed);
+
+          if (Math.abs(dx) > Math.abs(dy)) {
+            pip.dir = dx > 0 ? 2 : 1;
+          } else {
+            pip.dir = dy > 0 ? 0 : 3;
+          }
+        } else {
+          pip.walking = false;
+          if (target.buildingId && onNavigateToChapter) {
+            onNavigateToChapter(target.buildingId);
+          }
+          state.clickTarget = null;
+        }
+      } else if (!state.isOverworldMode) {
+        // ── Auto-walk to current Chapter Anchor when panel is active ──
+        const tCam = state.targetCamera;
+        const destX = tCam.x - 20;
+        const destY = tCam.y + 12;
+        const dx = destX - pip.x;
+        const dy = destY - pip.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 3 && !reducedMotion) {
+          pip.walking = true;
+          const walkSpeed = 60 * dt;
+          pip.x += (dx / dist) * Math.min(dist, walkSpeed);
+          pip.y += (dy / dist) * Math.min(dist, walkSpeed);
+
+          if (Math.abs(dx) > Math.abs(dy)) {
+            pip.dir = dx > 0 ? 2 : 1;
+          } else {
+            pip.dir = dy > 0 ? 0 : 3;
+          }
+        } else {
+          pip.walking = false;
+        }
+      } else {
+        pip.walking = false;
+      }
+
+      // ── Update Proximity Detection ──
+      const nearby = getNearbyBuilding(pip.x + 8, pip.y + 20, 36);
+      state.nearbyBuilding = nearby;
+
+      // ── Camera Panning & Follow Mode ──
+      const cam = state.camera;
+      if (state.isOverworldMode) {
+        // In Overworld mode: Camera smoothly follows Pip across the village
+        const targetCamX = Math.max(viewW / 2, Math.min(MAP_WIDTH_TILES * TILE_SIZE - viewW / 2, pip.x + 8));
+        const targetCamY = Math.max(viewH / 2, Math.min(MAP_HEIGHT_TILES * TILE_SIZE - viewH / 2, pip.y + 16));
+        const lerpSpeed = reducedMotion ? 1 : 0.08;
+        cam.x += (targetCamX - cam.x) * lerpSpeed;
+        cam.y += (targetCamY - cam.y) * lerpSpeed;
+      } else {
+        // In Chapter mode: Smooth camera pan towards chapter anchor
+        const tCam = state.targetCamera;
+        const lerpSpeed = reducedMotion ? 1 : 0.08;
+        cam.x += (tCam.x - cam.x) * lerpSpeed;
+        cam.y += (tCam.y - cam.y) * lerpSpeed;
+      }
+
       ctx.imageSmoothingEnabled = false;
 
       ctx.save();
-      // Apply integer scale
       ctx.scale(scale, scale);
 
-      // Camera offset (center world at camera position)
+      // Camera offset
       const offsetX = Math.floor(viewW / 2 - cam.x);
       const offsetY = Math.floor(viewH / 2 - cam.y);
       ctx.translate(offsetX, offsetY);
@@ -320,13 +685,11 @@ export default function PixelWorldCanvas({
             } else if (rx === 0 || rx === 4) {
               ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             } else {
-              // High contrast cream plaster wall behind Bram
               ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
           }
           // Hanging Wooden Shop Signboard ("LEDGER")
           ctx.drawImage(tileset, 4 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + 4 * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Eaves shadow
           ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
           ctx.fillRect(hx, hy + 2 * TILE_SIZE, 5 * TILE_SIZE, 2);
         },
@@ -350,12 +713,11 @@ export default function PixelWorldCanvas({
         render: () => {
           const cx = 25 * TILE_SIZE;
           const cy = 11 * TILE_SIZE;
-          // 3 Counter Tiles with Emerald Velvet Runner
           ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx, cy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx + TILE_SIZE, cy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx + 2 * TILE_SIZE, cy, TILE_SIZE, TILE_SIZE);
 
-          // Brass Balance Scale (centered on counter, tilts with state)
+          // Brass Balance Scale
           ctx.save();
           ctx.translate(cx + TILE_SIZE + 8, cy + 2);
           if (state.scaleTilt !== 0) {
@@ -380,18 +742,14 @@ export default function PixelWorldCanvas({
         render: () => {
           const tx = 17 * TILE_SIZE;
           const ty = 2 * TILE_SIZE;
-          // Stone Tower Base & Belfry
           ctx.drawImage(tileset, 0, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 0, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx + TILE_SIZE, ty, TILE_SIZE, TILE_SIZE);
-          // Clock Face
           ctx.drawImage(tileset, 1 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Swinging Bronze Bell
           ctx.save();
           ctx.translate(tx + TILE_SIZE + 8, ty + TILE_SIZE + 4);
           ctx.rotate(state.bellSwing);
           ctx.drawImage(tileset, 2 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, 0, TILE_SIZE, TILE_SIZE);
           ctx.restore();
-          // Stone Wall Base
           ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx, ty + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tx + TILE_SIZE, ty + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
@@ -403,10 +761,8 @@ export default function PixelWorldCanvas({
         render: () => {
           const nx = 17 * TILE_SIZE;
           const ny = 15 * TILE_SIZE;
-          // Community Cork Notice Board
           ctx.drawImage(tileset, 4 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx, ny, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 4 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx + TILE_SIZE, ny, TILE_SIZE, TILE_SIZE);
-          // Directional Road Signpost
           ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx + 2 * TILE_SIZE, ny, TILE_SIZE, TILE_SIZE);
         },
       });
@@ -425,15 +781,11 @@ export default function PixelWorldCanvas({
         render: () => {
           const gx = 27 * TILE_SIZE;
           const gy = 17 * TILE_SIZE;
-          // Festival Gazebo Canopy
           ctx.drawImage(tileset, 7 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx, gy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 7 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + TILE_SIZE, gy, TILE_SIZE, TILE_SIZE);
-          // Colorful Bunting Garland
           ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx - TILE_SIZE, gy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + 2 * TILE_SIZE, gy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Glowing Lantern Post
           ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx - TILE_SIZE, gy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Wooden Log Bench
           ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, gx + TILE_SIZE, gy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
       });
@@ -444,12 +796,9 @@ export default function PixelWorldCanvas({
         render: () => {
           const mx = 4 * TILE_SIZE;
           const my = 18 * TILE_SIZE;
-          // White Projection Screen
           ctx.drawImage(tileset, 4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx, my, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + TILE_SIZE, my, TILE_SIZE, TILE_SIZE);
-          // Brass Movie Projector on Tripod
           ctx.drawImage(tileset, 3 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + 3 * TILE_SIZE, my + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Cinema Log Bench
           ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + 2 * TILE_SIZE, my + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
       });
@@ -460,12 +809,9 @@ export default function PixelWorldCanvas({
         render: () => {
           const ax = 27 * TILE_SIZE;
           const ay = 2 * TILE_SIZE;
-          // Ancient Mossy Stone Cellar Wall
           ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax, ay, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + TILE_SIZE, ay, TILE_SIZE, TILE_SIZE);
-          // Cellar Bookshelf with Leather Tomes
           ctx.drawImage(tileset, 5 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + 2 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Cellar Lantern
           ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax - 1 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
       });
@@ -476,16 +822,13 @@ export default function PixelWorldCanvas({
         render: () => {
           const sx = 7 * TILE_SIZE;
           const sy = 2 * TILE_SIZE;
-          // Pegboard Wall with Tools
           ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx, sy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + TILE_SIZE, sy, TILE_SIZE, TILE_SIZE);
-          // Iron Anvil on Stump
           ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + 2 * TILE_SIZE, sy + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
       });
 
-      // ── 10. Trees & Foliage (Oak, Blossom, Pine) ──
-      // Oak Tree (x: 3, y: 9)
+      // ── 10. Trees & Foliage ──
       renderables.push({
         y: 11 * TILE_SIZE,
         render: () => {
@@ -494,7 +837,6 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // Cherry Blossom Tree (x: 10, y: 6)
       renderables.push({
         y: 8 * TILE_SIZE,
         render: () => {
@@ -503,7 +845,6 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // Pine Tree (x: 21, y: 4)
       renderables.push({
         y: 6 * TILE_SIZE,
         render: () => {
@@ -511,7 +852,6 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // Berry Bush (x: 14, y: 13)
       renderables.push({
         y: 14 * TILE_SIZE,
         render: () => {
@@ -534,6 +874,66 @@ export default function PixelWorldCanvas({
       renderables.sort((a, b) => a.y - b.y);
       renderables.forEach((item) => item.render());
 
+      // ── Layer 4: Floating Building Signposts & Hover Highlights ──
+      BUILDING_HITBOXES.forEach((b) => {
+        const isHovered = state.hoverBuilding?.id === b.id;
+        const bx = b.bannerX;
+        const by = b.bannerY;
+
+        ctx.save();
+        ctx.font = '7px monospace';
+        const labelText = `${b.icon} ${b.label}`;
+        const textWidth = ctx.measureText(labelText).width;
+        const padX = 4;
+        const padY = 2;
+        const boxW = textWidth + padX * 2;
+        const boxH = 10;
+        const boxX = Math.floor(bx - boxW / 2);
+        const boxY = Math.floor(by);
+
+        // Signboard backing
+        ctx.fillStyle = isHovered ? '#b45309' : 'rgba(28, 17, 10, 0.88)';
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+
+        // Pixel border
+        ctx.strokeStyle = isHovered ? '#fbbf24' : '#d97706';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+        // Text
+        ctx.fillStyle = isHovered ? '#ffffff' : '#fef08a';
+        ctx.fillText(labelText, boxX + padX, boxY + 7);
+        ctx.restore();
+      });
+
+      // ── Layer 5: Proximity Interaction Bubble Above Pip ──
+      if (state.nearbyBuilding && state.isOverworldMode) {
+        const nb = state.nearbyBuilding;
+        const bubbleX = Math.floor(pip.x + 8);
+        const bubbleY = Math.floor(pip.y - 12 + Math.sin(state.animFrame * 0.4) * 2);
+
+        ctx.save();
+        ctx.font = 'bold 7px monospace';
+        const promptText = `[E] Enter ${nb.name}`;
+        const pWidth = ctx.measureText(promptText).width;
+        const bW = pWidth + 8;
+        const bH = 12;
+        const bX = Math.floor(bubbleX - bW / 2);
+        const bY = Math.floor(bubbleY - bH);
+
+        // Bubble background
+        ctx.fillStyle = '#fef3c7';
+        ctx.fillRect(bX, bY, bW, bH);
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bX, bY, bW, bH);
+
+        // Text
+        ctx.fillStyle = '#78350f';
+        ctx.fillText(promptText, bX + 4, bY + 8);
+        ctx.restore();
+      }
+
       ctx.restore();
 
       // ── Day / Night Light Color Grading Tint ──
@@ -541,16 +941,12 @@ export default function PixelWorldCanvas({
       let tintColor = null;
 
       if (hour < 5 || hour >= 20) {
-        // Deep Night: Navy Blue tint
         tintColor = 'rgba(15, 23, 42, 0.42)';
       } else if (hour >= 5 && hour < 8) {
-        // Morning Dawn: Rose Golden tint
         tintColor = 'rgba(251, 146, 60, 0.08)';
       } else if (hour >= 17 && hour < 20) {
-        // Sunset Dusk: Warm Amber Amber tint
         tintColor = 'rgba(217, 119, 6, 0.12)';
       } else {
-        // Daytime Sunlight: Subtle Warmth
         tintColor = 'rgba(254, 240, 138, 0.04)';
       }
 
@@ -565,7 +961,7 @@ export default function PixelWorldCanvas({
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, onNavigateToChapter]);
 
   return (
     <div
@@ -581,6 +977,8 @@ export default function PixelWorldCanvas({
     >
       <canvas
         ref={canvasRef}
+        onClick={handleCanvasClick}
+        onMouseMove={handleCanvasMouseMove}
         style={{
           width: '100%',
           height: '100%',
