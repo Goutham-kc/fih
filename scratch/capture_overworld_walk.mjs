@@ -315,52 +315,89 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
         const offsetY = Math.floor(viewH / 2 - camY);
         ctx.translate(offsetX, offsetY);
 
-        // Ground
+        function isVillageCobble(tx, ty) {
+          if (tx >= 16 && tx <= 20 && ty >= 11 && ty <= 13) return true;
+          if (tx >= 24 && tx <= 28 && ty >= 11 && ty <= 13) return true;
+          if (tx >= 17 && tx <= 18 && ty >= 4 && ty <= 5) return true;
+          if (tx >= 27 && tx <= 28 && ty >= 3 && ty <= 4) return true;
+          if (tx >= 17 && tx <= 18 && ty >= 15 && ty <= 16) return true;
+          if (tx >= 7 && tx <= 9 && ty >= 3 && ty <= 4) return true;
+          if (tx >= 7 && tx <= 9 && ty >= 6 && ty <= 7) return true;
+          if (tx >= 5 && tx <= 7 && ty >= 19 && ty <= 20) return true;
+          if (tx >= 27 && tx <= 29 && ty >= 19 && ty <= 20) return true;
+          return false;
+        }
+
+        function isVillagePath(tx, ty) {
+          if (ty >= 12 && ty <= 13 && tx >= 6 && tx <= 28) return true;
+          if (tx >= 17 && tx <= 18 && ty >= 5 && ty <= 11) return true;
+          if (tx >= 17 && tx <= 18 && ty >= 13 && ty <= 20) return true;
+          if (tx >= 8 && tx <= 9 && ty >= 7 && ty <= 12) return true;
+          if (tx >= 6 && tx <= 7 && ty >= 12 && ty <= 20) return true;
+          if (tx >= 27 && tx <= 28 && ty >= 4 && ty <= 12) return true;
+          if (tx >= 27 && tx <= 28 && ty >= 12 && ty <= 20) return true;
+          return false;
+        }
+
+        function isGround(tx, ty) {
+          return isVillagePath(tx, ty) || isVillageCobble(tx, ty);
+        }
+
+        function getPathTileInfo(tx, ty) {
+          const isCobble = isVillageCobble(tx, ty);
+          const isPath = isVillagePath(tx, ty);
+          if (!isCobble && !isPath) return null;
+          if (isCobble) {
+            const upGrass = !isGround(tx, ty - 1);
+            const downGrass = !isGround(tx, ty + 1);
+            if (upGrass && !downGrass) return { col: 6, row: 6 };
+            if (downGrass && !upGrass) return { col: 7, row: 6 };
+            return { col: 4, row: 1 };
+          }
+          const upGrass = !isGround(tx, ty - 1);
+          const downGrass = !isGround(tx, ty + 1);
+          const leftGrass = !isGround(tx - 1, ty);
+          const rightGrass = !isGround(tx + 1, ty);
+          if (upGrass && leftGrass) return { col: 2, row: 6 };
+          if (upGrass && rightGrass) return { col: 3, row: 6 };
+          if (downGrass && leftGrass) return { col: 4, row: 6 };
+          if (downGrass && rightGrass) return { col: 5, row: 6 };
+          if (upGrass) return { col: 5, row: 0 };
+          if (downGrass) return { col: 6, row: 0 };
+          if (leftGrass) return { col: 0, row: 6 };
+          if (rightGrass) return { col: 1, row: 6 };
+          return { col: 4, row: 0 };
+        }
+
+        // Layer 1: Ground
         for (let ty = 0; ty < MAP_H; ty++) {
           for (let tx = 0; tx < MAP_W; tx++) {
-            let tileCol = (tx * 7 + ty * 13) % 4;
-            const isMainEW = ty >= 12 && ty <= 13 && tx >= 4 && tx <= 32;
-            const isMainNS = tx >= 17 && tx <= 18 && ty >= 5 && ty <= 21;
-            const isWNB = tx === 8 && ty >= 4 && ty <= 12;
-            const isWSB = tx === 6 && ty >= 14 && ty <= 20;
-            const isENB = tx === 28 && ty >= 4 && ty <= 11;
-            const isESB = tx === 28 && ty >= 14 && ty <= 20;
-
-            if (isMainEW || isMainNS || isWNB || isWSB || isENB || isESB) tileCol = 4;
-
             const isPond = tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18;
             if (isPond) {
               ctx.drawImage(tilesetImg, 0, 16, 16, 16, tx * 16, ty * 16, 16, 16);
               continue;
             }
-
             const isGarden = tx >= 5 && tx <= 7 && ty >= 9 && ty <= 10;
             if (isGarden) {
               ctx.drawImage(tilesetImg, 7 * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
               continue;
             }
-
+            const pTile = getPathTileInfo(tx, ty);
+            if (pTile) {
+              ctx.drawImage(tilesetImg, pTile.col * 16, pTile.row * 16, 16, 16, tx * 16, ty * 16, 16, 16);
+              continue;
+            }
+            let tileCol = (tx * 7 + ty * 13) % 4;
             ctx.drawImage(tilesetImg, tileCol * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
           }
         }
 
-        // Cobblestones
-        for (let cx = 16; cx <= 20; cx++) {
-          for (let cy = 11; cy <= 13; cy++) {
-            ctx.drawImage(tilesetImg, 4 * 16, 16, 16, 16, cx * 16, cy * 16, 16, 16);
-          }
-        }
-        for (let cx = 24; cx <= 28; cx++) {
-          for (let cy = 11; cy <= 13; cy++) {
-            ctx.drawImage(tilesetImg, 4 * 16, 16, 16, 16, cx * 16, cy * 16, 16, 16);
-          }
-        }
-
-        // Fences
-        for (let fx = 4; fx <= 10; fx++) {
+        // Layer 2: Fences
+        for (let fx = 4; fx <= 7; fx++) {
           ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 8 * 16, 16, 16);
         }
-        for (let fx = 19; fx <= 24; fx++) {
+        ctx.drawImage(tilesetImg, 3 * 16, 16, 16, 16, 10 * 16, 8 * 16, 16, 16);
+        for (let fx = 20; fx <= 23; fx++) {
           ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 14 * 16, 16, 16);
         }
 
@@ -540,6 +577,25 @@ server.listen(PORT, async () => {
   });
 
   const page = await browser.newPage();
+
+
+  // 0a. Default Overworld Map Desktop (Spawn at Fountain)
+  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-map-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-desktop.png') });
+  console.log('✓ Captured updated overworld-map-desktop.png');
+
+  // 0b. Default Overworld Map Mobile
+  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: true, panelOnly: false });
+  await page.setViewport({ width: 390, height: 844 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-map-mobile.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-mobile.png') });
+  console.log('✓ Captured updated overworld-map-mobile.png');
 
   // 1. Proximity prompt with [E] Enter & [P] Panel Only
   currentHTML = buildHTML({ activeTab: null, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });

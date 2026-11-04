@@ -1111,6 +1111,208 @@ window.generateAllAssets = function() {
     g.fillRect(11, 6, 2, 1); // Red wax seal
   });
 
+  
+  // ── Row 6: Natural Autotile Path Edges & Cobblestone Fringes ──
+  // Tile 0,6: Dirt Path Left Edge with Grass Fringe
+  drawTile(0, 6, (g) => {
+    g.fillStyle = P.dirtMid;
+    g.fillRect(0, 0, 16, 16);
+    // Dirt highlights & pebble
+    g.fillStyle = P.dirtLight;
+    g.fillRect(8, 7, 3, 2);
+    g.fillRect(10, 12, 3, 1);
+    g.fillStyle = P.dirtDark;
+    g.fillRect(7, 3, 2, 1);
+    // Grass left border
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 0, 5, 16);
+    // Spiky grass teeth pointing right into dirt
+    g.fillRect(5, 1, 3, 2);
+    g.fillRect(5, 6, 2, 3);
+    g.fillRect(5, 11, 3, 3);
+    g.fillStyle = P.grassDark;
+    g.fillRect(4, 0, 1, 16);
+    g.fillRect(7, 1, 1, 2);
+    g.fillRect(7, 11, 1, 3);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(5, 2, 2, 1);
+    g.fillRect(5, 7, 1, 1);
+    g.fillRect(5, 12, 2, 1);
+  });
+
+  // Tile 1,6: Dirt Path Right Edge with Grass Fringe
+  drawTile(1, 6, (g) => {
+    g.fillStyle = P.dirtMid;
+    g.fillRect(0, 0, 16, 16);
+    // Dirt highlights & pebble
+    g.fillStyle = P.dirtLight;
+    g.fillRect(5, 6, 3, 2);
+    g.fillRect(3, 11, 3, 1);
+    g.fillStyle = P.dirtDark;
+    g.fillRect(6, 2, 2, 1);
+    // Grass right border
+    g.fillStyle = P.grassMid;
+    g.fillRect(11, 0, 5, 16);
+    // Spiky grass teeth pointing left into dirt
+    g.fillRect(8, 2, 3, 2);
+    g.fillRect(9, 7, 2, 3);
+    g.fillRect(8, 12, 3, 3);
+    g.fillStyle = P.grassDark;
+    g.fillRect(11, 0, 1, 16);
+    g.fillRect(8, 2, 1, 2);
+    g.fillRect(8, 12, 1, 3);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(9, 2, 2, 1);
+    g.fillRect(10, 8, 1, 1);
+    g.fillRect(9, 13, 2, 1);
+  });
+
+  // Tile 2,6: Dirt Path Top-Left Corner (Grass at top and left)
+  drawTile(2, 6, (g) => {
+    g.fillStyle = P.dirtMid;
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = P.dirtLight;
+    g.fillRect(9, 10, 3, 2);
+    // Grass top & left borders
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 0, 16, 5);
+    g.fillRect(0, 0, 5, 16);
+    g.fillRect(5, 5, 2, 2);
+    // Grass teeth
+    g.fillRect(7, 5, 3, 2);
+    g.fillRect(12, 5, 2, 2);
+    g.fillRect(5, 8, 2, 3);
+    g.fillRect(5, 13, 2, 2);
+    g.fillStyle = P.grassDark;
+    g.fillRect(0, 4, 16, 1);
+    g.fillRect(4, 0, 1, 16);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(8, 5, 2, 1);
+    g.fillRect(5, 9, 1, 2);
+  });
+
+  // Tile 3,6: Dirt Path Top-Right Corner (Grass at top and right)
+  drawTile(3, 6, (g) => {
+    g.fillStyle = P.dirtMid;
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = P.dirtLight;
+    g.fillRect(4, 10, 3, 2);
+    // Grass top & right borders
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 0, 16, 5);
+    g.fillRect(11, 0, 5, 16);
+    g.fillRect(9, 5, 2, 2);
+    // Grass teeth
+    g.fillRect(2, 5, 3, 2);
+    g.fillRect(6, 5, 2, 2);
+    g.fillRect(9, 8, 2, 3);
+    g.fillRect(9, 13, 2, 2);
+    g.fillStyle = P.grassDark;
+    g.fillRect(0, 4, 16, 1);
+    g.fillRect(11, 0, 1, 16);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(3, 5, 2, 1);
+    g.fillRect(10, 9, 1, 2);
+  });
+
+  // Tile 4,6: Dirt Path Bottom-Left Corner (Grass at bottom and left)
+  drawTile(4, 6, (g) => {
+    g.fillStyle = P.dirtMid;
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = P.dirtLight;
+    g.fillRect(9, 4, 3, 2);
+    // Grass bottom & left borders
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 11, 16, 5);
+    g.fillRect(0, 0, 5, 16);
+    g.fillRect(5, 9, 2, 2);
+    // Grass teeth
+    g.fillRect(5, 2, 2, 3);
+    g.fillRect(5, 7, 2, 2);
+    g.fillRect(8, 9, 3, 2);
+    g.fillRect(13, 9, 2, 2);
+    g.fillStyle = P.grassDark;
+    g.fillRect(0, 11, 16, 1);
+    g.fillRect(4, 0, 1, 16);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(5, 3, 1, 2);
+    g.fillRect(9, 10, 2, 1);
+  });
+
+  // Tile 5,6: Dirt Path Bottom-Right Corner (Grass at bottom and right)
+  drawTile(5, 6, (g) => {
+    g.fillStyle = P.dirtMid;
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = P.dirtLight;
+    g.fillRect(4, 4, 3, 2);
+    // Grass bottom & right borders
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 11, 16, 5);
+    g.fillRect(11, 0, 5, 16);
+    g.fillRect(9, 9, 2, 2);
+    // Grass teeth
+    g.fillRect(9, 2, 2, 3);
+    g.fillRect(9, 7, 2, 2);
+    g.fillRect(2, 9, 3, 2);
+    g.fillRect(6, 9, 2, 2);
+    g.fillStyle = P.grassDark;
+    g.fillRect(0, 11, 16, 1);
+    g.fillRect(11, 0, 1, 16);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(10, 3, 1, 2);
+    g.fillRect(3, 10, 2, 1);
+  });
+
+  // Tile 6,6: Cobblestone Top Edge with Grass Fringe
+  drawTile(6, 6, (g) => {
+    g.fillStyle = P.stoneDark;
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = P.stoneMid;
+    g.fillRect(1, 5, 6, 4);
+    g.fillRect(8, 5, 7, 4);
+    g.fillRect(3, 10, 10, 5);
+    g.fillStyle = P.stoneHighlight;
+    g.fillRect(2, 6, 4, 1);
+    g.fillRect(9, 6, 5, 1);
+    g.fillRect(5, 11, 6, 2);
+    // Grass top border
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 0, 16, 4);
+    g.fillRect(2, 4, 3, 2);
+    g.fillRect(8, 4, 4, 2);
+    g.fillRect(13, 4, 2, 1);
+    g.fillStyle = P.grassDark;
+    g.fillRect(0, 3, 16, 1);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(3, 4, 2, 1);
+    g.fillRect(9, 4, 2, 1);
+  });
+
+  // Tile 7,6: Cobblestone Bottom Edge with Grass Fringe
+  drawTile(7, 6, (g) => {
+    g.fillStyle = P.stoneDark;
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = P.stoneMid;
+    g.fillRect(1, 1, 6, 5);
+    g.fillRect(8, 1, 7, 5);
+    g.fillRect(3, 7, 10, 5);
+    g.fillStyle = P.stoneHighlight;
+    g.fillRect(2, 2, 4, 1);
+    g.fillRect(9, 2, 5, 1);
+    g.fillRect(5, 8, 6, 2);
+    // Grass bottom border
+    g.fillStyle = P.grassMid;
+    g.fillRect(0, 12, 16, 4);
+    g.fillRect(2, 10, 3, 2);
+    g.fillRect(8, 10, 4, 2);
+    g.fillRect(13, 11, 2, 1);
+    g.fillStyle = P.grassDark;
+    g.fillRect(0, 12, 16, 1);
+    g.fillStyle = P.grassHigh;
+    g.fillRect(3, 11, 2, 1);
+    g.fillRect(9, 11, 2, 1);
+  });
+
   assets.tileset = tileCanvas.toDataURL('image/png');
 
   // -------------------------------------------------------------

@@ -224,3 +224,119 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(showCanvas).toBe(true);
   });
 });
+
+
+describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () => {
+  it('correctly identifies all village dirt thoroughfares and lanes', async () => {
+    const { isVillagePath } = await import('../components/world/PixelWorldCanvas');
+
+    // Main East-West Thoroughfare
+    expect(isVillagePath(10, 12)).toBe(true);
+    expect(isVillagePath(22, 13)).toBe(true);
+
+    // North Belfry Avenue
+    expect(isVillagePath(17, 7)).toBe(true);
+    expect(isVillagePath(18, 9)).toBe(true);
+
+    // South Notice Board Avenue
+    expect(isVillagePath(17, 17)).toBe(true);
+    expect(isVillagePath(18, 19)).toBe(true);
+
+    // Northwest Farmstead Lane
+    expect(isVillagePath(8, 8)).toBe(true);
+    expect(isVillagePath(9, 10)).toBe(true);
+
+    // Southwest Moonlight Cinema Lane
+    expect(isVillagePath(6, 15)).toBe(true);
+    expect(isVillagePath(7, 18)).toBe(true);
+
+    // Northeast Archive Cellar Lane
+    expect(isVillagePath(27, 6)).toBe(true);
+    expect(isVillagePath(28, 8)).toBe(true);
+
+    // Southeast Festival Grounds Lane
+    expect(isVillagePath(27, 15)).toBe(true);
+    expect(isVillagePath(28, 18)).toBe(true);
+
+    // Open Meadow (non-paths)
+    expect(isVillagePath(2, 2)).toBe(false);
+    expect(isVillagePath(35, 10)).toBe(false);
+    expect(isVillagePath(14, 14)).toBe(false);
+  });
+
+  it('correctly identifies cobblestone plazas, platforms, and building aprons', async () => {
+    const { isVillageCobble } = await import('../components/world/PixelWorldCanvas');
+
+    // Central Plaza surrounding Fountain
+    expect(isVillageCobble(18, 12)).toBe(true);
+    expect(isVillageCobble(16, 11)).toBe(true);
+    expect(isVillageCobble(20, 13)).toBe(true);
+
+    // Ledger Hut Porch & Customer Apron
+    expect(isVillageCobble(26, 11)).toBe(true);
+    expect(isVillageCobble(24, 12)).toBe(true);
+
+    // Bell Tower Platform
+    expect(isVillageCobble(17, 4)).toBe(true);
+
+    // Archive Cellar Pad
+    expect(isVillageCobble(27, 3)).toBe(true);
+
+    // Notice Board Viewing Pad
+    expect(isVillageCobble(18, 15)).toBe(true);
+
+    // Toolshed Apron
+    expect(isVillageCobble(8, 3)).toBe(true);
+
+    // Farmstead Porch Apron
+    expect(isVillageCobble(8, 6)).toBe(true);
+
+    // Moonlight Cinema Entrance Pad
+    expect(isVillageCobble(6, 19)).toBe(true);
+
+    // Festival Grounds Apron
+    expect(isVillageCobble(28, 19)).toBe(true);
+
+    // Open Meadow or pure dirt path
+    expect(isVillageCobble(10, 12)).toBe(false);
+    expect(isVillageCobble(2, 2)).toBe(false);
+  });
+
+  it('unifies walkable ground classification via isGround', async () => {
+    const { isGround } = await import('../components/world/PixelWorldCanvas');
+
+    // Dirt path
+    expect(isGround(10, 12)).toBe(true);
+    // Cobble plaza
+    expect(isGround(18, 12)).toBe(true);
+    // Meadow
+    expect(isGround(2, 2)).toBe(false);
+  });
+
+  it('autotiles dirt path edges and cobblestones with authentic 16-bit fringe tiles', async () => {
+    const { getPathTileInfo } = await import('../components/world/PixelWorldCanvas');
+
+    // Horizontal Main Street Top Edge (ty: 12) -> dirt_edge_top (col: 5, row: 0)
+    const topEdge = getPathTileInfo(10, 12);
+    expect(topEdge).toEqual({ col: 5, row: 0 });
+
+    // Horizontal Main Street Bottom Edge (ty: 13) -> dirt_edge_bottom (col: 6, row: 0)
+    const bottomEdge = getPathTileInfo(10, 13);
+    expect(bottomEdge).toEqual({ col: 6, row: 0 });
+
+    // Vertical North Avenue Left Edge (tx: 17, ty: 7) -> dirt_edge_left (col: 0, row: 6)
+    const leftEdge = getPathTileInfo(17, 7);
+    expect(leftEdge).toEqual({ col: 0, row: 6 });
+
+    // Vertical North Avenue Right Edge (tx: 18, ty: 7) -> dirt_edge_right (col: 1, row: 6)
+    const rightEdge = getPathTileInfo(18, 7);
+    expect(rightEdge).toEqual({ col: 1, row: 6 });
+
+    // Central Plaza Cobblestone (tx: 18, ty: 12) -> cobble_square (col: 4, row: 1)
+    const cobbleTile = getPathTileInfo(18, 12);
+    expect(cobbleTile).toEqual({ col: 4, row: 1 });
+
+    // Non-path meadow returns null
+    expect(getPathTileInfo(2, 2)).toBeNull();
+  });
+});

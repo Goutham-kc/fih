@@ -29,11 +29,11 @@ export const BUILDING_HITBOXES = [
     doorX: 8 * TILE_SIZE,
     doorY: 12 * TILE_SIZE,
     minX: 5 * TILE_SIZE,
-    minY: 4 * TILE_SIZE,
+    minY: 7 * TILE_SIZE,
     maxX: 11 * TILE_SIZE,
-    maxY: 11 * TILE_SIZE,
+    maxY: 13 * TILE_SIZE,
     bannerX: 8 * TILE_SIZE,
-    bannerY: 4 * TILE_SIZE - 6,
+    bannerY: 7 * TILE_SIZE - 6,
   },
   {
     id: 'reminders',
@@ -129,11 +129,121 @@ export const BUILDING_HITBOXES = [
     minX: 6 * TILE_SIZE,
     minY: 2 * TILE_SIZE,
     maxX: 11 * TILE_SIZE,
-    maxY: 7 * TILE_SIZE,
+    maxY: 6 * TILE_SIZE,
     bannerX: 8 * TILE_SIZE,
     bannerY: 2 * TILE_SIZE - 6,
   },
 ];
+
+
+export function isVillageCobble(tx, ty) {
+  // Central Plaza surrounding Fountain
+  if (tx >= 16 && tx <= 20 && ty >= 11 && ty <= 13) return true;
+  // Ledger Hut Porch & Counter Apron
+  if (tx >= 24 && tx <= 28 && ty >= 11 && ty <= 13) return true;
+  // Bell Tower Platform
+  if (tx >= 17 && tx <= 18 && ty >= 4 && ty <= 5) return true;
+  // Archive Cellar Pad
+  if (tx >= 27 && tx <= 28 && ty >= 3 && ty <= 4) return true;
+  // Notice Board Viewing Pad
+  if (tx >= 17 && tx <= 18 && ty >= 15 && ty <= 16) return true;
+  // Toolshed Apron
+  if (tx >= 7 && tx <= 9 && ty >= 3 && ty <= 4) return true;
+  // Farmstead Porch Apron
+  if (tx >= 7 && tx <= 9 && ty >= 6 && ty <= 7) return true;
+  // Moonlight Cinema Entrance Pad
+  if (tx >= 5 && tx <= 7 && ty >= 19 && ty <= 20) return true;
+  // Festival Grounds Apron
+  if (tx >= 27 && tx <= 29 && ty >= 19 && ty <= 20) return true;
+  return false;
+}
+
+export function isVillagePath(tx, ty) {
+  // 1. East-West Main Thoroughfare: tx: 6..28, ty: 12..13
+  if (ty >= 12 && ty <= 13 && tx >= 6 && tx <= 28) return true;
+
+  // 2. North Belfry Avenue: tx: 17..18, ty: 5..11
+  if (tx >= 17 && tx <= 18 && ty >= 5 && ty <= 11) return true;
+
+  // 3. South Notice Board Avenue: tx: 17..18, ty: 13..20
+  if (tx >= 17 && tx <= 18 && ty >= 13 && ty <= 20) return true;
+
+  // 4. Northwest Farmstead Lane: tx: 8..9, ty: 7..12
+  if (tx >= 8 && tx <= 9 && ty >= 7 && ty <= 12) return true;
+
+  // 5. Southwest Moonlight Cinema Lane: tx: 6..7, ty: 12..20
+  if (tx >= 6 && tx <= 7 && ty >= 12 && ty <= 20) return true;
+
+  // 6. Northeast Archive Cellar Lane: tx: 27..28, ty: 4..12
+  if (tx >= 27 && tx <= 28 && ty >= 4 && ty <= 12) return true;
+
+  // 7. Southeast Festival Grounds Lane: tx: 27..28, ty: 12..20
+  if (tx >= 27 && tx <= 28 && ty >= 12 && ty <= 20) return true;
+
+  return false;
+}
+
+export function isGround(tx, ty) {
+  return isVillagePath(tx, ty) || isVillageCobble(tx, ty);
+}
+
+export function getPathTileInfo(tx, ty) {
+  const isCobble = isVillageCobble(tx, ty);
+  const isPath = isVillagePath(tx, ty);
+
+  if (!isCobble && !isPath) {
+    return null;
+  }
+
+  if (isCobble) {
+    const upGrass = !isGround(tx, ty - 1);
+    const downGrass = !isGround(tx, ty + 1);
+    if (upGrass && !downGrass) {
+      return { col: 6, row: 6 }; // cobble_edge_top
+    }
+    if (downGrass && !upGrass) {
+      return { col: 7, row: 6 }; // cobble_edge_bottom
+    }
+    return { col: 4, row: 1 }; // cobble_square
+  }
+
+  // Dirt Path autotiling:
+  const upGrass = !isGround(tx, ty - 1);
+  const downGrass = !isGround(tx, ty + 1);
+  const leftGrass = !isGround(tx - 1, ty);
+  const rightGrass = !isGround(tx + 1, ty);
+
+  // 1. Corners (both vertical & horizontal edges are grass)
+  if (upGrass && leftGrass) {
+    return { col: 2, row: 6 }; // dirt_corner_tl
+  }
+  if (upGrass && rightGrass) {
+    return { col: 3, row: 6 }; // dirt_corner_tr
+  }
+  if (downGrass && leftGrass) {
+    return { col: 4, row: 6 }; // dirt_corner_bl
+  }
+  if (downGrass && rightGrass) {
+    return { col: 5, row: 6 }; // dirt_corner_br
+  }
+
+  // 2. Cardinal Edges
+  if (upGrass) {
+    return { col: 5, row: 0 }; // dirt_edge_top
+  }
+  if (downGrass) {
+    return { col: 6, row: 0 }; // dirt_edge_bottom
+  }
+  if (leftGrass) {
+    return { col: 0, row: 6 }; // dirt_edge_left
+  }
+  if (rightGrass) {
+    return { col: 1, row: 6 }; // dirt_edge_right
+  }
+
+  // 3. Interior Dirt Center
+  return { col: 4, row: 0 }; // dirt_center
+}
 
 export function getHitBuilding(wx, wy) {
   for (const b of BUILDING_HITBOXES) {
@@ -572,7 +682,7 @@ export default function PixelWorldCanvas({
 
       const tileset = state.images.tileset;
 
-      // ── Layer 1: Ground Tiles (Grass, Continuous Dirt Paths, Pond, Tilled Soil) ──
+      // ── Layer 1: Ground Tiles (Grass, Continuous Dirt Paths, Cobblestone Aprons, Pond, Tilled Soil) ──
       for (let ty = 0; ty < MAP_HEIGHT_TILES; ty++) {
         for (let tx = 0; tx < MAP_WIDTH_TILES; tx++) {
           const wx = tx * TILE_SIZE;
@@ -581,27 +691,6 @@ export default function PixelWorldCanvas({
           // Frustum culling
           if (wx + TILE_SIZE < cam.x - viewW / 2 - 32 || wx > cam.x + viewW / 2 + 32) continue;
           if (wy + TILE_SIZE < cam.y - viewH / 2 - 32 || wy > cam.y + viewH / 2 + 32) continue;
-
-          // Default Grass Variety (0-3)
-          let tileCol = (tx * 7 + ty * 13) % 4;
-
-          // 1. East-West Main Thoroughfare connecting Farmstead (x: 8) to Ledger Hut (x: 26) at y: 12-14
-          const isMainEastWest = ty >= 12 && ty <= 13 && tx >= 4 && tx <= 32;
-
-          // 2. North-South Crossroads thoroughfare at x: 17-18 connecting Bell Tower (y: 6) to Notice Board (y: 16)
-          const isMainNorthSouth = tx >= 17 && tx <= 18 && ty >= 5 && ty <= 21;
-
-          // 3. West path branches to Toolshed (x: 8, y: 4-6) and Moonlight Cinema (x: 6, y: 18-20)
-          const isWestNorthBranch = tx === 8 && ty >= 4 && ty <= 12;
-          const isWestSouthBranch = tx === 6 && ty >= 14 && ty <= 20;
-
-          // 4. East path branches to Archive Cellar (x: 28, y: 4-6) and Festival Grounds (x: 28, y: 18-20)
-          const isEastNorthBranch = tx === 28 && ty >= 4 && ty <= 11;
-          const isEastSouthBranch = tx === 28 && ty >= 14 && ty <= 20;
-
-          if (isMainEastWest || isMainNorthSouth || isWestNorthBranch || isWestSouthBranch || isEastNorthBranch || isEastSouthBranch) {
-            tileCol = 4; // Warm sandy dirt path center
-          }
 
           // Pond at x: 12-15, y: 16-18
           const isPond = tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18;
@@ -617,32 +706,28 @@ export default function PixelWorldCanvas({
             continue;
           }
 
+          // Autotiled paths and cobblestone plazas
+          const pathTile = getPathTileInfo(tx, ty);
+          if (pathTile) {
+            ctx.drawImage(tileset, pathTile.col * TILE_SIZE, pathTile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+            continue;
+          }
+
+          // Default Grass Variety (0-3)
+          const tileCol = (tx * 7 + ty * 13) % 4;
           ctx.drawImage(tileset, tileCol * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
         }
       }
 
-      // ── Layer 2: Cobblestones, Plazas & Fences ──
-      // Central Village Plaza Cobblestones (x: 16-20, y: 11-13)
-      for (let cx = 16; cx <= 20; cx++) {
-        for (let cy = 11; cy <= 13; cy++) {
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx * TILE_SIZE, cy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-      }
-
-      // Ledger Hut Porch Cobblestone (x: 24-28, y: 11-13)
-      for (let cx = 24; cx <= 28; cx++) {
-        for (let cy = 11; cy <= 13; cy++) {
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx * TILE_SIZE, cy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-      }
-
-      // Fences: Farmstead boundary (y: 8, x: 4-10)
-      for (let fx = 4; fx <= 10; fx++) {
+      // ── Layer 2: Decorative Fences & Rails ──
+      // Farmstead boundary fence (y: 8, x: 4-7) and gate corner post (x: 10) leaving x: 8-9 open for path
+      for (let fx = 4; fx <= 7; fx++) {
         ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 8 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       }
+      ctx.drawImage(tileset, 3 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 10 * TILE_SIZE, 8 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
-      // Fences: South road rail (y: 14, x: 19-24)
-      for (let fx = 19; fx <= 24; fx++) {
+      // Fences: South road rail (y: 14, x: 20-23) between South Avenue and Ledger Hut apron
+      for (let fx = 20; fx <= 23; fx++) {
         ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       }
 
@@ -860,9 +945,9 @@ export default function PixelWorldCanvas({
       });
 
       renderables.push({
-        y: 14 * TILE_SIZE,
+        y: 15 * TILE_SIZE,
         render: () => {
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 14 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 14 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
       });
 
