@@ -6,8 +6,9 @@ import {
   Sparkles,
   Scroll,
 } from 'lucide-react';
+import DevModeIndicator from '@/components/ui/DevModeIndicator';
 
-export default function StardewHUD({ envMode }) {
+export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }) {
   const [time, setTime] = useState(new Date());
   const [hudData, setHudData] = useState({
     todos: [],
@@ -48,7 +49,7 @@ export default function StardewHUD({ envMode }) {
     };
   }, [envMode]);
 
-  // Compute Stardew Valley Season
+  // Compute Valley Season
   const month = time.getMonth(); // 0 = Jan, 10 = Nov
   let season = 'Spring';
   let seasonEmoji = '🌸';
@@ -72,10 +73,10 @@ export default function StardewHUD({ envMode }) {
   const hours = time.getHours();
   const isNight = hours < 6 || hours >= 18;
 
-  // Stardew clock display (e.g. 10:00 pm)
+  // Clock display (e.g. 10:00 pm)
   const timeStr = time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).toLowerCase();
 
-  // Fortune Teller / Welwick's Oracle
+  // The Valley Oracle daily fortune
   const dayOfWeekIndex = time.getDay();
   const fortunes = [
     'The spirits are in good humor today. You will feel a burst of energy for your chores!',
@@ -108,50 +109,56 @@ export default function StardewHUD({ envMode }) {
 
   return (
     <div
-      className="stardew-hud-card"
+      className="pixel-hud-card"
       style={{
-        background: 'var(--bg-card)',
-        borderRadius: 20,
-        padding: '20px 24px',
-        border: '1px solid var(--border-subtle)',
+        background: 'linear-gradient(180deg, #2b1a11 0%, #1f130b 100%)',
+        borderRadius: 16,
+        padding: '16px 20px',
+        border: '3px solid #7b4a28',
         marginBottom: 24,
         position: 'relative',
-        boxShadow: 'var(--shadow-card)',
+        boxShadow: '0 6px 24px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(201, 143, 85, 0.3)',
       }}
     >
+      {/* Corner Studs */}
+      <span style={{ position: 'absolute', top: 4, left: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
+      <span style={{ position: 'absolute', top: 4, right: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
+      <span style={{ position: 'absolute', bottom: 4, left: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
+      <span style={{ position: 'absolute', bottom: 4, right: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
+
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-          gap: 20,
+          gap: 16,
           alignItems: 'center',
         }}
       >
-        {/* 1. Stardew Valley Iconic Golden Clock & Calendar HUD */}
+        {/* 1. Golden Clock & Calendar HUD */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 16,
-            background: 'var(--bg-sunken)',
-            padding: '14px 18px',
-            borderRadius: 16,
-            border: '2px solid rgba(245, 158, 11, 0.35)',
-            boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.2)',
+            gap: 14,
+            background: 'linear-gradient(180deg, #3d2315 0%, #29150b 100%)',
+            padding: '12px 16px',
+            borderRadius: 12,
+            border: '2px solid #a36c3a',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)',
           }}
         >
           {/* Circular Sun/Moon Clock Graphic */}
           <div
             style={{
               position: 'relative',
-              width: 58,
-              height: 58,
+              width: 52,
+              height: 52,
               borderRadius: '50%',
               background: isNight
                 ? 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)'
                 : 'linear-gradient(135deg, #38bdf8 0%, #fde047 100%)',
-              border: '3px solid #f59e0b',
-              boxShadow: '0 0 14px rgba(245, 158, 11, 0.35)',
+              border: '2px solid #f2c230',
+              boxShadow: '0 0 10px rgba(242, 194, 48, 0.4)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -159,9 +166,9 @@ export default function StardewHUD({ envMode }) {
             }}
           >
             {isNight ? (
-              <Moon size={24} color="#fde047" style={{ filter: 'drop-shadow(0 0 4px #fde047)' }} />
+              <Moon size={22} color="#fde047" style={{ filter: 'drop-shadow(0 0 4px #fde047)' }} />
             ) : (
-              <Sun size={26} color="#d97706" style={{ filter: 'drop-shadow(0 0 6px #f59e0b)' }} />
+              <Sun size={24} color="#d97706" style={{ filter: 'drop-shadow(0 0 6px #f2c230)' }} />
             )}
             {/* Season Badge */}
             <span
@@ -169,28 +176,28 @@ export default function StardewHUD({ envMode }) {
                 position: 'absolute',
                 bottom: -2,
                 right: -2,
-                fontSize: 14,
-                background: 'var(--bg-card)',
+                fontSize: 13,
+                background: '#2b1a11',
                 borderRadius: '50%',
-                padding: 1,
-                border: '1px solid var(--border-subtle)',
+                padding: '1px 2px',
+                border: '1px solid #7b4a28',
               }}
             >
               {seasonEmoji}
             </span>
           </div>
 
-          {/* Stardew Time & Season Header */}
-          <div style={{ flex: 1 }}>
+          {/* Time & Season Header */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
               <span
                 style={{
-                  fontFamily: 'var(--font-display)',
+                  fontFamily: 'var(--font-display, serif)',
                   fontStyle: 'italic',
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '0.02em',
+                  color: '#fdf6e2',
+                  letterSpacing: '0.01em',
                 }}
               >
                 {dayName}. {dayOfMonth} of {season}
@@ -198,58 +205,66 @@ export default function StardewHUD({ envMode }) {
               <span
                 className="tabular-nums"
                 style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: '#f59e0b',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: '#f2c230',
                   letterSpacing: '0.04em',
+                  fontFamily: 'var(--font-pixel, monospace)',
                 }}
               >
                 {timeStr}
               </span>
             </div>
 
-            {/* Farm Gold Pouch Meter */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                marginTop: 4,
-                padding: '3px 8px',
-                borderRadius: 8,
-                background: 'rgba(245, 158, 11, 0.12)',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
-                width: 'fit-content',
-              }}
-            >
-              <Coins size={14} color="#f59e0b" />
-              <span
-                className="tabular-nums"
+            {/* Farm Gold Pouch Meter & Persistent Dev Mode Indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+              <div
                 style={{
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: netGold >= 0 ? '#10b981' : '#f43f5e',
-                  letterSpacing: '0.02em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                  background: 'rgba(242, 194, 48, 0.15)',
+                  border: '1px solid rgba(242, 194, 48, 0.3)',
                 }}
               >
-                {netGold >= 0 ? '+' : ''}₹{Math.abs(netGold).toLocaleString('en-IN')}g
-              </span>
-              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>Farm Balance</span>
+                <Coins size={13} color="#f2c230" />
+                <span
+                  className="tabular-nums"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: netGold >= 0 ? '#8fc45a' : '#c2415a',
+                  }}
+                >
+                  {netGold >= 0 ? '+' : ''}₹{Math.abs(netGold).toLocaleString('en-IN')}g
+                </span>
+                <span style={{ fontSize: 9, color: '#a38d7b', fontWeight: 700 }}>GOLD</span>
+              </div>
+
+              {/* Constraint 4: Persistent HUD indicator for Live vs Dev */}
+              <DevModeIndicator
+                envMode={envMode}
+                onToggle={onSwitchEnvMode ? () => onSwitchEnvMode(envMode === 'live' ? 'development' : 'live') : undefined}
+                disabled={updatingEnv}
+              />
             </div>
           </div>
         </div>
 
-        {/* 2. Valley Story Scroll & Daily Quest Log Narrative */}
+        {/* 2. Daily Chronicle Log & Oracle Narrative */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Scroll size={14} color="#f59e0b" />
+            <Scroll size={13} color="#f2c230" />
             <span
               style={{
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: 10,
+                fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
-                color: 'var(--text-muted)',
+                color: '#a38d7b',
+                fontFamily: 'var(--font-pixel, monospace)',
               }}
             >
               The Daily Valley Chronicle
@@ -260,7 +275,7 @@ export default function StardewHUD({ envMode }) {
             style={{
               fontSize: 13,
               lineHeight: 1.5,
-              color: 'var(--text-primary)',
+              color: '#fdf6e2',
             }}
           >
             {completedToday > 0 ? (
@@ -278,18 +293,18 @@ export default function StardewHUD({ envMode }) {
             )}
           </div>
 
-          {/* Welwick's Fortune Teller Oracle */}
+          {/* Oracle Fortune */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
               fontSize: 11,
-              color: 'var(--text-secondary)',
+              color: '#c4b5a5',
               marginTop: 2,
             }}
           >
-            <Sparkles size={12} color="#f59e0b" style={{ flexShrink: 0 }} />
+            <Sparkles size={11} color="#f2c230" style={{ flexShrink: 0 }} />
             <span>
               <em>Oracle:</em> {dailyFortune}
             </span>

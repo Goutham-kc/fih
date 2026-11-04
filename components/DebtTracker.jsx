@@ -59,7 +59,7 @@ export default function DebtTracker() {
       setAmount('');
       setNote('');
       setDirection('i_owe');
-      toast.success('Favor recorded in Pierre’s ledger 🪙');
+      toast.success('Favor recorded in Bram’s ledger 🪙');
       await fetchDebts();
     } else {
       toast.error('Failed to save record');

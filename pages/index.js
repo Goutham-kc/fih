@@ -27,8 +27,8 @@ import AuditLogView from '@/components/AuditLogView';
 import OverviewCards from '@/components/OverviewCards';
 import AnalyticsPulse from '@/components/AnalyticsPulse';
 import InteractiveTelemetry from '@/components/InteractiveTelemetry';
-import StardewHUD from '@/components/StardewHUD';
-import StardewAtmosphere from '@/components/StardewAtmosphere';
+import PixelValleyHUD from '@/components/PixelValleyHUD';
+import PixelValleyAtmosphere from '@/components/PixelValleyAtmosphere';
 import TabStoryBanner from '@/components/TabStoryBanner';
 import { playSound } from '@/lib/soundEffects';
 
@@ -164,11 +164,11 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>fih — Stardew Valley Chronicle</title>
+        <title>fih — Pixel Valley</title>
         <meta name="description" content="Precision Personal Life Operations & WhatsApp Chronicle" />
       </Head>
 
-      <StardewAtmosphere />
+      <PixelValleyAtmosphere />
       {/* Ambient Radial Accent */}
       <div className="ambient-glow" style={{ top: -80, left: '20%' }} />
 
@@ -189,8 +189,8 @@ export default function Dashboard() {
             >
               fih
             </span>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f59e0b', marginTop: 2 }}>
-              Valley Chronicle 🌾
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f2c230', marginTop: 2 }}>
+              Pixel Valley 🌾
             </div>
           </div>
           <ThemeToggle size={18} />
@@ -393,7 +393,7 @@ export default function Dashboard() {
                   gap: 6,
                 }}
               >
-                <span>🌾 Farmstead Life Chronicle</span>
+                <span>🌾 Pixel Valley</span>
                 <span>•</span>
                 <span>{envMode === 'live' ? 'Live World' : 'Sandbox Farm'}</span>
               </div>
@@ -456,14 +456,14 @@ export default function Dashboard() {
         {/* Top Graphical Pulse & Overview Metrics */}
         {activeTab !== 'settings' && activeTab !== 'audit' && (
           <>
-            <StardewHUD envMode={envMode} />
+            <PixelValleyHUD envMode={envMode} onSwitchEnvMode={switchEnvMode} updatingEnv={updatingEnv} />
             <InteractiveTelemetry onNavigate={handleTabChange} envMode={envMode} />
             <AnalyticsPulse onNavigate={handleTabChange} envMode={envMode} />
             <OverviewCards onNavigate={handleTabChange} envMode={envMode} />
           </>
         )}
 
-        {/* Interactive Stardew Story Chapter Header for Active Tab */}
+        {/* Interactive Pixel Valley Story Chapter Header for Active Tab */}
         <TabStoryBanner activeTab={activeTab} envMode={envMode} />
 
         {/* Tab Content Component with Emil Kowalski page transition */}
@@ -668,7 +668,7 @@ export default function Dashboard() {
               {[
                 { id: 'dates', label: 'Festivals', icon: Sparkles, desc: 'Events & milestones' },
                 { id: 'watchlist', label: 'The Library', icon: Film, desc: 'Tales, reels & hearth' },
-                { id: 'audit', label: 'Chronicle', icon: History, desc: 'Pelican Town archive' },
+                { id: 'audit', label: 'Chronicle', icon: History, desc: 'Pixel Valley archive' },
                 { id: 'settings', label: 'Farmhouse', icon: Settings, desc: 'Homestead settings' },
               ].map((item) => {
                 const Icon = item.icon;

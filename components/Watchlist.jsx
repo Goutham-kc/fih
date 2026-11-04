@@ -41,7 +41,7 @@ export default function Watchlist() {
       playSound('paper');
       setTitle('');
       setType('show');
-      toast.success('Archived in Gunther’s Library 📚');
+      toast.success('Archived in Juniper’s Cinema Library 📚');
       await fetchItems();
     } else {
       toast.error('Failed to add item');

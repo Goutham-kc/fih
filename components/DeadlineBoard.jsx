@@ -119,7 +119,7 @@ export default function DeadlineBoard() {
                 className="fih-input"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. End Semester Exam, Pierre Crop Delivery"
+                placeholder="e.g. End Semester Exam, Village Crop Delivery"
                 required
               />
             </div>
