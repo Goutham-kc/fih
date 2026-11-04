@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import { toast } from 'sonner';
 import {
@@ -9,11 +9,8 @@ import {
   Volume2,
   VolumeX,
   Compass,
-  CloudRain,
   Wrench,
-  Wind,
-  Sparkles,
-  Snowflake,
+  KeyRound,
 } from 'lucide-react';
 import WoodPanel from '@/components/ui/WoodPanel';
 import PixelButton from '@/components/ui/PixelButton';
@@ -25,6 +22,12 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [wiping, setWiping] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // 'live' | 'development' | null
+
+  // Change Password State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStatus, setPasswordStatus] = useState('idle');
 
   // Toolshed Sound State (Spec 8.3 & 8.5)
   const [soundMuted, setSoundMuted] = useState(() => (typeof window !== 'undefined' ? soundManager.isMuted() : true));
@@ -122,6 +125,46 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
     }
   }
 
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    setPasswordStatus('saving');
+    try {
+      const res = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        soundManager.playSfx('wood');
+        toast.success('Password updated successfully! 🔐');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        toast.error(data.error || 'Failed to update password');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Network error updating password');
+    } finally {
+      setPasswordStatus('idle');
+    }
+  }
+
   return (
     <div className="animate-fade" style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header Banner */}
@@ -156,7 +199,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               The Toolshed (Settings & Workshop)
             </h2>
             <p style={{ fontSize: 13, color: '#c4b5a5', margin: '4px 0 0 0' }}>
-              Tune your village soundscapes, seasonal weather, camera motion, and database workshop environments.
+              Tune your village soundscapes, seasonal weather, camera motion, security keyring, and database workshop environments.
             </p>
           </div>
         </div>
@@ -456,7 +499,108 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         </div>
       </WoodPanel>
 
-      {/* 4. Database Environment Mode (Preserved & Styled) */}
+      {/* 4. Keyring Vault: Change Password */}
+      <WoodPanel variant="default" style={{ padding: '20px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <KeyRound size={20} color="#f2c230" />
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
+                Keyring Vault: Change Password
+              </h3>
+              <p style={{ fontSize: 12, color: '#c4b5a5', margin: '2px 0 0 0' }}>
+                Update your login password securely. Requires verifying your current password.
+              </p>
+            </div>
+          </div>
+          <PixelBadge variant="info">🔐 BCrypt</PixelBadge>
+        </div>
+
+        <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 440 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fdf6e2', marginBottom: 4 }}>
+              Current Password
+            </label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+              autoComplete="current-password"
+              style={{
+                width: '100%',
+                padding: '8px 10px',
+                background: '#1a0f08',
+                border: '2px solid #7b4a28',
+                color: '#fdf6e2',
+                fontSize: 12,
+                fontFamily: 'monospace',
+                borderRadius: 4,
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fdf6e2', marginBottom: 4 }}>
+                New Password (8+ chars)
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 chars"
+                autoComplete="new-password"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  background: '#1a0f08',
+                  border: '2px solid #7b4a28',
+                  color: '#fdf6e2',
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  borderRadius: 4,
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fdf6e2', marginBottom: 4 }}>
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                autoComplete="new-password"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  background: '#1a0f08',
+                  border: '2px solid #7b4a28',
+                  color: '#fdf6e2',
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  borderRadius: 4,
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: 4 }}>
+            <PixelButton
+              variant="primary"
+              size="sm"
+              type="submit"
+              disabled={passwordStatus === 'saving'}
+            >
+              {passwordStatus === 'saving' ? 'Updating Keyring...' : 'Update Password 🗝️'}
+            </PixelButton>
+          </div>
+        </form>
+      </WoodPanel>
+
+      {/* 5. Database Environment Mode (Preserved & Styled) */}
       <WoodPanel variant="default" style={{ padding: '20px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
@@ -515,7 +659,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         </div>
       </WoodPanel>
 
-      {/* 5. Reset & Wipe Settings (Preserved & Styled) */}
+      {/* 6. Reset & Wipe Settings (Preserved & Styled) */}
       <WoodPanel
         variant="default"
         style={{
