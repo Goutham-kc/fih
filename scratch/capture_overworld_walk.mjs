@@ -21,15 +21,17 @@ const bankBase64 = fs.readFileSync('public/assets/buildings/bank.png').toString(
 const bellTowerBase64 = fs.readFileSync('public/assets/buildings/bell_tower.png').toString('base64');
 
 function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
-  const isOverworld = !activeTab;
-  const showDialogue = !panelOnly && (activeTab !== null || (!hasInteracted && isOverworld) || nearbyBuilding !== null);
+  const currentTab = isMobile ? (activeTab || 'todos') : activeTab;
+  const isOverworld = !currentTab;
+  const effectivePanelOnly = isMobile ? true : panelOnly;
+  const showDialogue = !effectivePanelOnly && (currentTab !== null || (!hasInteracted && isOverworld) || nearbyBuilding !== null);
   const hudGuide = activeTab ? null : (!hasInteracted ? '🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only' : (nearbyBuilding ? '🚪 [E] Enter • [P] Panel Only' : null));
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fih Valley Overworld</title>
+  <title>Fih Valley ${isMobile ? 'Mobile Panel' : 'Overworld'}</title>
   <style>
     @font-face {
       font-family: 'PressStart2P';
@@ -51,18 +53,18 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
     }
     .hud {
       position: fixed;
-      top: 12px;
-      left: 14px;
-      right: ${!isOverworld && !isMobile && !panelOnly ? '510px' : '14px'};
+      top: ${isMobile ? '6px' : '12px'};
+      left: ${isMobile ? '6px' : '14px'};
+      right: ${isMobile ? '6px' : (!isOverworld && !panelOnly ? '510px' : '14px')};
       z-index: 80;
-      padding: 8px 12px;
+      padding: ${isMobile ? '6px 8px' : '8px 12px'};
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justifyContent: space-between;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: ${isMobile ? '6px' : '10px'};
       background: #2b1a11;
-      border: 3px solid #1a0f08;
+      border: ${isMobile ? '2px' : '3px'} solid #1a0f08;
       box-shadow: inset 2px 2px 0 #7b4a28, inset -2px -2px 0 #120b06, 0 4px 16px rgba(0,0,0,0.6);
     }
     .badge-dev {
@@ -103,16 +105,15 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
     }
     .dialogue-box {
       position: fixed;
-      bottom: ${isMobile ? '72px' : '68px'};
+      bottom: 68px;
       left: 14px;
-      right: ${isMobile ? '14px' : 'auto'};
-      max-width: ${isMobile ? 'none' : '580px'};
+      max-width: 580px;
       z-index: 80;
       background: #23140c;
       border: 3px solid #120b06;
       box-shadow: inset 2px 2px 0 #6e3d1b, inset -2px -2px 0 #120b06, 0 8px 24px rgba(0,0,0,0.85);
       padding: 10px 14px;
-      display: ${panelOnly ? 'none' : 'flex'};
+      display: ${effectivePanelOnly ? 'none' : 'flex'};
       gap: 12px;
       align-items: center;
     }
@@ -129,20 +130,23 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
     }
     .hotbar {
       position: fixed;
-      bottom: 12px;
+      bottom: ${isMobile ? '8px' : '12px'};
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 6px;
-      padding: 6px 10px;
+      gap: ${isMobile ? '4px' : '6px'};
+      padding: ${isMobile ? '4px 6px' : '6px 10px'};
       background: #2b1a11;
-      border: 3px solid #1a0f08;
+      border: ${isMobile ? '2px' : '3px'} solid #1a0f08;
       box-shadow: inset 2px 2px 0 #7b4a28, inset -2px -2px 0 #120b06;
       z-index: 90;
+      max-width: ${isMobile ? 'calc(100vw - 12px)' : 'none'};
+      overflow-x: ${isMobile ? 'auto' : 'visible'};
     }
     .hotbar-slot {
-      width: 44px;
-      height: 44px;
+      width: ${isMobile ? '38px' : '44px'};
+      height: ${isMobile ? '38px' : '44px'};
+      min-width: ${isMobile ? '38px' : '44px'};
       background: #1a0f08;
       border: 2px solid #452817;
       display: flex;
@@ -160,66 +164,107 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       top: 2px;
       left: 3px;
       font-family: 'PressStart2P', monospace;
-      font-size: 8px;
+      font-size: ${isMobile ? '7px' : '8px'};
       color: #a38d7b;
     }
     .parchment-panel {
       position: fixed;
-      top: ${panelOnly ? '60px' : isMobile ? '38vh' : '14px'};
-      right: ${panelOnly ? '14px' : isMobile ? '8px' : '14px'};
-      bottom: ${panelOnly ? '74px' : isMobile ? '68px' : '74px'};
-      left: ${panelOnly ? '14px' : isMobile ? '8px' : 'auto'};
-      width: ${panelOnly ? 'auto' : isMobile ? 'auto' : '480px'};
-      max-width: ${panelOnly ? '900px' : 'none'};
-      margin: ${panelOnly ? '0 auto' : '0'};
+      top: ${isMobile ? '52px' : (effectivePanelOnly ? '60px' : '14px')};
+      right: ${isMobile ? '6px' : (effectivePanelOnly ? '14px' : '14px')};
+      bottom: ${isMobile ? '64px' : (effectivePanelOnly ? '74px' : '74px')};
+      left: ${isMobile ? '6px' : (effectivePanelOnly ? '14px' : 'auto')};
+      width: ${isMobile ? 'auto' : (effectivePanelOnly ? 'auto' : '480px')};
+      max-width: ${effectivePanelOnly && !isMobile ? '900px' : 'none'};
+      margin: ${effectivePanelOnly && !isMobile ? '0 auto' : '0'};
       background: #fdf6e2;
       border: 3px solid #452817;
       box-shadow: inset 2px 2px 0 #fff8db, inset -2px -2px 0 #bfa882, 0 8px 30px rgba(0,0,0,0.7);
-      padding: 16px;
+      padding: ${isMobile ? '12px 10px' : '16px'};
       color: #2b1a11;
       z-index: 60;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
   </style>
 </head>
 <body>
   <!-- HUD -->
   <div class="hud">
-    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:${isMobile ? '6px' : '10px'}; flex-wrap:wrap;">
       <div style="display:flex; align-items:center; gap:6px;">
-        <span style="font-size:16px;">🌾</span>
-        <span style="font-family:'PressStart2P', monospace; font-size:11px; color:#facc15;">FIH VALLEY</span>
+        <span style="font-size:${isMobile ? '14px' : '16px'};">🌾</span>
+        <span style="font-family:'PressStart2P', monospace; font-size:${isMobile ? '10px' : '11px'}; color:#facc15;">FIH VALLEY</span>
       </div>
       <div class="badge-dev"><span>●</span> DEV SANDBOX</div>
-      <div style="font-size:12px; color:#fdf6e2;">🌸 Wed. 5 • <span style="color:#facc15;">12:00 am</span></div>
-      <div style="font-size:12px; color:#8fc45a; font-weight:700;">🪙 +₹1,580g</div>
-      <div style="font-size:11px; color:#60a5fa;">☀️ Clear</div>
+      <div style="font-size:${isMobile ? '11px' : '12px'}; color:#fdf6e2;">🌸 Wed. 5 • <span style="color:#facc15;">12:00 am</span></div>
+      <div style="font-size:${isMobile ? '11px' : '12px'}; color:#8fc45a; font-weight:700;">🪙 +₹1,580g</div>
+      ${!isMobile ? '<div style="font-size:11px; color:#60a5fa;">☀️ Clear</div>' : ''}
     </div>
+    ${!isMobile ? `
     <div style="display:flex; align-items:center; gap:8px;">
       ${hudGuide ? `<div class="controls-pill">${hudGuide}</div>` : ''}
       ${!isOverworld ? '<button class="btn-pixel btn-gold">🗺️ Village Map (Esc)</button>' : ''}
-      <button class="btn-pixel ${panelOnly ? 'btn-gold' : ''}">${panelOnly ? '🗺️ Show World' : '📜 Panel Only'}</button>
-    </div>
+      <button class="btn-pixel ${effectivePanelOnly ? 'btn-gold' : ''}">${effectivePanelOnly ? '🗺️ Show World' : '📜 Panel Only'}</button>
+    </div>` : ''}
   </div>
 
-  <!-- Canvas -->
-  ${!panelOnly ? `<canvas id="viewport" width="${isMobile ? 390 : 1280}" height="${isMobile ? (isOverworld ? 844 : 320) : 800}" style="display:block; width:100%; height:${isMobile ? (isOverworld ? '100vh' : '38vh') : '100vh'};"></canvas>` : ''}
+  <!-- Canvas (Desktop Only) -->
+  ${!isMobile && !effectivePanelOnly ? `<canvas id="viewport" width="1280" height="800" style="display:block; width:100%; height:100vh;"></canvas>` : ''}
 
-  <!-- Side / Fullscreen Parchment Panel (if chapter is active) -->
+  <!-- Parchment Panel -->
   ${!isOverworld ? `
   <div class="parchment-panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #452817; padding-bottom:8px; margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #452817; padding-bottom:8px; margin-bottom:10px;">
       <div>
-        <div style="font-family:'PressStart2P', monospace; font-size:11px; color:#452817; font-weight:700;">THE LEDGER HUT</div>
-        <div style="font-size:10px; color:#784323; margin-top:2px;">The Ledger Hut • Bram the Honest Factor</div>
+        <div style="font-family:'PressStart2P', monospace; font-size:${isMobile ? '10px' : '11px'}; color:#452817; font-weight:700;">
+          ${currentTab === 'todos' ? 'THE FARMSTEAD' : 'THE LEDGER BANK'}
+        </div>
+        <div style="font-size:${isMobile ? '9px' : '10px'}; color:#784323; margin-top:2px;">
+          ${currentTab === 'todos' ? 'Daily Quests • Pip the Farmhand' : 'Gold Ledger • Bram the Badger Factor'}
+        </div>
       </div>
+      ${!isMobile ? `
       <div style="display:flex; gap:6px;">
-        <button class="btn-pixel ${panelOnly ? 'btn-gold' : ''}">${panelOnly ? '🗺️ Split World' : '📜 Panel Only'}</button>
+        <button class="btn-pixel ${effectivePanelOnly ? 'btn-gold' : ''}">${effectivePanelOnly ? '🗺️ Split World' : '📜 Panel Only'}</button>
         <button class="btn-pixel btn-gold">✕ Map (Esc)</button>
         <button class="btn-pixel">▼ Min</button>
-      </div>
+      </div>` : ''}
     </div>
-    <div style="background:#fef3c7; border:1px solid #d97706; padding:8px; margin-bottom:12px; font-size:11px; color:#78350f;">
+
+    <!-- Mobile Resident Greeting Quote Card -->
+    ${isMobile ? `
+    <div style="display:flex; align-items:center; gap:8px; background:rgba(235, 215, 178, 0.65); border:1px solid #784323; padding:6px 8px; border-radius:3px; margin-bottom:10px;">
+      <span style="font-size:16px;">${currentTab === 'todos' ? '🧑‍🌾' : '🦡'}</span>
+      <div style="font-size:10px; color:#3d2315; font-style:italic; line-height:1.3;">
+        <strong style="font-style:normal; color:#452817;">${currentTab === 'todos' ? 'Pip the Farmhand' : 'Bram the Factor'}: </strong>
+        ${currentTab === 'todos' ? 'Check off your chores one by one and watch the farmstead flourish!' : 'Clear accounts make steadfast friends! Settle your tabs before the fair.'}
+      </div>
+    </div>` : ''}
+
+    ${currentTab === 'todos' ? `
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="background:#fff; border:1px solid #bfa882; padding:10px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" style="width:16px; height:16px;" />
+          <div>
+            <div style="font-weight:700; color:#452817; font-size:12px;">Harvest seasonal wheat crops</div>
+            <div style="font-size:10px; color:#784323;">Due today • High Priority</div>
+          </div>
+        </div>
+        <span style="font-size:10px; background:#dcfce7; color:#166534; padding:2px 6px; border-radius:3px;">Farm</span>
+      </div>
+      <div style="background:#fff; border:1px solid #bfa882; padding:10px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" style="width:16px; height:16px;" />
+          <div>
+            <div style="font-weight:700; color:#452817; font-size:12px;">Water flowerbeds by the notice board</div>
+            <div style="font-size:10px; color:#784323;">Morning routine</div>
+          </div>
+        </div>
+        <span style="font-size:10px; background:#fef3c7; color:#854d0e; padding:2px 6px; border-radius:3px;">Village</span>
+      </div>
+    </div>` : `
+    <div style="background:#fef3c7; border:1px solid #d97706; padding:8px; margin-bottom:10px; font-size:11px; color:#78350f;">
       🪙 Net Balance: <strong>+₹1,580g</strong> • 2 Active Tabs Recorded
     </div>
     <div style="display:flex; flex-direction:column; gap:8px;">
@@ -237,40 +282,20 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         </div>
         <div style="font-weight:700; color:#991b1b;">-₹500g</div>
       </div>
-    </div>
-  </div>` : ''}
-
-  <!-- Dialogue Box -->
-  ${showDialogue ? `
-  <div class="dialogue-box">
-    <div class="portrait">${nearbyBuilding === 'The Notice Board' ? '📋' : nearbyBuilding === 'The Farmstead' ? '🧑‍🌾' : (!isOverworld || nearbyBuilding ? '🦡' : '🧑‍🌾')}</div>
-    <div>
-      <div style="font-family:'PressStart2P', monospace; font-size:9px; color:#facc15; margin-bottom:4px;">
-        ${nearbyBuilding === 'The Notice Board' ? 'Marigold the Festival Herald (The Notice Board)' : nearbyBuilding === 'The Farmstead' ? 'Pip the Farmhand (The Farmstead)' : (!isOverworld || nearbyBuilding ? 'Bram the Honest Factor (The Ledger Hut)' : 'Pip the Farmhand (Fih Valley Overworld)')}
-      </div>
-      <div style="font-size:11px; line-height:1.4; color:#fdf6e2;">
-        ${nearbyBuilding === 'The Notice Board'
-          ? 'Good morning! The town board has fresh notices pinned with bright festival ribbons. What due dates are ripening? Press [E] to enter or [P] for Panel Only.'
-          : nearbyBuilding === 'The Farmstead'
-          ? 'The sun is shining over the crops. Check off your chores one by one and watch the farmstead flourish! Press [E] to enter or [P] for Panel Only.'
-          : (!isOverworld || nearbyBuilding
-            ? 'Clear accounts make steadfast friends! Settle your tabs before the fair. Press [E] to enter or [P] for Panel Only.'
-            : 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.')}
-      </div>
-    </div>
+    </div>`}
   </div>` : ''}
 
   <!-- Hotbar -->
   <div class="hotbar">
-    <div class="hotbar-slot ${isOverworld ? 'active' : ''}"><span class="slot-num" style="color:#60a5fa;">M</span><span style="font-size:18px;">🗺️</span></div>
-    <div class="hotbar-slot"><span class="slot-num">1</span><span style="font-size:18px;">🌾</span></div>
-    <div class="hotbar-slot"><span class="slot-num">2</span><span style="font-size:18px;">🔔</span></div>
-    <div class="hotbar-slot ${activeTab === 'debts' ? 'active' : ''}"><span class="slot-num">3</span><span style="font-size:18px;">🪙</span></div>
-    <div class="hotbar-slot"><span class="slot-num">4</span><span style="font-size:18px;">📌</span></div>
-    <div class="hotbar-slot"><span class="slot-num">5</span><span style="font-size:18px;">🌸</span></div>
-    <div class="hotbar-slot"><span class="slot-num">6</span><span style="font-size:18px;">🎬</span></div>
-    <div class="hotbar-slot"><span class="slot-num">7</span><span style="font-size:18px;">📜</span></div>
-    <div class="hotbar-slot"><span class="slot-num">8</span><span style="font-size:18px;">🔧</span></div>
+    ${!isMobile ? `<div class="hotbar-slot ${isOverworld ? 'active' : ''}"><span class="slot-num" style="color:#60a5fa;">M</span><span style="font-size:18px;">🗺️</span></div>` : ''}
+    <div class="hotbar-slot ${currentTab === 'todos' ? 'active' : ''}"><span class="slot-num">1</span><span style="font-size:${isMobile ? '16px' : '18px'};">🌾</span></div>
+    <div class="hotbar-slot ${currentTab === 'reminders' ? 'active' : ''}"><span class="slot-num">2</span><span style="font-size:${isMobile ? '16px' : '18px'};">🔔</span></div>
+    <div class="hotbar-slot ${currentTab === 'debts' ? 'active' : ''}"><span class="slot-num">3</span><span style="font-size:${isMobile ? '16px' : '18px'};">🪙</span></div>
+    <div class="hotbar-slot ${currentTab === 'deadlines' ? 'active' : ''}"><span class="slot-num">4</span><span style="font-size:${isMobile ? '16px' : '18px'};">📌</span></div>
+    <div class="hotbar-slot ${currentTab === 'dates' ? 'active' : ''}"><span class="slot-num">5</span><span style="font-size:${isMobile ? '16px' : '18px'};">🌸</span></div>
+    <div class="hotbar-slot ${currentTab === 'watchlist' ? 'active' : ''}"><span class="slot-num">6</span><span style="font-size:${isMobile ? '16px' : '18px'};">🎬</span></div>
+    <div class="hotbar-slot ${currentTab === 'audit' ? 'active' : ''}"><span class="slot-num">7</span><span style="font-size:${isMobile ? '16px' : '18px'};">📜</span></div>
+    <div class="hotbar-slot ${currentTab === 'settings' ? 'active' : ''}"><span class="slot-num">8</span><span style="font-size:${isMobile ? '16px' : '18px'};">🔧</span></div>
   </div>
 
   <script>
