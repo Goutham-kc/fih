@@ -55,7 +55,10 @@ export default function DebtTracker() {
   }
 
   useEffect(() => {
-    fetchDebts();
+    const loadTimer = setTimeout(() => {
+      fetchDebts();
+    }, 0);
+    return () => clearTimeout(loadTimer);
   }, []);
 
   async function addDebt(e) {

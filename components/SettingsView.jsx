@@ -27,31 +27,23 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
   const [confirmTarget, setConfirmTarget] = useState(null); // 'live' | 'development' | null
 
   // Toolshed Sound State (Spec 8.3 & 8.5)
-  const [soundMuted, setSoundMuted] = useState(true);
-  const [masterVol, setMasterVol] = useState(0.8);
-  const [sfxVol, setSfxVol] = useState(0.8);
-  const [ambienceVol, setAmbienceVol] = useState(0.4);
+  const [soundMuted, setSoundMuted] = useState(() => (typeof window !== 'undefined' ? soundManager.isMuted() : true));
+  const [masterVol, setMasterVol] = useState(() => (typeof window !== 'undefined' ? soundManager.masterVolume : 0.8));
+  const [sfxVol, setSfxVol] = useState(() => (typeof window !== 'undefined' ? soundManager.sfxVolume : 0.8));
+  const [ambienceVol, setAmbienceVol] = useState(() => (typeof window !== 'undefined' ? soundManager.ambienceVolume : 0.4));
 
   // Toolshed Motion & Parallax State (Spec 8.2 & 8.5)
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const savedRm = localStorage.getItem('pv_reduced_motion');
+    return savedRm !== null ? savedRm === 'true' : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
 
   // Toolshed Weather & Atmosphere State (Spec 8.2 & 8.5)
   const [weatherOverride, setWeatherOverride] = useState('auto');
   const [timeOverride, setTimeOverride] = useState('auto');
 
   useEffect(() => {
-    // Hydrate audio & motion settings safely on client
-    setSoundMuted(soundManager.isMuted());
-    setMasterVol(soundManager.masterVolume);
-    setSfxVol(soundManager.sfxVolume);
-    setAmbienceVol(soundManager.ambienceVolume);
-
-    const savedRm = localStorage.getItem('pv_reduced_motion');
-    if (savedRm !== null) {
-      setReducedMotion(savedRm === 'true');
-    } else {
-      setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    }
 
     const savedW = localStorage.getItem('pv_weather_override');
     if (savedW) setWeatherOverride(savedW);

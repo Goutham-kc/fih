@@ -42,7 +42,10 @@ export default function TodoList() {
   }
 
   useEffect(() => {
-    fetchTodos();
+    const loadTimer = setTimeout(() => {
+      fetchTodos();
+    }, 0);
+    return () => clearTimeout(loadTimer);
   }, []);
 
   async function addTodo(e) {
