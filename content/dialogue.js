@@ -1,4 +1,4 @@
-// Pixel Valley - Character Dialogue & Lore Tables
+// Fih Valley - Character Dialogue & Lore Tables
 // Strictly original cast: Pip, Hoot, Marigold, Bram, Juniper, Moss, Clover, Rowan, Wren
 // Spec Section 6: Contextual speech, time-of-day greetings, weather remarks, empty states
 
@@ -17,14 +17,14 @@ export const VILLAGE_DIALOGUE = {
     tales: [
       'The morning sun breaks over the farmstead meadow. A cool autumn breeze rustles the willow branches. Water the parsnips, mend the fences, and cross off today’s chores before dusk settles!',
       'Grandpa’s old journal had one simple rule: "Tend the soil daily, and the harvest will take care of itself." Let us see what tasks await on the porch notice board.',
-      'The roosters are crowing across Pixel Valley. Every completed task plants a seed for tomorrow’s harvest. What will we achieve today?',
+      'The roosters are crowing across Fih Valley. Every completed task plants a seed for tomorrow’s harvest. What will we achieve today?',
     ],
   },
   reminders: {
     character: 'hoot',
     chapterTitle: 'Chapter 2: The Bell Tower (Mailbox & Alerts)',
     morning: 'Hoo-hoo! The morning chime strikes clean. Let us organize your alerts so the day unfolds without surprises.',
-    day: 'The brass clock gears tick with quiet precision. Keep your alerts set, and Pixel Valley will always move in harmony.',
+    day: 'The brass clock gears tick with quiet precision. Keep your alerts set, and Fih Valley will always move in harmony.',
     evening: 'The brass bells chime for vespers. Let us see which promised hours remain before nightfall.',
     night: 'The owl watches from the bell tower spire while the village sleeps. Your alerts are in good talons.',
     empty: 'The tower bells are silent and tranquil. No pending alerts in the breeze.',
@@ -34,14 +34,14 @@ export const VILLAGE_DIALOGUE = {
     tales: [
       'Hoo-hoo! The village bell tower stands tall against the clouds. Each hanging bell marks a promised hour. When time arrives, the bronze bell rings true!',
       'Time flies swifter than a barn swallow, young farmer. Tie your reminders to the tower garland so no pledge slips into the fog.',
-      'The brass clock gears tick with quiet precision. Keep your alerts set, and Pixel Valley will always move in harmony.',
+      'The brass clock gears tick with quiet precision. Keep your alerts set, and Fih Valley will always move in harmony.',
     ],
   },
   deadlines: {
     character: 'marigold',
     chapterTitle: 'Chapter 3: The Notice Board (Town Deadlines)',
     morning: 'Good morning! The town board has fresh notices pinned with bright festival ribbons. What due dates are ripening?',
-    day: 'A punctual harvest is the pride of Pixel Valley! Deliver your projects and exam prep before the final bell.',
+    day: 'A punctual harvest is the pride of Fih Valley! Deliver your projects and exam prep before the final bell.',
     evening: 'The sun sets behind the hills. Double check any deadlines due by nightfall!',
     night: 'Lanterns illuminate the town board. Peaceful hours to plan tomorrow’s deliveries.',
     empty: 'The notice board is clear! No looming deadlines on the horizon—take a breath and enjoy the fair.',
@@ -50,7 +50,7 @@ export const VILLAGE_DIALOGUE = {
     fireflies: 'Summer twilight turns the town square magical. Check off your goals under the fairy lanterns.',
     tales: [
       'Welcome to the Village Notice Board! Every deadline is a crop in the countdown field. Keep watch as the dates ripen—never let the crows catch you unprepared!',
-      'A punctual harvest is the pride of Pixel Valley! Deliver your projects and exam prep before the final season bell rings.',
+      'A punctual harvest is the pride of Fih Valley! Deliver your projects and exam prep before the final season bell rings.',
       'The sands of time trickle steadily down the glass. Review your upcoming dates, plan your week, and harvest success with confidence!',
     ],
   },
@@ -77,7 +77,7 @@ export const VILLAGE_DIALOGUE = {
     morning: 'A bright morning for the village calendar! Which dear neighbor or milestone are we honoring next?',
     day: 'Flowers may wither in winter, but the warmth of remembered birthdays blooms forever. Mark milestones with joy!',
     evening: 'Evening bunting catches the golden hour light. May our valley memories grow sweeter each year.',
-    night: 'Starlight twinkles over the festival ribbon arches. Happy memories never fade in Pixel Valley.',
+    night: 'Starlight twinkles over the festival ribbon arches. Happy memories never fade in Fih Valley.',
     empty: 'The seasonal festival garland is prepared. Add birthdays and milestones to celebrate together!',
     rain: 'The raindrops glisten like beads on the festival ribbon garland. Every season brings its own beauty.',
     snow: 'Snowflakes fall softly upon the solstice square. Hot cider and warm hearts keep the winter cheerful.',
@@ -108,7 +108,7 @@ export const VILLAGE_DIALOGUE = {
   audit: {
     character: 'moss',
     chapterTitle: 'Chapter 7: The Archive Cellar (The Chronicle)',
-    morning: 'The cellar lantern is trimmed. The chronicle preserves every step taken in Pixel Valley.',
+    morning: 'The cellar lantern is trimmed. The chronicle preserves every step taken in Fih Valley.',
     day: 'Every verified transaction, dispatched reminder, and completed chore rests safely upon these cedar shelves.',
     evening: 'The shadows lengthen across the archives. Another day of deeds inscribed in indelible oak ink.',
     night: 'Underground, the quiet is timeless. The scrolls keep their silent vigil over all past events.',
@@ -117,7 +117,7 @@ export const VILLAGE_DIALOGUE = {
     snow: 'The cellar remains warm and dry beneath the frozen soil. The records are safe for generations.',
     fireflies: 'Lantern light flickers against the cobblestone walls. Look back upon your journey, traveler.',
     tales: [
-      'Step softly down the stone steps. In this ancient cellar, the records of Pixel Valley are inscribed into eternal volumes. History is never erased, only preserved.',
+      'Step softly down the stone steps. In this ancient cellar, the records of Fih Valley are inscribed into eternal volumes. History is never erased, only preserved.',
       'Every verified transaction, dispatched reminder, and completed chore rests safely upon these cedar shelves. The truth remains steadfast.',
       'Lantern light flickers against the cobblestone walls. Look back upon your journey, traveler, and see the steadfast ledger of your deeds.',
     ],
@@ -171,7 +171,7 @@ export function getContextualDialogue(tab, { timeOfDay = 'day', weather = 'clear
 
   // Fallback to random lore tale
   const tales = chapter.tales || [];
-  return tales[0] || chapter.day || 'Welcome to Pixel Valley!';
+  return tales[0] || chapter.day || 'Welcome to Fih Valley!';
 }
 
 export default VILLAGE_DIALOGUE;

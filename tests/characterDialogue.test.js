@@ -28,7 +28,7 @@ describe('Original Cast Roster & IP Compliance (Spec Section 2.1 & 6)', () => {
     'rowan',
   ];
 
-  it('contains exactly the 9 original Pixel Valley characters in metadata', () => {
+  it('contains exactly the 9 original Fih Valley characters in metadata', () => {
     EXPECTED_CHARACTERS.forEach((id) => {
       expect(CHARACTER_META[id]).toBeDefined();
       expect(CHARACTER_META[id].name).toBeTruthy();

@@ -23,7 +23,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pixel Valley Overworld</title>
+  <title>Fih Valley Overworld</title>
   <style>
     @font-face {
       font-family: 'PressStart2P';
@@ -182,7 +182,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
       <div style="display:flex; align-items:center; gap:6px;">
         <span style="font-size:16px;">🌾</span>
-        <span style="font-family:'PressStart2P', monospace; font-size:11px; color:#facc15;">PIXEL VALLEY</span>
+        <span style="font-family:'PressStart2P', monospace; font-size:11px; color:#facc15;">FIH VALLEY</span>
       </div>
       <div class="badge-dev"><span>●</span> DEV SANDBOX</div>
       <div style="font-size:12px; color:#fdf6e2;">🌸 Wed. 5 • <span style="color:#facc15;">12:00 am</span></div>
@@ -204,7 +204,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #452817; padding-bottom:8px; margin-bottom:12px;">
       <div>
         <div style="font-family:'PressStart2P', monospace; font-size:11px; color:#452817; font-weight:700;">THE LEDGER HUT</div>
-        <div style="font-size:10px; color:#784323; margin-top:2px;">16-bit RPG Ledger • Bram the Honest Factor</div>
+        <div style="font-size:10px; color:#784323; margin-top:2px;">The Ledger Hut • Bram the Honest Factor</div>
       </div>
       <div style="display:flex; gap:6px;">
         <button class="btn-pixel ${panelOnly ? 'btn-gold' : ''}">${panelOnly ? '🗺️ Split World' : '📜 Panel Only'}</button>
@@ -243,7 +243,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
       </div>
       <div style="font-size:11px; line-height:1.4; color:#fdf6e2;">
         ${isOverworld 
-          ? 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.' 
+          ? 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.' 
           : 'Clear accounts make steadfast friends! Settle your tabs before the fair, and your pouch will always jingle.'}
       </div>
     </div>

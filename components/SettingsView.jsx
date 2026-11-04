@@ -447,7 +447,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               <span style={{ fontWeight: 600, fontSize: 13, color: '#fdf6e2' }}>Dark</span>
             </div>
             <p style={{ fontSize: 11, color: '#a38d7b', margin: 0 }}>
-              Cozy Pixel Valley hearth
+              Cozy Fih Valley hearth
             </p>
           </div>
 

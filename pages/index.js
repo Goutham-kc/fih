@@ -185,7 +185,7 @@ export default function Dashboard() {
           fontSize: 12,
         }}
       >
-        <span>LOADING 16-BIT PIXEL VALLEY...</span>
+        <span>LOADING FIH VALLEY...</span>
       </div>
     );
   }
@@ -226,8 +226,8 @@ export default function Dashboard() {
 
   let currentResidentId = 'pip';
   let residentFullName = 'Pip the Farmhand';
-  let chapterTitle = 'Pixel Valley Overworld';
-  let dialogueLine = 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.';
+  let chapterTitle = 'Fih Valley Overworld';
+  let dialogueLine = 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.';
 
   if (activeTab) {
     const chapterDialogue = dialogueContent[activeTab] || dialogueContent.debts;
@@ -258,8 +258,8 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>fih — Pixel Valley (16-Bit RPG)</title>
-        <meta name="description" content="16-Bit Top-Down Farming RPG Personal Operating System" />
+        <title>fih — Fih Valley</title>
+        <meta name="description" content="Fih Valley Personal Operating System" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
@@ -326,7 +326,7 @@ export default function Dashboard() {
                   letterSpacing: '0.04em',
                 }}
               >
-                Pixel Valley
+                Fih Valley
               </span>
             </div>
 
@@ -411,7 +411,7 @@ export default function Dashboard() {
               className={`btn-pixel ${!showCanvas ? 'btn-gold' : ''}`}
               onClick={() => setShowCanvas(!showCanvas)}
               style={{ padding: '3px 8px', fontSize: 9 }}
-              title="Toggle between 16-bit Top-down World and Plain Ledger view"
+              title="Toggle between World Map and Panel Only view"
             >
               {showCanvas ? '📜 Panel Only' : '🗺️ Show World'}
             </button>
@@ -462,7 +462,7 @@ export default function Dashboard() {
                     {CHAPTER_ANCHORS[activeTab]?.name || 'Ledger Hut'}
                   </span>
                   <div style={{ fontSize: 11, color: '#784323', marginTop: 2 }}>
-                    16-bit RPG Ledger • Bound to live records
+                    {CHAPTER_ANCHORS[activeTab]?.chapterTitle || 'Village Chapter'} • Bound to live records
                   </div>
                 </div>
 
