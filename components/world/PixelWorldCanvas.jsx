@@ -285,6 +285,204 @@ export function getPathTileInfo(tx, ty) {
   return { col: 4, row: 0 }; // dirt_center
 }
 
+export function hash2D(x, y, seed = 12345) {
+  let h = (x * 374761393 + y * 668265263 + seed) ^ 0x5bf03635;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+export function getGroundTile(tx, ty) {
+  // 1. Woodland Pond shoreline (within 2 tiles of water): high density of bluebells & river pebbles (col: 3, row: 0)
+  const distPondX = Math.max(0, Math.max(30 - tx, tx - 34));
+  const distPondY = Math.max(0, Math.max(40 - ty, ty - 43));
+  if (distPondX <= 2 && distPondY <= 2 && (distPondX > 0 || distPondY > 0)) {
+    const h = hash2D(tx, ty, 101);
+    if (h % 3 === 0) return { col: 3, row: 0 }; // River pebbles & bluebell
+    if (h % 3 === 1) return { col: 1, row: 0 }; // Lush clover tuft
+    return { col: 0, row: 0 };
+  }
+
+  // 2. Archive Cellar ancient mossy glade: mossy stones and shaded clovers
+  if (tx >= 8 && tx <= 16 && ty >= 28 && ty <= 36) {
+    const h = hash2D(tx, ty, 202);
+    if (h % 4 === 0) return { col: 3, row: 0 }; // Mossy stone
+    if (h % 4 === 1) return { col: 1, row: 0 }; // Deep shaded clover
+    return { col: 0, row: 0 };
+  }
+
+  // 3. Festival Grounds & Moonlight Cinema glades: wildflower blooms
+  if ((tx >= 12 && tx <= 22 && ty >= 45 && ty <= 54) || (tx >= 42 && tx <= 54 && ty >= 45 && ty <= 54)) {
+    const h = hash2D(tx, ty, 303);
+    if (h % 5 === 0) return { col: 2, row: 0 }; // Scarlet poppies
+    if (h % 5 === 1) return { col: 1, row: 0 }; // White daisies & clover
+    return { col: 0, row: 0 };
+  }
+
+  // 4. Farmstead surroundings: exposed fertile soil patches & sprouts
+  if (tx >= 9 && tx <= 18 && ty >= 12 && ty <= 18) {
+    const h = hash2D(tx, ty, 404);
+    if (h % 6 === 0) return { col: 7, row: 0 }; // Soil patch
+    if (h % 6 === 1) return { col: 1, row: 0 }; // Clover
+    return { col: 0, row: 0 };
+  }
+
+  // 5. General organic meadow (clustered noise eliminating repetitive patterns)
+  const clumpNoise = hash2D(Math.floor(tx / 3), Math.floor(ty / 3), 505);
+  const detailNoise = hash2D(tx, ty, 606);
+  if (clumpNoise % 7 === 0) {
+    // Wildflower clump
+    return (detailNoise % 2 === 0) ? { col: 2, row: 0 } : { col: 1, row: 0 };
+  }
+  if (clumpNoise % 9 === 0) {
+    // Rocky pebble outcrop
+    return (detailNoise % 2 === 0) ? { col: 3, row: 0 } : { col: 0, row: 0 };
+  }
+  if (detailNoise % 8 === 0) {
+    return { col: 1, row: 0 }; // Occasional clover tuft
+  }
+  return { col: 0, row: 0 }; // Rich lush grass plain
+}
+
+export function generateForestTrees() {
+  const trees = [];
+  const occupied = new Set();
+
+  const BUILDING_RESERVES = [
+    { minX: 10, maxX: 18, minY: 9, maxY: 16 }, // Farmstead + garden
+    { minX: 46, maxX: 54, minY: 9, maxY: 16 }, // Bank
+    { minX: 29, maxX: 35, minY: 7, maxY: 15 }, // Bell Tower
+    { minX: 29, maxX: 35, minY: 32, maxY: 37 }, // Notice Board
+    { minX: 11, maxX: 21, minY: 43, maxY: 53 }, // Festival
+    { minX: 43, maxX: 53, minY: 43, maxY: 53 }, // Cinema
+    { minX: 8, maxX: 16, minY: 27, maxY: 35 }, // Archive
+    { minX: 13, maxX: 19, minY: 19, maxY: 25 }, // Toolshed
+    { minX: 29, maxX: 35, minY: 39, maxY: 44 }, // Pond
+    { minX: 26, maxX: 38, minY: 26, maxY: 38 }, // Central Plaza
+    { minX: 46, maxX: 50, minY: 22, maxY: 26 }, // Sky Post
+  ];
+
+  function isClearForTree(tx, ty, is2Tile = false) {
+    if (tx < 1 || tx > 62 || ty < 1 || ty > 62) return false;
+    const minY = is2Tile ? -2 : -1;
+    for (let dy = minY; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const cx = tx + dx;
+        const cy = ty + dy;
+        if (cx >= 0 && cx <= 63 && cy >= 0 && cy <= 63) {
+          if (isGround(cx, cy)) return false;
+          for (const b of BUILDING_RESERVES) {
+            if (cx >= b.minX && cx <= b.maxX && cy >= b.minY && cy <= b.maxY) return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  function addTree(x, y, type) {
+    const is2Tile = type === 'oak' || type === 'blossom';
+    if (!isClearForTree(x, y, is2Tile)) return false;
+    const key = `${x},${y}`;
+    if (occupied.has(key)) return false;
+    occupied.add(key);
+    occupied.add(`${x},${y - 1}`);
+    occupied.add(`${x},${y + 1}`);
+    trees.push({ x, y, type });
+    return true;
+  }
+
+  // 1. Perimeter border trees (North, South, West, East)
+  for (let y = 1; y <= 6; y += 2) {
+    for (let x = 1; x <= 62; x += 2) {
+      const r = hash2D(x, y) % 3;
+      addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+    }
+  }
+  for (let y = 57; y <= 62; y += 2) {
+    for (let x = 1; x <= 62; x += 2) {
+      const r = hash2D(x, y) % 3;
+      addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+    }
+  }
+  for (let y = 7; y <= 56; y += 2) {
+    for (let x = 1; x <= 6; x += 2) {
+      const r = hash2D(x, y) % 3;
+      addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+    }
+    for (let x = 57; x <= 62; x += 2) {
+      const r = hash2D(x, y) % 3;
+      addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+    }
+  }
+
+  // 2. Internal woodland groves (scalloped irregular woodland edges extending into the village)
+  const internalGroves = [
+    { minX: 19, maxX: 27, minY: 7, maxY: 17 }, // Northwest Grove (between Farmstead & Bell Tower)
+    { minX: 37, maxX: 45, minY: 7, maxY: 17 }, // Northeast Grove (between Bell Tower & Bank)
+    { minX: 19, maxX: 27, minY: 18, maxY: 25 }, // Grove East of Toolshed
+    { minX: 37, maxX: 45, minY: 18, maxY: 27 }, // Grove Northeast of Plaza
+    { minX: 6, maxX: 11, minY: 23, maxY: 28 }, // West Central Grove (south of Toolshed, north of Archive)
+    { minX: 6, maxX: 12, minY: 36, maxY: 44 }, // Southwest Deep Woods (south of Archive, west of Festival)
+    { minX: 20, maxX: 27, minY: 35, maxY: 44 }, // Woods Southwest of Central Plaza
+    { minX: 37, maxX: 44, minY: 35, maxY: 44 }, // Woods Southeast of Central Plaza
+    { minX: 24, maxX: 28, minY: 39, maxY: 44 }, // Pond West Wooded Bank
+    { minX: 36, maxX: 40, minY: 39, maxY: 44 }, // Pond East Wooded Bank
+    { minX: 20, maxX: 25, minY: 46, maxY: 54 }, // Woods between Festival & Pond
+    { minX: 39, maxX: 44, minY: 46, maxY: 54 }, // Woods between Pond & Cinema
+    { minX: 52, maxX: 56, minY: 18, maxY: 44 }, // East Woodland Band (behind Sky Post down to Cinema)
+  ];
+
+  for (const g of internalGroves) {
+    for (let y = g.minY; y <= g.maxY; y += 2) {
+      for (let x = g.minX; x <= g.maxX; x += 2) {
+        const r = hash2D(x, y, 999) % 5;
+        if (r !== 4) {
+          addTree(x, y, r === 0 || r === 3 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+        }
+      }
+    }
+  }
+
+  return trees;
+}
+
+export const FOREST_TREES = generateForestTrees();
+
+export const FOREST_PROPS = [
+  // Mossy river boulders around Woodland Pond
+  { x: 29, y: 40, type: 'rock' },
+  { x: 35, y: 40, type: 'rock' },
+  { x: 28, y: 43, type: 'rock' },
+  { x: 36, y: 43, type: 'rock' },
+  // Mossy boulders near Archive Cellar
+  { x: 9, y: 31, type: 'rock' },
+  { x: 15, y: 31, type: 'rock' },
+  { x: 10, y: 35, type: 'rock' },
+  // Fallen logs in the forest borders & margins
+  { x: 20, y: 6, type: 'log' },
+  { x: 44, y: 6, type: 'log' },
+  { x: 7, y: 22, type: 'log' },
+  { x: 7, y: 44, type: 'log' },
+  { x: 57, y: 20, type: 'log' },
+  { x: 57, y: 46, type: 'log' },
+  { x: 26, y: 46, type: 'log' },
+  { x: 38, y: 46, type: 'log' },
+  // Amanita mushroom clusters under the forest canopies
+  { x: 8, y: 34, type: 'mushrooms' },
+  { x: 16, y: 34, type: 'mushrooms' },
+  { x: 22, y: 15, type: 'mushrooms' },
+  { x: 42, y: 15, type: 'mushrooms' },
+  { x: 26, y: 43, type: 'mushrooms' },
+  { x: 38, y: 43, type: 'mushrooms' },
+  { x: 53, y: 27, type: 'mushrooms' },
+  { x: 23, y: 50, type: 'mushrooms' },
+  { x: 41, y: 50, type: 'mushrooms' },
+];
+
+export const INTERNAL_TREE_TRUNKS = new Set(
+  FOREST_TREES.filter((t) => t.x >= 6 && t.x <= 58 && t.y >= 6 && t.y <= 58).map((t) => `${t.x},${t.y}`)
+);
+
 export function getHitBuilding(wx, wy) {
   for (const b of BUILDING_HITBOXES) {
     if (wx >= b.minX && wx <= b.maxX && wy >= b.minY && wy <= b.maxY) {
@@ -355,6 +553,11 @@ export function isWalkable(wx, wy) {
 
   // 12. Farmstead Garden Fences (farm gate at tx: 14..15 is open and walkable)
   if ((tx >= 10 && tx <= 13 && ty === 16) || (tx >= 16 && tx <= 17 && ty === 16)) {
+    return false;
+  }
+
+  // 13. Internal woodland tree trunks (outer forest boundary wx < 6*16 || wx > 58*16 is already impassable)
+  if (INTERNAL_TREE_TRUNKS.has(`${tx},${ty}`)) {
     return false;
   }
 
@@ -458,7 +661,24 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null, festival_grounds: null, moonlight_cinema: null, archive_cellar: null },
+    images: {
+      tileset: null,
+      pip: null,
+      bram: null,
+      farmhouse: null,
+      notice_board: null,
+      bank: null,
+      bell_tower: null,
+      festival_grounds: null,
+      moonlight_cinema: null,
+      archive_cellar: null,
+      tree_oak: null,
+      tree_pine: null,
+      tree_blossom: null,
+      fallen_log: null,
+      rock_moss: null,
+      mushrooms: null,
+    },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
     targetCamera: { x: 32 * 16, y: 33 * 16 },
@@ -491,6 +711,12 @@ export default function PixelWorldCanvas({
       { key: 'festival_grounds', src: '/assets/buildings/festival_grounds.png' },
       { key: 'moonlight_cinema', src: '/assets/buildings/moonlight_cinema.png' },
       { key: 'archive_cellar', src: '/assets/buildings/archive_cellar.png' },
+      { key: 'tree_oak', src: '/assets/trees/oak_large.png' },
+      { key: 'tree_pine', src: '/assets/trees/pine_large.png' },
+      { key: 'tree_blossom', src: '/assets/trees/blossom_large.png' },
+      { key: 'fallen_log', src: '/assets/trees/fallen_log.png' },
+      { key: 'rock_moss', src: '/assets/trees/rock_moss.png' },
+      { key: 'mushrooms', src: '/assets/trees/mushrooms.png' },
     ];
 
     let count = 0;
@@ -883,9 +1109,9 @@ export default function PixelWorldCanvas({
             continue;
           }
 
-          // Default Grass Variety (0-3)
-          const tileCol = (tx * 7 + ty * 13) % 4;
-          ctx.drawImage(tileset, tileCol * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+          // Procedural Rich Terrain Variety (Clustered Wildflowers, Clovers, Shaded Moss, Pebbles)
+          const gTile = getGroundTile(tx, ty);
+          ctx.drawImage(tileset, gTile.col * TILE_SIZE, gTile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
         }
       }
 
@@ -1141,9 +1367,13 @@ export default function PixelWorldCanvas({
         render: () => {
           const sx = 15 * TILE_SIZE;
           const sy = 21 * TILE_SIZE;
+          // Pegboard tool rack & saw
           ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx, sy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + TILE_SIZE, sy, TILE_SIZE, TILE_SIZE);
+          // Heavy iron anvil on stump
           ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + 2 * TILE_SIZE, sy + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Split firewood pile & tool barrel
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx - 1 * TILE_SIZE, sy + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         },
       });
 
@@ -1153,20 +1383,107 @@ export default function PixelWorldCanvas({
         render: () => {
           const px = 48 * TILE_SIZE;
           const py = 24 * TILE_SIZE;
+          // Perched bluebird Wren on wooden post
           ctx.drawImage(tileset, 7 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, px, py, TILE_SIZE, TILE_SIZE);
+          // Directional road signpost
           ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, px - TILE_SIZE, py, TILE_SIZE, TILE_SIZE);
+          // Circular poppy flowerbed
+          ctx.drawImage(tileset, 2 * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, px + TILE_SIZE, py, TILE_SIZE, TILE_SIZE);
         },
       });
 
-      // ── 11. Environmental Props: Street Lanterns, Benches, Shrubbery ──
-      // Central Plaza Street Lanterns
-      const plazaLanterns = [
+      // ── 10b. Archive Cellar Ancient Woodland Props (tx: 12, ty: 33) ──
+      renderables.push({
+        y: 34 * TILE_SIZE + 2,
+        render: () => {
+          // Leather-bound bookstacks on cedar barrel (left of steps)
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 10 * TILE_SIZE, 33 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Ancient mossy river boulders (right of steps)
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 14 * TILE_SIZE, 33 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Red woodland amanita mushroom cluster
+          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 10 * TILE_SIZE, 34 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Wooden road signpost pointing down West Archive Way
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 13 * TILE_SIZE, 34 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── 10c. Bell Tower Rose Planters & Stone Benches (tx: 32, ty: 14) ──
+      renderables.push({
+        y: 15 * TILE_SIZE,
+        render: () => {
+          // Flanking rose planters
+          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 30 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 34 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Stone resting benches
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 30 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 34 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── 10d. Bank Courtyard Topiaries & Urns (tx: 50, ty: 14) ──
+      renderables.push({
+        y: 15 * TILE_SIZE,
+        render: () => {
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 47 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 53 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── 10e. Festival Grounds Bunting & Benches (tx: 16, ty: 51) ──
+      renderables.push({
+        y: 52 * TILE_SIZE,
+        render: () => {
+          // Festive fabric bunting across entrance
+          ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 15 * TILE_SIZE, 50 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 17 * TILE_SIZE, 50 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Side spectator benches
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 13 * TILE_SIZE, 52 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 19 * TILE_SIZE, 52 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── 10f. Moonlight Cinema Brass Projector & Seating (tx: 48, ty: 51) ──
+      renderables.push({
+        y: 52 * TILE_SIZE,
+        render: () => {
+          // Brass film projector on wooden tripod
+          ctx.drawImage(tileset, 3 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 48 * TILE_SIZE, 52 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Flanking log benches with cozy blankets
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 45 * TILE_SIZE, 51 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 51 * TILE_SIZE, 51 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── 10g. Woodland Pond Scenic Benches (tx: 32, ty: 40) ──
+      renderables.push({
+        y: 40 * TILE_SIZE,
+        render: () => {
+          // Resting benches overlooking water
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 29 * TILE_SIZE, 39 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 35 * TILE_SIZE, 39 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── 11. Environmental Props: Street Lanterns, Benches, Shrubbery, Signposts ──
+      const camMinX = cam.x - viewW / 2 - 64;
+      const camMaxX = cam.x + viewW / 2 + 64;
+      const camMinY = cam.y - viewH / 2 - 64;
+      const camMaxY = cam.y + viewH / 2 + 64;
+
+      // Street Lanterns (Central Plaza, Avenues, Landmark Entrances, Bridgeheads)
+      const streetLanterns = [
         { x: 28, y: 28 }, { x: 36, y: 28 },
         { x: 28, y: 36 }, { x: 36, y: 36 },
         { x: 47, y: 14 }, { x: 53, y: 14 }, // Bank lanterns
         { x: 31, y: 14 }, { x: 33, y: 14 }, // Bell Tower lanterns
+        { x: 10, y: 33 }, { x: 14, y: 33 }, // Archive lanterns
+        { x: 14, y: 51 }, { x: 18, y: 51 }, // Festival lanterns
+        { x: 46, y: 51 }, { x: 50, y: 51 }, // Cinema lanterns
+        { x: 31, y: 40 }, { x: 33, y: 40 }, // Bridgehead lanterns (north)
+        { x: 31, y: 43 }, { x: 33, y: 43 }, // Bridgehead lanterns (south)
       ];
-      plazaLanterns.forEach((lp) => {
+      streetLanterns.forEach((lp) => {
+        if (viewW < 1000 && (lp.x * TILE_SIZE < camMinX || lp.x * TILE_SIZE > camMaxX || lp.y * TILE_SIZE < camMinY || lp.y * TILE_SIZE > camMaxY)) return;
         renderables.push({
           y: (lp.y + 1) * TILE_SIZE,
           render: () => {
@@ -1176,11 +1493,12 @@ export default function PixelWorldCanvas({
       });
 
       // Central Plaza Wooden Benches
-      const benches = [
+      const plazaBenches = [
         { x: 30, y: 31 }, { x: 34, y: 31 },
-        { x: 30, y: 13 }, { x: 34, y: 13 },
+        { x: 30, y: 33 }, { x: 34, y: 33 },
       ];
-      benches.forEach((bp) => {
+      plazaBenches.forEach((bp) => {
+        if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
         renderables.push({
           y: (bp.y + 1) * TILE_SIZE,
           render: () => {
@@ -1189,12 +1507,32 @@ export default function PixelWorldCanvas({
         });
       });
 
-      // Central Plaza & Clearing Berry Bushes
+      // Central Plaza Four Corner Flower Beds with Stone Planters
+      const flowerBeds = [
+        { x: 29, y: 29 }, { x: 35, y: 29 },
+        { x: 29, y: 35 }, { x: 35, y: 35 },
+      ];
+      flowerBeds.forEach((fb) => {
+        if (viewW < 1000 && (fb.x * TILE_SIZE < camMinX || fb.x * TILE_SIZE > camMaxX || fb.y * TILE_SIZE < camMinY || fb.y * TILE_SIZE > camMaxY)) return;
+        renderables.push({
+          y: (fb.y + 1) * TILE_SIZE,
+          render: () => {
+            ctx.drawImage(tileset, 2 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fb.x * TILE_SIZE, fb.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          },
+        });
+      });
+
+      // Flowering Berry Bushes (Plaza & Clearing Margins)
       const bushes = [
         { x: 29, y: 32 }, { x: 35, y: 32 },
+        { x: 30, y: 35 }, { x: 34, y: 35 },
         { x: 13, y: 23 }, { x: 47, y: 23 },
+        { x: 27, y: 41 }, { x: 37, y: 41 }, // Pond shoreline shrubs
+        { x: 13, y: 47 }, { x: 19, y: 47 }, // Festival shrubs
+        { x: 45, y: 47 }, { x: 51, y: 47 }, // Cinema shrubs
       ];
       bushes.forEach((bp) => {
+        if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
         renderables.push({
           y: (bp.y + 1) * TILE_SIZE,
           render: () => {
@@ -1203,60 +1541,102 @@ export default function PixelWorldCanvas({
         });
       });
 
-      // ── 12. Zone A & Environmental Trees ──
-      // Distinct woodland trees framing the clearings and borders
-      const trees = [
-        // Oak trees (type: 'oak', canopy at x, y-1; trunk at x, y)
-        { x: 9, y: 10, type: 'oak' },
-        { x: 18, y: 10, type: 'oak' },
-        { x: 8, y: 31, type: 'oak' },
-        { x: 26, y: 22, type: 'oak' },
-        { x: 38, y: 22, type: 'oak' },
-        { x: 10, y: 44, type: 'oak' },
-        { x: 54, y: 44, type: 'oak' },
-        // Cherry blossoms (type: 'blossom')
-        { x: 9, y: 34, type: 'blossom' },
-        { x: 24, y: 12, type: 'blossom' },
-        { x: 40, y: 12, type: 'blossom' },
-        // Pines (type: 'pine')
-        { x: 29, y: 9, type: 'pine' },
-        { x: 35, y: 9, type: 'pine' },
-        { x: 18, y: 21, type: 'pine' },
-        { x: 44, y: 10, type: 'pine' },
-        { x: 56, y: 10, type: 'pine' },
-        { x: 22, y: 48, type: 'pine' },
-        { x: 42, y: 48, type: 'pine' },
-        // Outer forest boundary accents (North, South, West, East)
-        { x: 6, y: 5, type: 'oak' }, { x: 14, y: 5, type: 'pine' }, { x: 22, y: 5, type: 'oak' },
-        { x: 42, y: 5, type: 'pine' }, { x: 50, y: 5, type: 'oak' }, { x: 58, y: 5, type: 'pine' },
-        { x: 5, y: 16, type: 'pine' }, { x: 5, y: 26, type: 'oak' }, { x: 5, y: 40, type: 'pine' }, { x: 5, y: 52, type: 'oak' },
-        { x: 58, y: 16, type: 'oak' }, { x: 58, y: 26, type: 'pine' }, { x: 58, y: 40, type: 'oak' }, { x: 58, y: 52, type: 'pine' },
-        { x: 8, y: 57, type: 'pine' }, { x: 24, y: 57, type: 'oak' }, { x: 40, y: 57, type: 'pine' }, { x: 54, y: 57, type: 'oak' },
+      // Directional Road Signposts
+      const signposts = [
+        { x: 30, y: 27 }, // North Belfry Avenue exit
+        { x: 30, y: 37 }, // South Pond exit
       ];
+      signposts.forEach((sp) => {
+        renderables.push({
+          y: (sp.y + 1) * TILE_SIZE,
+          render: () => {
+            ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sp.x * TILE_SIZE, sp.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          },
+        });
+      });
 
-      trees.forEach((tr) => {
+      // ── 12a. Forest Environmental Props (Fallen logs, Mossy boulders, Mushrooms) ──
+      FOREST_PROPS.forEach((prop) => {
+        if (viewW < 1000 && (prop.x * TILE_SIZE < camMinX || prop.x * TILE_SIZE > camMaxX || prop.y * TILE_SIZE < camMinY || prop.y * TILE_SIZE > camMaxY)) {
+          return;
+        }
+        if (prop.type === 'log') {
+          const logImg = state.images.fallen_log;
+          renderables.push({
+            y: (prop.y + 1) * TILE_SIZE,
+            render: () => {
+              if (logImg) {
+                ctx.drawImage(logImg, prop.x * TILE_SIZE - 8, prop.y * TILE_SIZE, 32, 16);
+              }
+            },
+          });
+        } else if (prop.type === 'rock') {
+          const rockImg = state.images.rock_moss;
+          renderables.push({
+            y: (prop.y + 1) * TILE_SIZE,
+            render: () => {
+              if (rockImg) {
+                ctx.drawImage(rockImg, prop.x * TILE_SIZE, prop.y * TILE_SIZE, 16, 16);
+              }
+            },
+          });
+        } else if (prop.type === 'mushrooms') {
+          const mushImg = state.images.mushrooms;
+          renderables.push({
+            y: (prop.y + 1) * TILE_SIZE,
+            render: () => {
+              if (mushImg) {
+                ctx.drawImage(mushImg, prop.x * TILE_SIZE, prop.y * TILE_SIZE, 16, 16);
+              }
+            },
+          });
+        }
+      });
+
+      // ── 12b. Dense Forest Trees (Perimeter Woodland Band + Internal Groves) ──
+      FOREST_TREES.forEach((tr) => {
+        // Viewport culling (skip trees far off camera, but draw all when capturing full map)
+        if (viewW < 1000 && (tr.x * TILE_SIZE < camMinX || tr.x * TILE_SIZE > camMaxX || tr.y * TILE_SIZE < camMinY || tr.y * TILE_SIZE > camMaxY)) {
+          return;
+        }
+
         if (tr.type === 'pine') {
+          const pineImg = state.images.tree_pine;
           renderables.push({
             y: (tr.y + 1) * TILE_SIZE,
             render: () => {
-              ctx.drawImage(tileset, 4 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              if (pineImg) {
+                ctx.drawImage(pineImg, tr.x * TILE_SIZE - 8, tr.y * TILE_SIZE - 32, 32, 48);
+              } else {
+                ctx.drawImage(tileset, 4 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              }
             },
           });
         } else if (tr.type === 'blossom') {
+          const blossomImg = state.images.tree_blossom;
           renderables.push({
             y: (tr.y + 1) * TILE_SIZE,
             render: () => {
-              ctx.drawImage(tileset, 2 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, (tr.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              ctx.drawImage(tileset, 3 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              if (blossomImg) {
+                ctx.drawImage(blossomImg, tr.x * TILE_SIZE - 8, tr.y * TILE_SIZE - 32, 32, 48);
+              } else {
+                ctx.drawImage(tileset, 2 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, (tr.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.drawImage(tileset, 3 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              }
             },
           });
         } else {
           // Oak
+          const oakImg = state.images.tree_oak;
           renderables.push({
             y: (tr.y + 1) * TILE_SIZE,
             render: () => {
-              ctx.drawImage(tileset, 0, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, (tr.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              ctx.drawImage(tileset, 1 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              if (oakImg) {
+                ctx.drawImage(oakImg, tr.x * TILE_SIZE - 8, tr.y * TILE_SIZE - 32, 32, 48);
+              } else {
+                ctx.drawImage(tileset, 0, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, (tr.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.drawImage(tileset, 1 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              }
             },
           });
         }

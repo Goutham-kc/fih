@@ -165,3 +165,20 @@ The Pixel Valley overworld map is structured on a **64 × 64 tile grid** (1024 �
 - **World Rendering:** Scaled to 76×90 world px (placed at world coordinates x: 154, y: 450)
 - **Features:** Weathered cut-stone masonry with moss accents, pitched terracotta tiled roof with decorative gable ridge, circular attic window, carved wooden signboard featuring an open book and quill insignia, arched double timber doors with forged iron hinges and warm golden interior light, wide stone steps, flanking iron lanterns, leather-bound book stacks, wooden barrels, and blooming flower planters.
 - **Interactive Role:** Chapter 7: The Archive Cellar (The Chronicle & Audit Log / Audit). Front entrance doorstep pad at world position `(12 * 16, 33 * 16)` facing West Archive Way.
+
+---
+
+## 4. Woodland Trees & Environmental Prop Sprites (`/public/assets/trees/`)
+
+Dedicated 16-bit RPG woodland vegetation and environmental clutter sprites designed for natural perimeter forest density and organic village landscaping.
+
+### Asset Registry:
+| Asset | File | Dimensions | Rendering Offset | Description |
+|:---|:---|:---|:---|:---|
+| **Large Oak Tree** | `oak_large.png` | 32×48 px (2×3 tiles) | `x - 8, y - 32` | Broad leafy oak canopy with organic multi-lobed foliage clusters, layered shadow/sunlit leaves, sturdy gnarled trunk with roots, and ground drop shadow. Overlaps across 2-tile grid spacing to create continuous woodland canopy banks. |
+| **Large Pine Conifer** | `pine_large.png` | 32×48 px (2×3 tiles) | `x - 8, y - 32` | Majestic conifer evergreen pine with four stepped conical needle tiers, rich forest emerald palette, textured wood trunk, and soft base shadow. |
+| **Large Cherry Blossom** | `blossom_large.png` | 32×48 px (2×3 tiles) | `x - 8, y - 32` | Billowy flowering cherry blossom tree with vibrant magenta and petal-pink canopy clusters, dark cherry bark trunk, and romantic woodland atmosphere. |
+| **Fallen Mossy Log** | `fallen_log.png` | 32×16 px (2×1 tiles) | `x - 8, y` | Weathered fallen tree trunk with cut end growth rings, bark ridges, verdant moss mantle draping the top curve, and a tiny red sprout mushroom. |
+| **Mossy River Boulder** | `rock_moss.png` | 16×16 px (1×1 tile) | `x, y` | Rounded ancient river stone with slate blue contours, specular highlights, and lush moss cap on upper crest. |
+| **Amanita Mushrooms** | `mushrooms.png` | 16×16 px (1×1 tile) | `x, y` | Cluster of three woodland amanita mushrooms with vibrant red domed caps, white spots, cream stalks, and ground shadow. |
+

@@ -22,13 +22,19 @@ const bellTowerBase64 = fs.readFileSync('public/assets/buildings/bell_tower.png'
 const festivalGroundsBase64 = fs.readFileSync('public/assets/buildings/festival_grounds.png').toString('base64');
 const moonlightCinemaBase64 = fs.readFileSync('public/assets/buildings/moonlight_cinema.png').toString('base64');
 const archiveCellarBase64 = fs.readFileSync('public/assets/buildings/archive_cellar.png').toString('base64');
+const oakLargeBase64 = fs.readFileSync('public/assets/trees/oak_large.png').toString('base64');
+const pineLargeBase64 = fs.readFileSync('public/assets/trees/pine_large.png').toString('base64');
+const blossomLargeBase64 = fs.readFileSync('public/assets/trees/blossom_large.png').toString('base64');
+const fallenLogBase64 = fs.readFileSync('public/assets/trees/fallen_log.png').toString('base64');
+const rockMossBase64 = fs.readFileSync('public/assets/trees/rock_moss.png').toString('base64');
+const mushroomsBase64 = fs.readFileSync('public/assets/trees/mushrooms.png').toString('base64');
 
-function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
+function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false, fullMap = false }) {
   const currentTab = isMobile ? (activeTab || 'todos') : activeTab;
   const isOverworld = !currentTab;
   const effectivePanelOnly = isMobile ? true : panelOnly;
-  const showDialogue = !effectivePanelOnly && (currentTab !== null || (!hasInteracted && isOverworld) || nearbyBuilding !== null);
-  const hudGuide = activeTab ? null : (!hasInteracted ? '🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only' : (nearbyBuilding ? '🚪 [E] Enter • [P] Panel Only' : null));
+  const showDialogue = !fullMap && !effectivePanelOnly && (currentTab !== null || (!hasInteracted && isOverworld) || nearbyBuilding !== null);
+  const hudGuide = fullMap || activeTab ? null : (!hasInteracted ? '🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only' : (nearbyBuilding ? '🚪 [E] Enter • [P] Panel Only' : null));
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -317,6 +323,12 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const festivalGroundsImg = new Image();
       const moonlightCinemaImg = new Image();
       const archiveCellarImg = new Image();
+      const oakLargeImg = new Image();
+      const pineLargeImg = new Image();
+      const blossomLargeImg = new Image();
+      const fallenLogImg = new Image();
+      const rockMossImg = new Image();
+      const mushroomsImg = new Image();
 
       tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
       pipImg.src = 'data:image/png;base64,${pipBase64}';
@@ -328,11 +340,17 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       festivalGroundsImg.src = 'data:image/png;base64,${festivalGroundsBase64}';
       moonlightCinemaImg.src = 'data:image/png;base64,${moonlightCinemaBase64}';
       archiveCellarImg.src = 'data:image/png;base64,${archiveCellarBase64}';
+      oakLargeImg.src = 'data:image/png;base64,${oakLargeBase64}';
+      pineLargeImg.src = 'data:image/png;base64,${pineLargeBase64}';
+      blossomLargeImg.src = 'data:image/png;base64,${blossomLargeBase64}';
+      fallenLogImg.src = 'data:image/png;base64,${fallenLogBase64}';
+      rockMossImg.src = 'data:image/png;base64,${rockMossBase64}';
+      mushroomsImg.src = 'data:image/png;base64,${mushroomsBase64}';
 
       let loaded = 0;
       function checkLoaded() {
         loaded++;
-        if (loaded === 10) drawWorld();
+        if (loaded === 16) drawWorld();
       }
       tilesetImg.onload = checkLoaded;
       pipImg.onload = checkLoaded;
@@ -344,8 +362,14 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       festivalGroundsImg.onload = checkLoaded;
       moonlightCinemaImg.onload = checkLoaded;
       archiveCellarImg.onload = checkLoaded;
+      oakLargeImg.onload = checkLoaded;
+      pineLargeImg.onload = checkLoaded;
+      blossomLargeImg.onload = checkLoaded;
+      fallenLogImg.onload = checkLoaded;
+      rockMossImg.onload = checkLoaded;
+      mushroomsImg.onload = checkLoaded;
 
-      const scale = ${isMobile ? 3 : 4};
+      const scale = ${fullMap ? 1 : (isMobile ? 3 : 4)};
       const TILE_SIZE = 16;
       const MAP_W = 64;
       const MAP_H = 64;
@@ -361,12 +385,245 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 16*16, by: 20*16-6 },
       ];
 
+      function isVillageCobble(tx, ty) {
+        if (tx >= 28 && tx <= 36 && ty >= 28 && ty <= 36) return true;
+        if (tx >= 48 && tx <= 52 && ty >= 13 && ty <= 15) return true;
+        if (tx >= 30 && tx <= 34 && ty >= 13 && ty <= 15) return true;
+        if (tx >= 13 && tx <= 15 && ty >= 13 && ty <= 15) return true;
+        if (tx >= 11 && tx <= 13 && ty >= 32 && ty <= 34) return true;
+        if (tx >= 15 && tx <= 17 && ty >= 22 && ty <= 24) return true;
+        if (tx >= 31 && tx <= 33 && ty >= 35 && ty <= 37) return true;
+        if (tx >= 15 && tx <= 17 && ty >= 50 && ty <= 52) return true;
+        if (tx >= 47 && tx <= 49 && ty >= 50 && ty <= 52) return true;
+        if (tx === 32 && ty >= 40 && ty <= 43) return true;
+        return false;
+      }
+
+      function isVillagePath(tx, ty) {
+        if (tx >= 31 && tx <= 32 && ty >= 14 && ty <= 28) return true;
+        if (tx >= 12 && tx <= 28 && ty >= 32 && ty <= 33) return true;
+        if (tx >= 31 && tx <= 32 && ty >= 36 && ty <= 40) return true;
+        if (ty >= 20 && ty <= 21 && tx >= 14 && tx <= 28) return true;
+        if (tx >= 27 && tx <= 28 && ty >= 21 && ty <= 28) return true;
+        if (tx >= 14 && tx <= 15 && ty >= 14 && ty <= 21) return true;
+        if (ty >= 20 && ty <= 21 && tx >= 36 && tx <= 50) return true;
+        if (tx >= 36 && tx <= 37 && ty >= 21 && ty <= 28) return true;
+        if (tx >= 49 && tx <= 50 && ty >= 14 && ty <= 21) return true;
+        if (tx >= 27 && tx <= 28 && ty >= 36 && ty <= 44) return true;
+        if (ty >= 44 && ty <= 45 && tx >= 16 && tx <= 28) return true;
+        if (tx >= 16 && tx <= 17 && ty >= 45 && ty <= 51) return true;
+        if (tx >= 36 && tx <= 37 && ty >= 36 && ty <= 44) return true;
+        if (ty >= 44 && ty <= 45 && tx >= 36 && tx <= 48) return true;
+        if (tx >= 47 && tx <= 48 && ty >= 45 && ty <= 51) return true;
+        if (tx >= 15 && tx <= 16 && ty >= 21 && ty <= 24) return true;
+        if (tx >= 47 && tx <= 48 && ty >= 21 && ty <= 25) return true;
+        if (tx >= 31 && tx <= 32 && ty >= 43 && ty <= 48) return true;
+        return false;
+      }
+
+      function isGround(tx, ty) {
+        return isVillagePath(tx, ty) || isVillageCobble(tx, ty);
+      }
+
+      function getPathTileInfo(tx, ty) {
+        const isCobble = isVillageCobble(tx, ty);
+        const isPath = isVillagePath(tx, ty);
+        if (!isCobble && !isPath) return null;
+        if (isCobble) {
+          const upGrass = !isGround(tx, ty - 1);
+          const downGrass = !isGround(tx, ty + 1);
+          if (upGrass && !downGrass) return { col: 6, row: 6 };
+          if (downGrass && !upGrass) return { col: 7, row: 6 };
+          return { col: 4, row: 1 };
+        }
+        const upGrass = !isGround(tx, ty - 1);
+        const downGrass = !isGround(tx, ty + 1);
+        const leftGrass = !isGround(tx - 1, ty);
+        const rightGrass = !isGround(tx + 1, ty);
+        if (upGrass && leftGrass) return { col: 2, row: 6 };
+        if (upGrass && rightGrass) return { col: 3, row: 6 };
+        if (downGrass && leftGrass) return { col: 4, row: 6 };
+        if (downGrass && rightGrass) return { col: 5, row: 6 };
+        if (upGrass) return { col: 5, row: 0 };
+        if (downGrass) return { col: 6, row: 0 };
+        if (leftGrass) return { col: 0, row: 6 };
+        if (rightGrass) return { col: 1, row: 6 };
+        return { col: 4, row: 0 };
+      }
+
+      function hash2D(x, y, seed = 12345) {
+        let h = (x * 374761393 + y * 668265263 + seed) ^ 0x5bf03635;
+        h = Math.imul(h ^ (h >>> 13), 1274126177);
+        return (h ^ (h >>> 16)) >>> 0;
+      }
+
+      function getGroundTile(tx, ty) {
+        const distPondX = Math.max(0, Math.max(30 - tx, tx - 34));
+        const distPondY = Math.max(0, Math.max(40 - ty, ty - 43));
+        if (distPondX <= 2 && distPondY <= 2 && (distPondX > 0 || distPondY > 0)) {
+          const h = hash2D(tx, ty, 101);
+          if (h % 3 === 0) return { col: 3, row: 0 };
+          if (h % 3 === 1) return { col: 1, row: 0 };
+          return { col: 0, row: 0 };
+        }
+        if (tx >= 8 && tx <= 16 && ty >= 28 && ty <= 36) {
+          const h = hash2D(tx, ty, 202);
+          if (h % 4 === 0) return { col: 3, row: 0 };
+          if (h % 4 === 1) return { col: 1, row: 0 };
+          return { col: 0, row: 0 };
+        }
+        if ((tx >= 12 && tx <= 22 && ty >= 45 && ty <= 54) || (tx >= 42 && tx <= 54 && ty >= 45 && ty <= 54)) {
+          const h = hash2D(tx, ty, 303);
+          if (h % 5 === 0) return { col: 2, row: 0 };
+          if (h % 5 === 1) return { col: 1, row: 0 };
+          return { col: 0, row: 0 };
+        }
+        if (tx >= 9 && tx <= 18 && ty >= 12 && ty <= 18) {
+          const h = hash2D(tx, ty, 404);
+          if (h % 6 === 0) return { col: 7, row: 0 };
+          if (h % 6 === 1) return { col: 1, row: 0 };
+          return { col: 0, row: 0 };
+        }
+        const clumpNoise = hash2D(Math.floor(tx / 3), Math.floor(ty / 3), 505);
+        const detailNoise = hash2D(tx, ty, 606);
+        if (clumpNoise % 7 === 0) {
+          return (detailNoise % 2 === 0) ? { col: 2, row: 0 } : { col: 1, row: 0 };
+        }
+        if (clumpNoise % 9 === 0) {
+          return (detailNoise % 2 === 0) ? { col: 3, row: 0 } : { col: 0, row: 0 };
+        }
+        if (detailNoise % 8 === 0) {
+          return { col: 1, row: 0 };
+        }
+        return { col: 0, row: 0 };
+      }
+
+      function generateForestTrees() {
+        const trees = [];
+        const occupied = new Set();
+        const BUILDING_RESERVES = [
+          { minX: 10, maxX: 18, minY: 9, maxY: 16 },
+          { minX: 46, maxX: 54, minY: 9, maxY: 16 },
+          { minX: 29, maxX: 35, minY: 7, maxY: 15 },
+          { minX: 29, maxX: 35, minY: 32, maxY: 37 },
+          { minX: 11, maxX: 21, minY: 43, maxY: 53 },
+          { minX: 43, maxX: 53, minY: 43, maxY: 53 },
+          { minX: 8, maxX: 16, minY: 27, maxY: 35 },
+          { minX: 13, maxX: 19, minY: 19, maxY: 25 },
+          { minX: 29, maxX: 35, minY: 39, maxY: 44 },
+          { minX: 26, maxX: 38, minY: 26, maxY: 38 },
+          { minX: 46, maxX: 50, minY: 22, maxY: 26 },
+        ];
+        function isClear(tx, ty, is2Tile) {
+          if (tx < 1 || tx > 62 || ty < 1 || ty > 62) return false;
+          const minY = is2Tile ? -2 : -1;
+          for (let dy = minY; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const cx = tx + dx, cy = ty + dy;
+              if (cx >= 0 && cx <= 63 && cy >= 0 && cy <= 63) {
+                if (isGround(cx, cy)) return false;
+                for (const b of BUILDING_RESERVES) {
+                  if (cx >= b.minX && cx <= b.maxX && cy >= b.minY && cy <= b.maxY) return false;
+                }
+              }
+            }
+          }
+          return true;
+        }
+        function addTree(x, y, type) {
+          const is2Tile = type === 'oak' || type === 'blossom';
+          if (!isClear(x, y, is2Tile)) return false;
+          const key = x + ',' + y;
+          if (occupied.has(key)) return false;
+          occupied.add(key);
+          occupied.add(x + ',' + (y - 1));
+          occupied.add(x + ',' + (y + 1));
+          trees.push({ x, y, type });
+          return true;
+        }
+        for (let y = 1; y <= 6; y += 2) {
+          for (let x = 1; x <= 62; x += 2) {
+            const r = hash2D(x, y) % 3;
+            addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+          }
+        }
+        for (let y = 57; y <= 62; y += 2) {
+          for (let x = 1; x <= 62; x += 2) {
+            const r = hash2D(x, y) % 3;
+            addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+          }
+        }
+        for (let y = 7; y <= 56; y += 2) {
+          for (let x = 1; x <= 6; x += 2) {
+            const r = hash2D(x, y) % 3;
+            addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+          }
+          for (let x = 57; x <= 62; x += 2) {
+            const r = hash2D(x, y) % 3;
+            addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+          }
+        }
+        const internalGroves = [
+          { minX: 19, maxX: 27, minY: 7, maxY: 17 }, // Northwest Grove (between Farmstead & Bell Tower)
+          { minX: 37, maxX: 45, minY: 7, maxY: 17 }, // Northeast Grove (between Bell Tower & Bank)
+          { minX: 19, maxX: 27, minY: 18, maxY: 25 }, // Grove East of Toolshed
+          { minX: 37, maxX: 45, minY: 18, maxY: 27 }, // Grove Northeast of Plaza
+          { minX: 6, maxX: 11, minY: 23, maxY: 28 }, // West Central Grove (south of Toolshed, north of Archive)
+          { minX: 6, maxX: 12, minY: 36, maxY: 44 }, // Southwest Deep Woods (south of Archive, west of Festival)
+          { minX: 20, maxX: 27, minY: 35, maxY: 44 }, // Woods Southwest of Central Plaza
+          { minX: 37, maxX: 44, minY: 35, maxY: 44 }, // Woods Southeast of Central Plaza
+          { minX: 24, maxX: 28, minY: 39, maxY: 44 }, // Pond West Wooded Bank
+          { minX: 36, maxX: 40, minY: 39, maxY: 44 }, // Pond East Wooded Bank
+          { minX: 20, maxX: 25, minY: 46, maxY: 54 }, // Woods between Festival & Pond
+          { minX: 39, maxX: 44, minY: 46, maxY: 54 }, // Woods between Pond & Cinema
+          { minX: 52, maxX: 56, minY: 18, maxY: 44 }, // East Woodland Band (behind Sky Post down to Cinema)
+        ];
+        for (const g of internalGroves) {
+          for (let y = g.minY; y <= g.maxY; y += 2) {
+            for (let x = g.minX; x <= g.maxX; x += 2) {
+              const r = hash2D(x, y, 999) % 5;
+              if (r !== 4) {
+                addTree(x, y, r === 0 || r === 3 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+              }
+            }
+          }
+        }
+        return trees;
+      }
+      const FOREST_TREES = generateForestTrees();
+      const FOREST_PROPS = [
+        { x: 29, y: 40, type: 'rock' },
+        { x: 35, y: 40, type: 'rock' },
+        { x: 28, y: 43, type: 'rock' },
+        { x: 36, y: 43, type: 'rock' },
+        { x: 9, y: 31, type: 'rock' },
+        { x: 15, y: 31, type: 'rock' },
+        { x: 10, y: 35, type: 'rock' },
+        { x: 20, y: 6, type: 'log' },
+        { x: 44, y: 6, type: 'log' },
+        { x: 7, y: 22, type: 'log' },
+        { x: 7, y: 44, type: 'log' },
+        { x: 57, y: 20, type: 'log' },
+        { x: 57, y: 46, type: 'log' },
+        { x: 26, y: 46, type: 'log' },
+        { x: 38, y: 46, type: 'log' },
+        { x: 8, y: 34, type: 'mushrooms' },
+        { x: 16, y: 34, type: 'mushrooms' },
+        { x: 22, y: 15, type: 'mushrooms' },
+        { x: 42, y: 15, type: 'mushrooms' },
+        { x: 26, y: 43, type: 'mushrooms' },
+        { x: 38, y: 43, type: 'mushrooms' },
+        { x: 53, y: 27, type: 'mushrooms' },
+        { x: 23, y: 50, type: 'mushrooms' },
+        { x: 41, y: 50, type: 'mushrooms' },
+      ];
+
       function drawWorld() {
         const viewW = Math.floor(canvas.width / scale);
         const viewH = Math.floor(canvas.height / scale);
 
-        const camX = ${isOverworld ? pipPos.x : 50 * 16};
-        const camY = ${isOverworld ? pipPos.y : 14 * 16};
+        const camX = ${fullMap ? 32 * 16 : (isOverworld ? pipPos.x : 50 * 16)};
+        const camY = ${fullMap ? 32 * 16 : (isOverworld ? pipPos.y : 14 * 16)};
 
         ctx.save();
         ctx.scale(scale, scale);
@@ -374,72 +631,6 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         const offsetX = Math.floor(viewW / 2 - camX);
         const offsetY = Math.floor(viewH / 2 - camY);
         ctx.translate(offsetX, offsetY);
-
-        function isVillageCobble(tx, ty) {
-          if (tx >= 28 && tx <= 36 && ty >= 28 && ty <= 36) return true;
-          if (tx >= 48 && tx <= 52 && ty >= 13 && ty <= 15) return true;
-          if (tx >= 30 && tx <= 34 && ty >= 13 && ty <= 15) return true;
-          if (tx >= 13 && tx <= 15 && ty >= 13 && ty <= 15) return true;
-          if (tx >= 11 && tx <= 13 && ty >= 32 && ty <= 34) return true;
-          if (tx >= 15 && tx <= 17 && ty >= 22 && ty <= 24) return true;
-          if (tx >= 31 && tx <= 33 && ty >= 35 && ty <= 37) return true;
-          if (tx >= 15 && tx <= 17 && ty >= 50 && ty <= 52) return true;
-          if (tx >= 47 && tx <= 49 && ty >= 50 && ty <= 52) return true;
-          if (tx === 32 && ty >= 40 && ty <= 43) return true;
-          return false;
-        }
-
-        function isVillagePath(tx, ty) {
-          if (tx >= 31 && tx <= 32 && ty >= 14 && ty <= 28) return true;
-          if (tx >= 12 && tx <= 28 && ty >= 32 && ty <= 33) return true;
-          if (tx >= 31 && tx <= 32 && ty >= 36 && ty <= 40) return true;
-          if (ty >= 20 && ty <= 21 && tx >= 14 && tx <= 28) return true;
-          if (tx >= 27 && tx <= 28 && ty >= 21 && ty <= 28) return true;
-          if (tx >= 14 && tx <= 15 && ty >= 14 && ty <= 21) return true;
-          if (ty >= 20 && ty <= 21 && tx >= 36 && tx <= 50) return true;
-          if (tx >= 36 && tx <= 37 && ty >= 21 && ty <= 28) return true;
-          if (tx >= 49 && tx <= 50 && ty >= 14 && ty <= 21) return true;
-          if (tx >= 27 && tx <= 28 && ty >= 36 && ty <= 44) return true;
-          if (ty >= 44 && ty <= 45 && tx >= 16 && tx <= 28) return true;
-          if (tx >= 16 && tx <= 17 && ty >= 45 && ty <= 51) return true;
-          if (tx >= 36 && tx <= 37 && ty >= 36 && ty <= 44) return true;
-          if (ty >= 44 && ty <= 45 && tx >= 36 && tx <= 48) return true;
-          if (tx >= 47 && tx <= 48 && ty >= 45 && ty <= 51) return true;
-          if (tx >= 15 && tx <= 16 && ty >= 21 && ty <= 24) return true;
-          if (tx >= 47 && tx <= 48 && ty >= 21 && ty <= 25) return true;
-          if (tx >= 31 && tx <= 32 && ty >= 43 && ty <= 48) return true;
-          return false;
-        }
-
-        function isGround(tx, ty) {
-          return isVillagePath(tx, ty) || isVillageCobble(tx, ty);
-        }
-
-        function getPathTileInfo(tx, ty) {
-          const isCobble = isVillageCobble(tx, ty);
-          const isPath = isVillagePath(tx, ty);
-          if (!isCobble && !isPath) return null;
-          if (isCobble) {
-            const upGrass = !isGround(tx, ty - 1);
-            const downGrass = !isGround(tx, ty + 1);
-            if (upGrass && !downGrass) return { col: 6, row: 6 };
-            if (downGrass && !upGrass) return { col: 7, row: 6 };
-            return { col: 4, row: 1 };
-          }
-          const upGrass = !isGround(tx, ty - 1);
-          const downGrass = !isGround(tx, ty + 1);
-          const leftGrass = !isGround(tx - 1, ty);
-          const rightGrass = !isGround(tx + 1, ty);
-          if (upGrass && leftGrass) return { col: 2, row: 6 };
-          if (upGrass && rightGrass) return { col: 3, row: 6 };
-          if (downGrass && leftGrass) return { col: 4, row: 6 };
-          if (downGrass && rightGrass) return { col: 5, row: 6 };
-          if (upGrass) return { col: 5, row: 0 };
-          if (downGrass) return { col: 6, row: 0 };
-          if (leftGrass) return { col: 0, row: 6 };
-          if (rightGrass) return { col: 1, row: 6 };
-          return { col: 4, row: 0 };
-        }
 
         // Layer 1: Ground
         for (let ty = 0; ty < MAP_H; ty++) {
@@ -459,8 +650,8 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
               ctx.drawImage(tilesetImg, pTile.col * 16, pTile.row * 16, 16, 16, tx * 16, ty * 16, 16, 16);
               continue;
             }
-            let tileCol = (tx * 7 + ty * 13) % 4;
-            ctx.drawImage(tilesetImg, tileCol * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
+            const gTile = getGroundTile(tx, ty);
+            ctx.drawImage(tilesetImg, gTile.col * 16, gTile.row * 16, 16, 16, tx * 16, ty * 16, 16, 16);
           }
         }
 
@@ -590,8 +781,11 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         renderables.push({
           y: 23 * 16,
           render: () => {
-            ctx.drawImage(tilesetImg, 6 * 16, 32, 16, 16, 15 * 16, 21 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 6 * 16, 48, 16, 16, 17 * 16, 22 * 16, 16, 16);
+            const sx = 15 * 16, sy = 21 * 16;
+            ctx.drawImage(tilesetImg, 6 * 16, 32, 16, 16, sx, sy, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 32, 16, 16, sx + 16, sy, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 48, 16, 16, sx + 32, sy + 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, sx - 16, sy + 16, 16, 16);
           }
         });
 
@@ -599,53 +793,164 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         renderables.push({
           y: 25 * 16,
           render: () => {
-            ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, 48 * 16, 24 * 16, 16, 16);
-            ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, 47 * 16, 24 * 16, 16, 16);
+            const px = 48 * 16, py = 24 * 16;
+            ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, px, py, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, px - 16, py, 16, 16);
+            ctx.drawImage(tilesetImg, 2 * 16, 0, 16, 16, px + 16, py, 16, 16);
           }
         });
 
-        // Plaza Lanterns & Benches
-        [{ x: 28, y: 28 }, { x: 36, y: 28 }, { x: 28, y: 36 }, { x: 36, y: 36 }].forEach(lp => {
+        // Archive Cellar Props (Books, mossy boulders, mushrooms, signpost)
+        renderables.push({
+          y: 34 * 16 + 2,
+          render: () => {
+            ctx.drawImage(tilesetImg, 5 * 16, 48, 16, 16, 10 * 16, 33 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, 14 * 16, 33 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 10 * 16, 34 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, 13 * 16, 34 * 16, 16, 16);
+          }
+        });
+
+        // Bell Tower Planters & Benches
+        renderables.push({
+          y: 15 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 30 * 16, 13 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 34 * 16, 13 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 30 * 16, 14 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 34 * 16, 14 * 16, 16, 16);
+          }
+        });
+
+        // Bank Courtyard Urns
+        renderables.push({
+          y: 15 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 5 * 16, 80, 16, 16, 47 * 16, 13 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 80, 16, 16, 53 * 16, 13 * 16, 16, 16);
+          }
+        });
+
+        // Festival Grounds Bunting & Benches
+        renderables.push({
+          y: 52 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 7 * 16, 32, 16, 16, 15 * 16, 50 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 32, 16, 16, 17 * 16, 50 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 13 * 16, 52 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 19 * 16, 52 * 16, 16, 16);
+          }
+        });
+
+        // Moonlight Cinema Projector & Seating
+        renderables.push({
+          y: 52 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 3 * 16, 48, 16, 16, 48 * 16, 52 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 45 * 16, 51 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 51 * 16, 51 * 16, 16, 16);
+          }
+        });
+
+        // Woodland Pond Benches
+        renderables.push({
+          y: 40 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 29 * 16, 39 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, 35 * 16, 39 * 16, 16, 16);
+          }
+        });
+
+        // Street Lanterns
+        const streetLanterns = [
+          { x: 28, y: 28 }, { x: 36, y: 28 }, { x: 28, y: 36 }, { x: 36, y: 36 },
+          { x: 47, y: 14 }, { x: 53, y: 14 },
+          { x: 31, y: 14 }, { x: 33, y: 14 },
+          { x: 10, y: 33 }, { x: 14, y: 33 },
+          { x: 14, y: 51 }, { x: 18, y: 51 },
+          { x: 46, y: 51 }, { x: 50, y: 51 },
+          { x: 31, y: 40 }, { x: 33, y: 40 },
+          { x: 31, y: 43 }, { x: 33, y: 43 },
+        ];
+        streetLanterns.forEach(lp => {
           renderables.push({
             y: (lp.y + 1) * 16,
             render: () => ctx.drawImage(tilesetImg, 7 * 16, 64, 16, 16, lp.x * 16, lp.y * 16, 16, 16)
           });
         });
-        [{ x: 30, y: 31 }, { x: 34, y: 31 }].forEach(bp => {
+
+        // Central Plaza Benches
+        [{ x: 30, y: 31 }, { x: 34, y: 31 }, { x: 30, y: 33 }, { x: 34, y: 33 }].forEach(bp => {
           renderables.push({
             y: (bp.y + 1) * 16,
             render: () => ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, bp.x * 16, bp.y * 16, 16, 16)
           });
         });
 
-        // Trees
-        const trees = [
-          { x: 9, y: 10, type: 'oak' }, { x: 18, y: 10, type: 'oak' },
-          { x: 8, y: 31, type: 'oak' }, { x: 26, y: 22, type: 'oak' }, { x: 38, y: 22, type: 'oak' },
-          { x: 29, y: 9, type: 'pine' }, { x: 35, y: 9, type: 'pine' }, { x: 18, y: 21, type: 'pine' },
-          { x: 9, y: 34, type: 'blossom' }, { x: 24, y: 12, type: 'blossom' }, { x: 40, y: 12, type: 'blossom' }
-        ];
-        trees.forEach(tr => {
+        // Flower Beds
+        [{ x: 29, y: 29 }, { x: 35, y: 29 }, { x: 29, y: 35 }, { x: 35, y: 35 }].forEach(fb => {
+          renderables.push({
+            y: (fb.y + 1) * 16,
+            render: () => ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, fb.x * 16, fb.y * 16, 16, 16)
+          });
+        });
+
+        // Bushes
+        [
+          { x: 29, y: 32 }, { x: 35, y: 32 }, { x: 30, y: 35 }, { x: 34, y: 35 },
+          { x: 13, y: 23 }, { x: 47, y: 23 }, { x: 27, y: 41 }, { x: 37, y: 41 },
+          { x: 13, y: 47 }, { x: 19, y: 47 }, { x: 45, y: 47 }, { x: 51, y: 47 },
+        ].forEach(bp => {
+          renderables.push({
+            y: (bp.y + 1) * 16,
+            render: () => ctx.drawImage(tilesetImg, 5 * 16, 80, 16, 16, bp.x * 16, bp.y * 16, 16, 16)
+          });
+        });
+
+        // Signposts
+        [{ x: 30, y: 27 }, { x: 30, y: 37 }].forEach(sp => {
+          renderables.push({
+            y: (sp.y + 1) * 16,
+            render: () => ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, sp.x * 16, sp.y * 16, 16, 16)
+          });
+        });
+
+        // Forest Environmental Props (Fallen logs, Mossy boulders, Mushrooms)
+        FOREST_PROPS.forEach(prop => {
+          if (prop.type === 'log') {
+            renderables.push({
+              y: (prop.y + 1) * 16,
+              render: () => ctx.drawImage(fallenLogImg, prop.x * 16 - 8, prop.y * 16, 32, 16)
+            });
+          } else if (prop.type === 'rock') {
+            renderables.push({
+              y: (prop.y + 1) * 16,
+              render: () => ctx.drawImage(rockMossImg, prop.x * 16, prop.y * 16, 16, 16)
+            });
+          } else if (prop.type === 'mushrooms') {
+            renderables.push({
+              y: (prop.y + 1) * 16,
+              render: () => ctx.drawImage(mushroomsImg, prop.x * 16, prop.y * 16, 16, 16)
+            });
+          }
+        });
+
+        // Dense Forest Trees (Custom 32x48 multi-tile sprites with overlapping canopy banks)
+        FOREST_TREES.forEach(tr => {
           if (tr.type === 'pine') {
             renderables.push({
               y: (tr.y + 1) * 16,
-              render: () => ctx.drawImage(tilesetImg, 4 * 16, 80, 16, 16, tr.x * 16, tr.y * 16, 16, 16)
+              render: () => ctx.drawImage(pineLargeImg, tr.x * 16 - 8, tr.y * 16 - 32, 32, 48)
             });
           } else if (tr.type === 'blossom') {
             renderables.push({
               y: (tr.y + 1) * 16,
-              render: () => {
-                ctx.drawImage(tilesetImg, 2 * 16, 80, 16, 16, tr.x * 16, (tr.y - 1) * 16, 16, 16);
-                ctx.drawImage(tilesetImg, 3 * 16, 80, 16, 16, tr.x * 16, tr.y * 16, 16, 16);
-              }
+              render: () => ctx.drawImage(blossomLargeImg, tr.x * 16 - 8, tr.y * 16 - 32, 32, 48)
             });
           } else {
             renderables.push({
               y: (tr.y + 1) * 16,
-              render: () => {
-                ctx.drawImage(tilesetImg, 0, 80, 16, 16, tr.x * 16, (tr.y - 1) * 16, 16, 16);
-                ctx.drawImage(tilesetImg, 1 * 16, 80, 16, 16, tr.x * 16, tr.y * 16, 16, 16);
-              }
+              render: () => ctx.drawImage(oakLargeImg, tr.x * 16 - 8, tr.y * 16 - 32, 32, 48)
             });
           }
         });
@@ -758,6 +1063,10 @@ server.listen(PORT, async () => {
   console.log('✓ Captured updated overworld-map-desktop.png (roaming unobstructed)');
 
   // 0b-full. Complete 64x64 Forest Village Map Overview (Central Plaza & surrounding Woodland)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 32 * 16, y: 33 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false, panelOnly: false, fullMap: true });
+  await page.setViewport({ width: 1024, height: 1024 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 800));
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-forest-village-64x64-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-forest-village-64x64-desktop.png') });
   console.log('✓ Captured overworld-forest-village-64x64-desktop.png (full forest village overview)');
