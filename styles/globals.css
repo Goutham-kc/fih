@@ -7,54 +7,54 @@
   --font-display:            'Instrument Serif', Georgia, serif;
   --font-sans:               'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Surfaces & Backgrounds */
-  --bg-dark:                 #0d0e12;
-  --bg-surface:              #14151b;
-  --bg-card:                 rgba(20, 21, 28, 0.72);
-  --bg-card-heavy:           rgba(25, 27, 36, 0.85);
-  --bg-card-hover:           rgba(28, 30, 40, 0.85);
-  --bg-elevated:             #1a1b24;
+  /* Surfaces & Backgrounds - Deep Obsidian & Titanium */
+  --bg-dark:                 #090a0f;
+  --bg-surface:              #11131a;
+  --bg-card:                 rgba(17, 19, 27, 0.76);
+  --bg-card-heavy:           rgba(22, 25, 36, 0.92);
+  --bg-card-hover:           rgba(26, 30, 42, 0.92);
+  --bg-elevated:             #171924;
   --bg-hover:                rgba(255, 255, 255, 0.05);
-  --bg-sunken:               rgba(10, 11, 15, 0.65);
-  --surface-sunken:          rgba(10, 11, 15, 0.65);
-  --bg-sidebar:              rgba(13, 14, 18, 0.88);
-  --bg-mobile-header:        rgba(13, 14, 18, 0.94);
+  --bg-sunken:               rgba(7, 8, 12, 0.75);
+  --surface-sunken:          rgba(7, 8, 12, 0.75);
+  --bg-sidebar:              rgba(11, 13, 19, 0.94);
+  --bg-mobile-header:        rgba(11, 13, 19, 0.96);
 
-  /* Accents - Strict 3% Budget */
-  --accent-primary:          #6366f1;
+  /* Accents - Linear / Emil Kowalski Precision Iris (Data & Action) */
+  --accent-primary:          #4f6ef7;
   --accent-primary-text:     #ffffff;
-  --accent-primary-glow:     rgba(99, 102, 241, 0.22);
-  --accent-indigo:           #6366f1;
-  --accent-violet:           #a855f7;
-  --accent-secondary:        #a855f7;
-  --accent-tertiary:         #14b8a6;
+  --accent-primary-glow:     rgba(79, 110, 247, 0.22);
+  --accent-indigo:           #4f6ef7;
+  --accent-violet:           #8b5cf6;
+  --accent-secondary:        #8b5cf6;
+  --accent-tertiary:         #0ea5e9;
   --accent-cyan:             #06b6d4;
   --accent-rose:             #f43f5e;
-  --accent-error:            #f87171;
+  --accent-error:            #f43f5e;
   --accent-amber:            #f59e0b;
   --accent-emerald:          #10b981;
 
-  --gradient-primary:        linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  --gradient-glow:           radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(13, 14, 18, 0) 70%);
+  --gradient-primary:        linear-gradient(135deg, #4f6ef7 0%, #3b52d9 100%);
+  --gradient-glow:           radial-gradient(circle, rgba(79, 110, 247, 0.07) 0%, rgba(9, 10, 15, 0) 70%);
 
-  /* Text Hierarchy */
-  --text-primary:            #f3f4f6;
-  --text-secondary:          #9ca3af;
-  --text-muted:              #6b7280;
+  /* Text Hierarchy - High Contrast, Anti-Slop */
+  --text-primary:            #f4f4f7;
+  --text-secondary:          #9da0b0;
+  --text-muted:              #686b7c;
 
   /* Hairline Borders */
-  --border-subtle:           rgba(255, 255, 255, 0.08);
+  --border-subtle:           rgba(255, 255, 255, 0.075);
   --border-hover:            rgba(255, 255, 255, 0.16);
-  --border-active:           #6366f1;
+  --border-active:           #4f6ef7;
 
   /* Shadows */
-  --shadow-card:             0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  --shadow-hover:            0 12px 32px -4px rgba(0, 0, 0, 0.6);
+  --shadow-card:             0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-hover:            0 12px 32px -4px rgba(0, 0, 0, 0.65);
 
   /* Inputs */
   --input-bg:                rgba(255, 255, 255, 0.04);
   --input-bg-focus:          rgba(255, 255, 255, 0.07);
-  --input-option-bg:         #16171f;
+  --input-option-bg:         #13151f;
 
   /* Buttons */
   --btn-secondary-bg:        rgba(255, 255, 255, 0.05);
@@ -78,17 +78,17 @@
   --badge-overdue-color:     #f87171;
   --badge-overdue-border:    rgba(244, 63, 94, 0.35);
 
-  --badge-academic-bg:       rgba(168, 85, 247, 0.12);
-  --badge-academic-color:    #c084fc;
+  --badge-academic-bg:       rgba(139, 92, 246, 0.12);
+  --badge-academic-color:    #c4b5fd;
 
   --badge-internship-bg:     rgba(245, 158, 11, 0.12);
   --badge-internship-color:  #fbbf24;
 
-  --badge-personal-bg:       rgba(20, 184, 166, 0.12);
-  --badge-personal-color:    #2dd4bf;
+  --badge-personal-bg:       rgba(14, 165, 233, 0.12);
+  --badge-personal-color:    #38bdf8;
 
-  --badge-planned-bg:        rgba(99, 102, 241, 0.12);
-  --badge-planned-color:     #818cf8;
+  --badge-planned-bg:        rgba(79, 110, 247, 0.12);
+  --badge-planned-color:     #93c5fd;
 
   /* ── Emil Kowalski Motion Tokens ────────────────────────────────────────── */
   --ease-out:                cubic-bezier(0.23, 1, 0.32, 1);    /* canonical strong ease-out for entering UI */
@@ -106,45 +106,45 @@
   --font-display:            'Instrument Serif', Georgia, serif;
   --font-sans:               'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Surfaces & Backgrounds */
-  --bg-dark:                 #f8f9fc;
+  /* Surfaces & Backgrounds - Clean Porcelain Canvas */
+  --bg-dark:                 #f6f8fb;
   --bg-surface:              #ffffff;
-  --bg-card:                 rgba(255, 255, 255, 0.94);
+  --bg-card:                 rgba(255, 255, 255, 0.96);
   --bg-card-heavy:           #ffffff;
   --bg-card-hover:           #ffffff;
   --bg-elevated:             #ffffff;
-  --bg-hover:                rgba(0, 0, 0, 0.035);
-  --bg-sunken:               #f1f3f9;
-  --surface-sunken:          #f1f3f9;
-  --bg-sidebar:              rgba(255, 255, 255, 0.94);
-  --bg-mobile-header:        rgba(255, 255, 255, 0.96);
+  --bg-hover:                rgba(0, 0, 0, 0.04);
+  --bg-sunken:               #edf0f6;
+  --surface-sunken:          #edf0f6;
+  --bg-sidebar:              rgba(255, 255, 255, 0.96);
+  --bg-mobile-header:        rgba(255, 255, 255, 0.98);
 
-  /* Accents */
-  --accent-primary:          #4f46e5;
+  /* Primary Accent - Taste Rule: In light app screens, primary is authoritative near-black */
+  --accent-primary:          #111218;
   --accent-primary-text:     #ffffff;
-  --accent-primary-glow:     rgba(79, 70, 229, 0.18);
-  --accent-indigo:           #4f46e5;
+  --accent-primary-glow:     rgba(17, 18, 24, 0.14);
+  --accent-indigo:           #3b5bf5;
   --accent-violet:           #7c3aed;
-  --accent-secondary:        #7c3aed;
-  --accent-tertiary:         #0d9488;
+  --accent-secondary:        #3b5bf5;
+  --accent-tertiary:         #0284c7;
   --accent-cyan:             #0284c7;
   --accent-rose:             #e11d48;
   --accent-error:            #dc2626;
   --accent-amber:            #d97706;
   --accent-emerald:          #059669;
 
-  --gradient-primary:        linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  --gradient-glow:           radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, rgba(248, 249, 252, 0) 70%);
+  --gradient-primary:        linear-gradient(135deg, #111218 0%, #2b2d38 100%);
+  --gradient-glow:           radial-gradient(circle, rgba(59, 91, 245, 0.04) 0%, rgba(246, 248, 251, 0) 70%);
 
-  /* Text Hierarchy */
-  --text-primary:            #111827;
-  --text-secondary:          #4b5563;
-  --text-muted:              #6b7280;
+  /* Text Hierarchy - Solid 4.5:1 Contrast Floor */
+  --text-primary:            #0e1017;
+  --text-secondary:          #4b4e5d;
+  --text-muted:              #666a79;
 
   /* Hairline Borders */
-  --border-subtle:           rgba(0, 0, 0, 0.07);
+  --border-subtle:           rgba(0, 0, 0, 0.065);
   --border-hover:            rgba(0, 0, 0, 0.14);
-  --border-active:           #4f46e5;
+  --border-active:           #111218;
 
   /* Shadows */
   --shadow-card:             0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 14px -1px rgba(0, 0, 0, 0.05);
@@ -162,26 +162,26 @@
 
   /* Semantic Data Badges */
   --badge-high-bg:           #fee2e2;
-  --badge-high-color:        #dc2626;
+  --badge-high-color:        #b91c1c;
   --badge-high-border:       #fca5a5;
 
   --badge-medium-bg:         #fef3c7;
-  --badge-medium-color:      #b45309;
+  --badge-medium-color:      #92400e;
   --badge-medium-border:     #fde68a;
 
   --badge-low-bg:            #d1fae5;
-  --badge-low-color:         #047857;
+  --badge-low-color:         #065f46;
   --badge-low-border:        #a7f3d0;
 
   --badge-overdue-bg:        #fee2e2;
-  --badge-overdue-color:     #b91c1c;
+  --badge-overdue-color:     #991b1b;
   --badge-overdue-border:    #f87171;
 
   --badge-academic-bg:       #ede9fe;
-  --badge-academic-color:    #6d28d9;
+  --badge-academic-color:    #5b21b6;
 
   --badge-internship-bg:     #fef3c7;
-  --badge-internship-color:  #b45309;
+  --badge-internship-color:  #92400e;
 
   --badge-personal-bg:       #ccfbf1;
   --badge-personal-color:    #0f766e;
