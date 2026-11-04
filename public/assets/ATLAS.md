@@ -113,3 +113,9 @@ This document lists every sprite, frame layout, and coordinate in `/public/asset
 - **World Rendering:** Scaled to 52×46 world px (placed at world coordinates x: 262, y: 200)
 - **Features:** Timber support posts with stone footing pedestals and pink flower shrubs, terracotta shingled canopy roof, multi-page pinned community notices (house sketch parchment, central town manifest with torn lower hem, list docket, botanical flower illustration).
 - **Interactive Role:** Chapter 4: The Notice Board (Town Deadlines). Viewing pad at world position `(18 * 16, 16 * 16)`.
+
+### The Ledger Bank (`bank.png`)
+- **Source:** User Custom Sprite (Cropped to 862×862 px, transparent alpha background)
+- **World Rendering:** Scaled to 86×86 world px (placed at world coordinates x: 373, y: 94)
+- **Features:** Neoclassical stone portico with pediment, gold coin medallion, carved "BANK" lintel, four fluted columns, twin royal blue banners with gold coin medallions, double arched wooden doors with brass rings, tiered stone steps with flanking carved scroll balustrades, and vibrant red and gold flower planter boxes.
+- **Interactive Role:** Chapter 2: The Ledger Hut (Gold Ledger & Tab Inscriptions / Debts). Front doorstep at world position `(26 * 16, 11 * 16)`, with Bram the Badger Factor standing beside the right balustrade alongside his oak teller stand, brass balance scales, and gold coin sacks.

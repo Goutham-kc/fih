@@ -57,11 +57,11 @@ export const BUILDING_HITBOXES = [
     doorX: 26 * TILE_SIZE,
     doorY: 11 * TILE_SIZE,
     minX: 23 * TILE_SIZE,
-    minY: 7 * TILE_SIZE,
+    minY: 6 * TILE_SIZE,
     maxX: 29 * TILE_SIZE,
     maxY: 12 * TILE_SIZE,
     bannerX: 26 * TILE_SIZE,
-    bannerY: 7 * TILE_SIZE - 6,
+    bannerY: 6 * TILE_SIZE - 6,
   },
   {
     id: 'deadlines',
@@ -278,8 +278,8 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
-  // 5. Chapter 2: The Ledger Hut (tx: 24-28, ty: 7-9) and Bram's Counter (tx: 25-27, ty: 10-11)
-  if ((tx >= 24 && tx <= 28 && ty >= 7 && ty <= 9) || (tx >= 25 && tx <= 27 && ty >= 10 && ty <= 11)) {
+  // 5. Chapter 2: The Ledger / Bank (tx: 24-28, ty: 6-11)
+  if (tx >= 24 && tx <= 28 && ty >= 6 && ty <= 11) {
     return false;
   }
 
@@ -426,7 +426,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null },
     loaded: false,
     camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
     targetCamera: { x: 18 * 16, y: 12 * 16 },
@@ -454,6 +454,7 @@ export default function PixelWorldCanvas({
       { key: 'bram', src: '/assets/characters/bram_factor.png' },
       { key: 'farmhouse', src: '/assets/buildings/farmhouse.png' },
       { key: 'notice_board', src: '/assets/buildings/notice_board.png' },
+      { key: 'bank', src: '/assets/buildings/bank.png' },
     ];
 
     let count = 0;
@@ -904,38 +905,52 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 2. Chapter 2: The Ledger Hut (x: 24, y: 7) ──
+      // ── 2. Chapter 2: The Ledger Hut / Bank (x: 26, y: 7) ──
       renderables.push({
-        y: 10 * TILE_SIZE,
+        y: 11 * TILE_SIZE + 4,
         render: () => {
-          const hx = 24 * TILE_SIZE;
-          const hy = 7 * TILE_SIZE;
-          for (let rx = 0; rx < 5; rx++) {
-            ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy, TILE_SIZE, TILE_SIZE);
-            ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            if (rx === 3) {
-              ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            } else if (rx === 0 || rx === 4) {
-              ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            } else {
-              ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const bankImg = state.images.bank;
+          if (bankImg) {
+            const bW = 86;
+            const bH = 86;
+            const bX = 26 * TILE_SIZE - bW / 2; // 416 - 43 = 373px
+            const bY = 11 * TILE_SIZE + 4 - bH; // 176 + 4 - 86 = 94px
+            ctx.drawImage(bankImg, bX, bY, bW, bH);
+          } else {
+            const hx = 24 * TILE_SIZE;
+            const hy = 7 * TILE_SIZE;
+            for (let rx = 0; rx < 5; rx++) {
+              ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy, TILE_SIZE, TILE_SIZE);
+              ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              if (rx === 3) {
+                ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              } else if (rx === 0 || rx === 4) {
+                ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              } else {
+                ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + rx * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              }
             }
+            // Hanging Wooden Shop Signboard ("LEDGER")
+            ctx.drawImage(tileset, 4 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + 4 * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+            ctx.fillRect(hx, hy + 2 * TILE_SIZE, 5 * TILE_SIZE, 2);
           }
-          // Hanging Wooden Shop Signboard ("LEDGER")
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, hx + 4 * TILE_SIZE, hy + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
-          ctx.fillRect(hx, hy + 2 * TILE_SIZE, 5 * TILE_SIZE, 2);
         },
       });
 
-      // Bram the Badger Factor (Behind the counter at x: 26, y: 10)
+      // Bram the Badger Factor (at the Bank Entrance apron)
       renderables.push({
-        y: 11 * TILE_SIZE + 2,
+        y: 11 * TILE_SIZE + 6,
         render: () => {
           const bramImg = state.images.bram;
           if (bramImg) {
             const frameCol = state.bram.talking ? 2 + state.bram.frame : state.bram.frame;
-            ctx.drawImage(bramImg, frameCol * 24, 0, 24, 32, 26 * TILE_SIZE - 4, 10 * TILE_SIZE, 24, 32);
+            if (state.images.bank) {
+              // Bram stands proudly beside the entrance at the right balustrade
+              ctx.drawImage(bramImg, frameCol * 24, 0, 24, 32, 28 * TILE_SIZE - 10, 10 * TILE_SIZE + 4, 24, 32);
+            } else {
+              ctx.drawImage(bramImg, frameCol * 24, 0, 24, 32, 26 * TILE_SIZE - 4, 10 * TILE_SIZE, 24, 32);
+            }
           }
         },
       });
@@ -944,27 +959,51 @@ export default function PixelWorldCanvas({
       renderables.push({
         y: 11 * TILE_SIZE + 8,
         render: () => {
-          const cx = 25 * TILE_SIZE;
-          const cy = 11 * TILE_SIZE;
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx, cy, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx + TILE_SIZE, cy, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx + 2 * TILE_SIZE, cy, TILE_SIZE, TILE_SIZE);
+          if (state.images.bank) {
+            // Neat 1-tile polished oak teller stand with brass balance scales & coin sacks beside Bram
+            const px = 28 * TILE_SIZE - 4;
+            const py = 11 * TILE_SIZE + 2;
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, px, py, TILE_SIZE, TILE_SIZE);
 
-          // Brass Balance Scale
-          ctx.save();
-          ctx.translate(cx + TILE_SIZE + 8, cy + 2);
-          if (state.scaleTilt !== 0) {
-            ctx.rotate((state.scaleTilt * 6 * Math.PI) / 180);
-          }
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, -8, TILE_SIZE, TILE_SIZE);
-          ctx.restore();
+            // Brass Balance Scale
+            ctx.save();
+            ctx.translate(px + 8, py + 2);
+            if (state.scaleTilt !== 0) {
+              ctx.rotate((state.scaleTilt * 6 * Math.PI) / 180);
+            }
+            ctx.drawImage(tileset, 6 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, -8, TILE_SIZE, TILE_SIZE);
+            ctx.restore();
 
-          // Bulging Golden Coin Sacks
-          const sackCount = Math.max(1, state.activeDebtsCount);
-          for (let s = 0; s < sackCount; s++) {
-            const sackX = cx + 2 + (s % 3) * 6;
-            const sackY = cy - 2 + (s > 2 ? -4 : 0);
-            ctx.drawImage(tileset, 7 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sackX, sackY, TILE_SIZE, TILE_SIZE);
+            // Bulging Golden Coin Sacks
+            const sackCount = Math.max(1, state.activeDebtsCount);
+            for (let s = 0; s < sackCount; s++) {
+              const sackX = px - 4 + (s % 2) * 5;
+              const sackY = py + 2 + Math.floor(s / 2) * 2;
+              ctx.drawImage(tileset, 7 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sackX, sackY, TILE_SIZE, TILE_SIZE);
+            }
+          } else {
+            const cx = 25 * TILE_SIZE;
+            const cy = 11 * TILE_SIZE;
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx, cy, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx + TILE_SIZE, cy, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, cx + 2 * TILE_SIZE, cy, TILE_SIZE, TILE_SIZE);
+
+            // Brass Balance Scale
+            ctx.save();
+            ctx.translate(cx + TILE_SIZE + 8, cy + 2);
+            if (state.scaleTilt !== 0) {
+              ctx.rotate((state.scaleTilt * 6 * Math.PI) / 180);
+            }
+            ctx.drawImage(tileset, 6 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, -8, TILE_SIZE, TILE_SIZE);
+            ctx.restore();
+
+            // Bulging Golden Coin Sacks
+            const sackCount = Math.max(1, state.activeDebtsCount);
+            for (let s = 0; s < sackCount; s++) {
+              const sackX = cx + 2 + (s % 3) * 6;
+              const sackY = cy - 2 + (s > 2 ? -4 : 0);
+              ctx.drawImage(tileset, 7 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sackX, sackY, TILE_SIZE, TILE_SIZE);
+            }
           }
         },
       });

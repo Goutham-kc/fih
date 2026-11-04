@@ -17,6 +17,7 @@ const pipBase64 = fs.readFileSync('public/assets/characters/pip_walk.png').toStr
 const bramBase64 = fs.readFileSync('public/assets/characters/bram_factor.png').toString('base64');
 const farmhouseBase64 = fs.readFileSync('public/assets/buildings/farmhouse.png').toString('base64');
 const noticeBoardBase64 = fs.readFileSync('public/assets/buildings/notice_board.png').toString('base64');
+const bankBase64 = fs.readFileSync('public/assets/buildings/bank.png').toString('base64');
 
 function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const isOverworld = !activeTab;
@@ -282,23 +283,26 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const bramImg = new Image();
       const farmhouseImg = new Image();
       const noticeBoardImg = new Image();
+      const bankImg = new Image();
 
       tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
       pipImg.src = 'data:image/png;base64,${pipBase64}';
       bramImg.src = 'data:image/png;base64,${bramBase64}';
       farmhouseImg.src = 'data:image/png;base64,${farmhouseBase64}';
       noticeBoardImg.src = 'data:image/png;base64,${noticeBoardBase64}';
+      bankImg.src = 'data:image/png;base64,${bankBase64}';
 
       let loaded = 0;
       function checkLoaded() {
         loaded++;
-        if (loaded === 5) drawWorld();
+        if (loaded === 6) drawWorld();
       }
       tilesetImg.onload = checkLoaded;
       pipImg.onload = checkLoaded;
       bramImg.onload = checkLoaded;
       farmhouseImg.onload = checkLoaded;
       noticeBoardImg.onload = checkLoaded;
+      bankImg.onload = checkLoaded;
 
       const scale = ${isMobile ? 3 : 4};
       const TILE_SIZE = 16;
@@ -308,7 +312,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const BUILDINGS = [
         { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 2*16-6 },
         { id: 'reminders', label: '🔔 Belfry Alerts', bx: 18*16, by: 2*16-6 },
-        { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 7*16-6 },
+        { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 6*16-6 },
         { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 13*16-12 },
         { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 16*16-6 },
         { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 17*16-6 },
@@ -432,40 +436,34 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
           }
         });
 
-        // Ledger Hut
+        // Chapter 2: The Bank / Ledger
         renderables.push({
-          y: 10 * 16,
+          y: 11 * 16 + 4,
           render: () => {
-            const hx = 24 * 16, hy = 7 * 16;
-            for (let rx = 0; rx < 5; rx++) {
-              ctx.drawImage(tilesetImg, 0, 32, 16, 16, hx + rx * 16, hy, 16, 16);
-              ctx.drawImage(tilesetImg, 0, 32, 16, 16, hx + rx * 16, hy + 16, 16, 16);
-              const wallTile = (rx === 3 ? 3 : rx === 0 || rx === 4 ? 2 : 1);
-              ctx.drawImage(tilesetImg, wallTile * 16, 32, 16, 16, hx + rx * 16, hy + 32, 16, 16);
-            }
-            ctx.drawImage(tilesetImg, 4 * 16, 32, 16, 16, hx + 4 * 16, hy + 32, 16, 16);
+            const bW = 86, bH = 86;
+            const bX = 26 * 16 - bW / 2;
+            const bY = 11 * 16 + 4 - bH;
+            ctx.drawImage(bankImg, bX, bY, bW, bH);
           }
         });
 
         // Bram
         renderables.push({
-          y: 11 * 16 + 2,
+          y: 11 * 16 + 6,
           render: () => {
-            ctx.drawImage(bramImg, 0, 0, 24, 32, 26 * 16 - 4, 10 * 16, 24, 32);
+            ctx.drawImage(bramImg, 0, 0, 24, 32, 28 * 16 - 10, 10 * 16 + 4, 24, 32);
           }
         });
 
-        // Ledger Counter
+        // Ledger Counter Table / Stand
         renderables.push({
           y: 11 * 16 + 8,
           render: () => {
-            const cx = 25 * 16, cy = 11 * 16;
-            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx, cy, 16, 16);
-            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx + 16, cy, 16, 16);
-            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx + 32, cy, 16, 16);
-            ctx.drawImage(tilesetImg, 6 * 16, 16, 16, 16, cx + 16, cy, 16, 16);
-            ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, cx + 2, cy - 2, 16, 16);
-            ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, cx + 8, cy - 2, 16, 16);
+            const px = 28 * 16 - 4, py = 11 * 16 + 2;
+            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, px, py, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 16, 16, 16, px, py, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, px - 4, py + 2, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, px + 2, py + 2, 16, 16);
           }
         });
 
@@ -635,6 +633,15 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-notice-board-custom-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-notice-board-custom-desktop.png') });
   console.log('✓ Captured overworld-notice-board-custom-desktop.png');
+
+  // 0f. Pip outside the new custom Bank (Ledger)
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 12 * 16, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-bank-custom-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-bank-custom-desktop.png') });
+  console.log('✓ Captured overworld-bank-custom-desktop.png');
 
   // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Ledger Hut)
   currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });

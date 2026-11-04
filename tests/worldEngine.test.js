@@ -168,6 +168,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitBoard).not.toBeNull();
     expect(hitBoard.id).toBe('deadlines');
     expect(hitBoard.name).toBe('The Notice Board');
+
+    // Clicking on the new Bank (at tx: 26, ty: 7) hits The Ledger Hut
+    const hitBank = getHitBuilding(26 * 16, 7 * 16);
+    expect(hitBank).not.toBeNull();
+    expect(hitBank.id).toBe('debts');
+    expect(hitBank.name).toBe('The Ledger Hut');
+  });
+
+  it('detects entrance proximity for the custom Bank / Ledger', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing outside the front steps at (tx: 26, ty: 12) detects The Ledger Hut within range
+    const nearby = getNearbyBuilding(26 * 16, 12 * 16, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('debts');
   });
 
   it('detects viewing pad proximity for the custom Notice Board', async () => {
