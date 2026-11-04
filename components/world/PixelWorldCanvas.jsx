@@ -98,12 +98,12 @@ export const BUILDING_HITBOXES = [
     icon: '🎬',
     doorX: 6 * TILE_SIZE,
     doorY: 19 * TILE_SIZE,
-    minX: 3 * TILE_SIZE,
-    minY: 17 * TILE_SIZE,
-    maxX: 9 * TILE_SIZE,
-    maxY: 21 * TILE_SIZE,
+    minX: 2 * TILE_SIZE,
+    minY: 14 * TILE_SIZE,
+    maxX: 10 * TILE_SIZE,
+    maxY: 20 * TILE_SIZE,
     bannerX: 6 * TILE_SIZE,
-    bannerY: 17 * TILE_SIZE - 6,
+    bannerY: 14 * TILE_SIZE - 6,
   },
   {
     id: 'audit',
@@ -298,8 +298,8 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
-  // 9. Chapter 6: The Moonlight Cinema screen (tx: 4-7, ty: 18)
-  if (tx >= 4 && tx <= 7 && ty === 18) {
+  // 9. Chapter 6: The Moonlight Cinema screen & stage (tx: 4-7, ty: 16-18)
+  if (tx >= 4 && tx <= 7 && ty >= 16 && ty <= 18) {
     return false;
   }
 
@@ -426,7 +426,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null, festival_grounds: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null, bank: null, bell_tower: null, festival_grounds: null, moonlight_cinema: null },
     loaded: false,
     camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
     targetCamera: { x: 18 * 16, y: 12 * 16 },
@@ -457,6 +457,7 @@ export default function PixelWorldCanvas({
       { key: 'bank', src: '/assets/buildings/bank.png' },
       { key: 'bell_tower', src: '/assets/buildings/bell_tower.png' },
       { key: 'festival_grounds', src: '/assets/buildings/festival_grounds.png' },
+      { key: 'moonlight_cinema', src: '/assets/buildings/moonlight_cinema.png' },
     ];
 
     let count = 0;
@@ -1091,16 +1092,25 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 7. Chapter 6: The Moonlight Cinema (x: 6, y: 19) ──
+      // ── 7. Chapter 6: The Moonlight Cinema (New Custom Moonlight Cinema) ──
       renderables.push({
-        y: 20 * TILE_SIZE,
+        y: 19 * TILE_SIZE + 6,
         render: () => {
-          const mx = 4 * TILE_SIZE;
-          const my = 18 * TILE_SIZE;
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx, my, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + TILE_SIZE, my, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 3 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + 3 * TILE_SIZE, my + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + 2 * TILE_SIZE, my + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const cinemaImg = state.images.moonlight_cinema;
+          if (cinemaImg) {
+            const bW = 128;
+            const bH = 93;
+            const bX = 6 * TILE_SIZE - bW / 2; // 96 - 64 = 32px
+            const bY = 20 * TILE_SIZE - bH + 4; // 320 - 93 + 4 = 231px
+            ctx.drawImage(cinemaImg, bX, bY, bW, bH);
+          } else {
+            const mx = 4 * TILE_SIZE;
+            const my = 18 * TILE_SIZE;
+            ctx.drawImage(tileset, 4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx, my, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 4 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + TILE_SIZE, my, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 3 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + 3 * TILE_SIZE, my + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, mx + 2 * TILE_SIZE, my + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
         },
       });
 

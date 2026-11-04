@@ -20,6 +20,7 @@ const noticeBoardBase64 = fs.readFileSync('public/assets/buildings/notice_board.
 const bankBase64 = fs.readFileSync('public/assets/buildings/bank.png').toString('base64');
 const bellTowerBase64 = fs.readFileSync('public/assets/buildings/bell_tower.png').toString('base64');
 const festivalGroundsBase64 = fs.readFileSync('public/assets/buildings/festival_grounds.png').toString('base64');
+const moonlightCinemaBase64 = fs.readFileSync('public/assets/buildings/moonlight_cinema.png').toString('base64');
 
 function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const currentTab = isMobile ? (activeTab || 'todos') : activeTab;
@@ -313,6 +314,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const bankImg = new Image();
       const bellTowerImg = new Image();
       const festivalGroundsImg = new Image();
+      const moonlightCinemaImg = new Image();
 
       tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
       pipImg.src = 'data:image/png;base64,${pipBase64}';
@@ -322,11 +324,12 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       bankImg.src = 'data:image/png;base64,${bankBase64}';
       bellTowerImg.src = 'data:image/png;base64,${bellTowerBase64}';
       festivalGroundsImg.src = 'data:image/png;base64,${festivalGroundsBase64}';
+      moonlightCinemaImg.src = 'data:image/png;base64,${moonlightCinemaBase64}';
 
       let loaded = 0;
       function checkLoaded() {
         loaded++;
-        if (loaded === 8) drawWorld();
+        if (loaded === 9) drawWorld();
       }
       tilesetImg.onload = checkLoaded;
       pipImg.onload = checkLoaded;
@@ -336,6 +339,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       bankImg.onload = checkLoaded;
       bellTowerImg.onload = checkLoaded;
       festivalGroundsImg.onload = checkLoaded;
+      moonlightCinemaImg.onload = checkLoaded;
 
       const scale = ${isMobile ? 3 : 4};
       const TILE_SIZE = 16;
@@ -348,7 +352,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 6*16-6 },
         { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 13*16-12 },
         { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 14*16-6 },
-        { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 17*16-6 },
+        { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 14*16-6 },
         { id: 'audit', label: '📜 Archive Cellar', bx: 28*16, by: 2*16-6 },
         { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 4*16, by: 2*16-6 },
       ];
@@ -533,6 +537,17 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
           }
         });
 
+        // Chapter 6: Moonlight Cinema (New Custom Moonlight Cinema)
+        renderables.push({
+          y: 19 * 16 + 6,
+          render: () => {
+            const bW = 128, bH = 93;
+            const bX = 6 * 16 - bW / 2;
+            const bY = 20 * 16 - bH + 4;
+            ctx.drawImage(moonlightCinemaImg, bX, bY, bW, bH);
+          }
+        });
+
         // Fountain
         renderables.push({
           y: 13 * 16,
@@ -701,6 +716,15 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-festival-custom-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-festival-custom-desktop.png') });
   console.log('✓ Captured overworld-festival-custom-desktop.png');
+
+  // 0i. Pip outside the new custom Moonlight Cinema
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 6 * 16, y: 19 * 16 + 2, dir: 3 }, nearbyBuilding: 'The Moonlight Cinema', isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-cinema-custom-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-cinema-custom-desktop.png') });
+  console.log('✓ Captured overworld-cinema-custom-desktop.png');
 
   // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Ledger Hut)
   currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });

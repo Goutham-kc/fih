@@ -186,6 +186,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitFestival).not.toBeNull();
     expect(hitFestival.id).toBe('dates');
     expect(hitFestival.name).toBe('The Festival Grounds');
+
+    // Clicking on the new Moonlight Cinema screen (at tx: 6, ty: 16) hits The Moonlight Cinema
+    const hitCinema = getHitBuilding(6 * 16, 16 * 16);
+    expect(hitCinema).not.toBeNull();
+    expect(hitCinema.id).toBe('watchlist');
+    expect(hitCinema.name).toBe('The Moonlight Cinema');
+  });
+
+  it('detects entrance proximity for the custom Moonlight Cinema', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing on the entrance pad at (tx: 6, ty: 19) detects The Moonlight Cinema within range
+    const nearby = getNearbyBuilding(6 * 16, 19 * 16, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('watchlist');
   });
 
   it('detects entrance proximity for the custom Festival Grounds', async () => {
