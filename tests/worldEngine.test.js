@@ -156,6 +156,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     // Central fountain at (18*16, 12*16) is not a building
     const miss = getHitBuilding(18 * 16, 12 * 16);
     expect(miss).toBeNull();
+
+    // Clicking anywhere on the new Farmhouse (roof/walls at tx: 8, ty: 5) hits The Farmstead
+    const hitHouse = getHitBuilding(8 * 16, 5 * 16);
+    expect(hitHouse).not.toBeNull();
+    expect(hitHouse.id).toBe('todos');
+    expect(hitHouse.name).toBe('The Farmstead');
+  });
+
+  it('detects front porch door proximity for the custom Farmstead house', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing outside the porch doorstep at (tx: 8, ty: 7) detects The Farmstead within range
+    const nearby = getNearbyBuilding(8 * 16, 7 * 16 + 4, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('todos');
   });
 
   it('validates walkable areas and detects obstacles like pond and bounds', async () => {

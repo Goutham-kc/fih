@@ -9,14 +9,14 @@ const MAP_HEIGHT_TILES = 26;
 
 // Chapter zone anchors in world tile coordinates
 export const CHAPTER_ANCHORS = {
-  todos: { x: 8, y: 12, name: 'The Farmstead', resident: 'pip', chapterTitle: 'Chapter 1: The Farmstead' },
+  todos: { x: 8, y: 7, name: 'The Farmstead', resident: 'pip', chapterTitle: 'Chapter 1: The Farmstead' },
   debts: { x: 26, y: 11, name: 'The Ledger Hut', resident: 'bram', chapterTitle: 'Chapter 2: The Ledger Hut' },
   reminders: { x: 18, y: 6, name: 'The Bell Tower', resident: 'hoot', chapterTitle: 'Chapter 3: The Bell Tower' },
   deadlines: { x: 18, y: 16, name: 'The Notice Board', resident: 'marigold', chapterTitle: 'Chapter 4: The Notice Board' },
   dates: { x: 28, y: 19, name: 'The Festival Grounds', resident: 'clover', chapterTitle: 'Chapter 5: The Festival Grounds' },
   watchlist: { x: 6, y: 19, name: 'The Moonlight Cinema', resident: 'juniper', chapterTitle: 'Chapter 6: The Moonlight Cinema' },
   audit: { x: 28, y: 4, name: 'The Archive Cellar', resident: 'moss', chapterTitle: 'Chapter 7: The Archive Cellar' },
-  settings: { x: 8, y: 4, name: 'The Toolshed Workbench', resident: 'rowan', chapterTitle: 'Chapter 8: The Toolshed' },
+  settings: { x: 4, y: 4, name: 'The Toolshed Workbench', resident: 'rowan', chapterTitle: 'Chapter 8: The Toolshed' },
 };
 
 // Interactive Building Hitboxes for Click & Proximity Navigation
@@ -27,13 +27,13 @@ export const BUILDING_HITBOXES = [
     label: 'Daily Quests',
     icon: '🌾',
     doorX: 8 * TILE_SIZE,
-    doorY: 12 * TILE_SIZE,
+    doorY: 7 * TILE_SIZE + 4,
     minX: 5 * TILE_SIZE,
-    minY: 7 * TILE_SIZE,
+    minY: 2 * TILE_SIZE,
     maxX: 11 * TILE_SIZE,
-    maxY: 13 * TILE_SIZE,
+    maxY: 8 * TILE_SIZE,
     bannerX: 8 * TILE_SIZE,
-    bannerY: 7 * TILE_SIZE - 6,
+    bannerY: 2 * TILE_SIZE - 6,
   },
   {
     id: 'reminders',
@@ -124,13 +124,13 @@ export const BUILDING_HITBOXES = [
     name: 'The Toolshed Workbench',
     label: 'Toolshed Workshop',
     icon: '🛠️',
-    doorX: 8 * TILE_SIZE,
-    doorY: 4 * TILE_SIZE,
-    minX: 6 * TILE_SIZE,
+    doorX: 4 * TILE_SIZE,
+    doorY: 5 * TILE_SIZE,
+    minX: 2 * TILE_SIZE,
     minY: 2 * TILE_SIZE,
-    maxX: 11 * TILE_SIZE,
-    maxY: 6 * TILE_SIZE,
-    bannerX: 8 * TILE_SIZE,
+    maxX: 5 * TILE_SIZE,
+    maxY: 5 * TILE_SIZE,
+    bannerX: 3 * TILE_SIZE + 8,
     bannerY: 2 * TILE_SIZE - 6,
   },
 ];
@@ -308,8 +308,8 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
-  // 11. Chapter 8: The Toolshed Workbench & Forge (tx: 7-9, ty: 2-3)
-  if (tx >= 7 && tx <= 9 && ty >= 2 && ty <= 3) {
+  // 11. Chapter 8: The Toolshed Workbench & Forge (tx: 2-4, ty: 3-4 and roof ridge tx: 7-9, ty: 2-3)
+  if ((tx >= 2 && tx <= 4 && ty >= 3 && ty <= 4) || (tx >= 7 && tx <= 9 && ty >= 2 && ty <= 3)) {
     return false;
   }
 
@@ -426,7 +426,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null },
     loaded: false,
     camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
     targetCamera: { x: 18 * 16, y: 12 * 16 },
@@ -452,6 +452,7 @@ export default function PixelWorldCanvas({
       { key: 'tileset', src: '/assets/tilesets/village_tileset.png' },
       { key: 'pip', src: '/assets/characters/pip_walk.png' },
       { key: 'bram', src: '/assets/characters/bram_factor.png' },
+      { key: 'farmhouse', src: '/assets/buildings/farmhouse.png' },
     ];
 
     let count = 0;
@@ -864,21 +865,30 @@ export default function PixelWorldCanvas({
       // ── Layer 3: Depth-Sorted Entities (Buildings, Props, Characters, Trees) ──
       const renderables = [];
 
-      // ── 1. Chapter 1: The Farmstead (x: 6, y: 4) ──
+      // ── 1. Chapter 1: The Farmstead (New Custom House) ──
       renderables.push({
-        y: 8 * TILE_SIZE,
+        y: 7 * TILE_SIZE + 2,
         render: () => {
-          const bx = 6 * TILE_SIZE;
-          const by = 4 * TILE_SIZE;
-          for (let rx = 0; rx < 4; rx++) {
-            ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by, TILE_SIZE, TILE_SIZE);
-            ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            if (rx === 2) {
-              ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            } else if (rx === 1) {
-              ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            } else {
-              ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const houseImg = state.images.farmhouse;
+          const hW = 76;
+          const hH = 79;
+          const hX = 5.5 * TILE_SIZE + 4; // 92px
+          const hY = 7 * TILE_SIZE - hH + 4; // 37px
+          if (houseImg) {
+            ctx.drawImage(houseImg, hX, hY, hW, hH);
+          } else {
+            const bx = 6 * TILE_SIZE;
+            const by = 4 * TILE_SIZE;
+            for (let rx = 0; rx < 4; rx++) {
+              ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by, TILE_SIZE, TILE_SIZE);
+              ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              if (rx === 2) {
+                ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              } else if (rx === 1) {
+                ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              } else {
+                ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+              }
             }
           }
 
@@ -1038,12 +1048,12 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 9. Chapter 8: The Toolshed Workbench (x: 8, y: 4) ──
+      // ── 9. Chapter 8: The Toolshed Workbench (x: 4, y: 4) ──
       renderables.push({
-        y: 6 * TILE_SIZE,
+        y: 5 * TILE_SIZE,
         render: () => {
-          const sx = 7 * TILE_SIZE;
-          const sy = 2 * TILE_SIZE;
+          const sx = 2 * TILE_SIZE + 8;
+          const sy = 3 * TILE_SIZE;
           ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx, sy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + TILE_SIZE, sy, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + 2 * TILE_SIZE, sy + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);

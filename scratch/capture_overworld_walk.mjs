@@ -15,6 +15,7 @@ const PORT = 4325;
 const tilesetBase64 = fs.readFileSync('public/assets/tilesets/village_tileset.png').toString('base64');
 const pipBase64 = fs.readFileSync('public/assets/characters/pip_walk.png').toString('base64');
 const bramBase64 = fs.readFileSync('public/assets/characters/bram_factor.png').toString('base64');
+const farmhouseBase64 = fs.readFileSync('public/assets/buildings/farmhouse.png').toString('base64');
 
 function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const isOverworld = !activeTab;
@@ -239,15 +240,17 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
   <!-- Dialogue Box -->
   ${showDialogue ? `
   <div class="dialogue-box">
-    <div class="portrait">${(!isOverworld || nearbyBuilding) ? '🦡' : '🧑‍🌾'}</div>
+    <div class="portrait">${nearbyBuilding === 'The Farmstead' ? '🧑‍🌾' : (!isOverworld || nearbyBuilding ? '🦡' : '🧑‍🌾')}</div>
     <div>
       <div style="font-family:'PressStart2P', monospace; font-size:9px; color:#facc15; margin-bottom:4px;">
-        ${(!isOverworld || nearbyBuilding) ? 'Bram the Honest Factor (The Ledger Hut)' : 'Pip the Farmhand (Fih Valley Overworld)'}
+        ${nearbyBuilding === 'The Farmstead' ? 'Pip the Farmhand (The Farmstead)' : (!isOverworld || nearbyBuilding ? 'Bram the Honest Factor (The Ledger Hut)' : 'Pip the Farmhand (Fih Valley Overworld)')}
       </div>
       <div style="font-size:11px; line-height:1.4; color:#fdf6e2;">
-        ${(!isOverworld || nearbyBuilding)
-          ? 'Clear accounts make steadfast friends! Settle your tabs before the fair. Press [E] to enter or [P] for Panel Only.'
-          : 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.'}
+        ${nearbyBuilding === 'The Farmstead'
+          ? 'The sun is shining over the crops. Check off your chores one by one and watch the farmstead flourish! Press [E] to enter or [P] for Panel Only.'
+          : (!isOverworld || nearbyBuilding
+            ? 'Clear accounts make steadfast friends! Settle your tabs before the fair. Press [E] to enter or [P] for Panel Only.'
+            : 'Welcome to Fih Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.')}
       </div>
     </div>
   </div>` : ''}
@@ -274,19 +277,22 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const tilesetImg = new Image();
       const pipImg = new Image();
       const bramImg = new Image();
+      const farmhouseImg = new Image();
 
       tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
       pipImg.src = 'data:image/png;base64,${pipBase64}';
       bramImg.src = 'data:image/png;base64,${bramBase64}';
+      farmhouseImg.src = 'data:image/png;base64,${farmhouseBase64}';
 
       let loaded = 0;
       function checkLoaded() {
         loaded++;
-        if (loaded === 3) drawWorld();
+        if (loaded === 4) drawWorld();
       }
       tilesetImg.onload = checkLoaded;
       pipImg.onload = checkLoaded;
       bramImg.onload = checkLoaded;
+      farmhouseImg.onload = checkLoaded;
 
       const scale = ${isMobile ? 3 : 4};
       const TILE_SIZE = 16;
@@ -294,14 +300,14 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const MAP_H = 26;
 
       const BUILDINGS = [
-        { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 4*16-6 },
+        { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 2*16-6 },
         { id: 'reminders', label: '🔔 Belfry Alerts', bx: 18*16, by: 2*16-6 },
         { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 7*16-6 },
         { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 14*16-6 },
         { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 16*16-6 },
         { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 17*16-6 },
         { id: 'audit', label: '📜 Archive Cellar', bx: 28*16, by: 2*16-6 },
-        { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 8*16, by: 2*16-6 },
+        { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 4*16, by: 2*16-6 },
       ];
 
       function drawWorld() {
@@ -406,16 +412,13 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
 
         const renderables = [];
 
-        // Farmstead
+        // Farmstead (New Custom House)
         renderables.push({
-          y: 8 * 16,
+          y: 7 * 16 + 2,
           render: () => {
-            const bx = 6 * 16, by = 4 * 16;
-            for (let rx = 0; rx < 4; rx++) {
-              ctx.drawImage(tilesetImg, 0, 32, 16, 16, bx + rx * 16, by, 16, 16);
-              ctx.drawImage(tilesetImg, 0, 32, 16, 16, bx + rx * 16, by + 16, 16, 16);
-              ctx.drawImage(tilesetImg, (rx === 2 ? 3 : rx === 1 ? 2 : 1) * 16, 32, 16, 16, bx + rx * 16, by + 32, 16, 16);
-            }
+            const hW = 76, hH = 79;
+            const hX = 5.5 * 16 + 4, hY = 7 * 16 - hH + 4;
+            ctx.drawImage(farmhouseImg, hX, hY, hW, hH);
             ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 5 * 16, 9 * 16, 16, 16);
             ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 6 * 16, 9 * 16, 16, 16);
             ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 7 * 16, 10 * 16, 16, 16);
@@ -608,6 +611,15 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-map-mobile.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-mobile.png') });
   console.log('✓ Captured updated overworld-map-mobile.png');
+
+  // 0d. Pip outside the new custom Farmstead House
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 8 * 16, y: 7 * 16 + 4, dir: 3 }, nearbyBuilding: 'The Farmstead', isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-farmstead-custom-house-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-farmstead-custom-house-desktop.png') });
+  console.log('✓ Captured overworld-farmstead-custom-house-desktop.png');
 
   // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Ledger Hut)
   currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
