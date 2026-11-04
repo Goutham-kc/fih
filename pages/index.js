@@ -26,6 +26,7 @@ import SettingsView from '@/components/SettingsView';
 import AuditLogView from '@/components/AuditLogView';
 import OverviewCards from '@/components/OverviewCards';
 import AnalyticsPulse from '@/components/AnalyticsPulse';
+import InteractiveTelemetry from '@/components/InteractiveTelemetry';
 import AuroraBackground from '@/components/AuroraBackground';
 
 const TABS = [
@@ -446,6 +447,7 @@ export default function Dashboard() {
         {/* Top Graphical Pulse & Overview Metrics */}
         {activeTab !== 'settings' && activeTab !== 'audit' && (
           <>
+            <InteractiveTelemetry onNavigate={handleTabChange} envMode={envMode} />
             <AnalyticsPulse onNavigate={handleTabChange} envMode={envMode} />
             <OverviewCards onNavigate={handleTabChange} envMode={envMode} />
           </>

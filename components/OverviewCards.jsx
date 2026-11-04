@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckSquare, Clock, Calendar, CreditCard } from 'lucide-react';
+import { CheckSquare, Clock, Calendar, CreditCard, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
 export default function OverviewCards({ onNavigate, envMode }) {
   const [data, setData] = useState({
@@ -67,6 +67,14 @@ export default function OverviewCards({ onNavigate, envMode }) {
     };
   }, [envMode]);
 
+  const handleCardMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+    e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+  };
+
   return (
     <div
       style={{
@@ -79,7 +87,8 @@ export default function OverviewCards({ onNavigate, envMode }) {
       {/* 1. To-dos metric */}
       <div
         onClick={() => onNavigate('todos')}
-        className="fih-card-interactive"
+        onMouseMove={handleCardMouseMove}
+        className="fih-card-interactive fih-spotlight"
         style={{
           padding: '18px 20px',
           borderRadius: 16,
@@ -106,26 +115,33 @@ export default function OverviewCards({ onNavigate, envMode }) {
             <CheckSquare size={16} />
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-            {data.loading ? '—' : data.todosCount}
-          </span>
-          {data.urgentTodos > 0 && (
-            <span
-              className="tabular-nums"
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--badge-high-color)',
-                background: 'var(--badge-high-bg)',
-                border: '1px solid var(--badge-high-border)',
-                padding: '2px 7px',
-                borderRadius: 6,
-              }}
-            >
-              {data.urgentTodos} urgent
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+              {data.loading ? '—' : data.todosCount}
             </span>
-          )}
+            {data.urgentTodos > 0 && (
+              <span
+                className="tabular-nums"
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--badge-high-color)',
+                  background: 'var(--badge-high-bg)',
+                  border: '1px solid var(--badge-high-border)',
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                }}
+              >
+                {data.urgentTodos} urgent
+              </span>
+            )}
+          </div>
+          {/* Micro sparkline */}
+          <svg width="48" height="20" viewBox="0 0 48 20" style={{ opacity: 0.6 }}>
+            <path d="M 0 16 Q 12 4, 24 12 T 48 6" fill="none" stroke="var(--accent-indigo)" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="48" cy="6" r="2.5" fill="var(--accent-indigo)" />
+          </svg>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
@@ -139,7 +155,8 @@ export default function OverviewCards({ onNavigate, envMode }) {
       {/* 2. Today's Reminders */}
       <div
         onClick={() => onNavigate('reminders')}
-        className="fih-card-interactive"
+        onMouseMove={handleCardMouseMove}
+        className="fih-card-interactive fih-spotlight"
         style={{
           padding: '18px 20px',
           borderRadius: 16,
@@ -166,10 +183,17 @@ export default function OverviewCards({ onNavigate, envMode }) {
             <Clock size={16} />
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-            {data.loading ? '—' : data.remindersToday}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+              {data.loading ? '—' : data.remindersToday}
+            </span>
+          </div>
+          {/* Micro radar beacon */}
+          <div style={{ position: 'relative', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ position: 'absolute', width: 18, height: 18, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.2)', border: '1px solid var(--accent-amber)' }} className="animate-pulse" />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-amber)' }} />
+          </div>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
@@ -183,7 +207,8 @@ export default function OverviewCards({ onNavigate, envMode }) {
       {/* 3. Deadlines Soon */}
       <div
         onClick={() => onNavigate('deadlines')}
-        className="fih-card-interactive"
+        onMouseMove={handleCardMouseMove}
+        className="fih-card-interactive fih-spotlight"
         style={{
           padding: '18px 20px',
           borderRadius: 16,
@@ -210,10 +235,17 @@ export default function OverviewCards({ onNavigate, envMode }) {
             <Calendar size={16} />
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-            {data.loading ? '—' : data.deadlinesSoon}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+              {data.loading ? '—' : data.deadlinesSoon}
+            </span>
+          </div>
+          {/* Micro countdown graphic */}
+          <svg width="24" height="24" viewBox="0 0 24 24" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="12" cy="12" r="9" fill="none" stroke="var(--border-subtle)" strokeWidth="2.5" />
+            <circle cx="12" cy="12" r="9" fill="none" stroke="var(--accent-rose)" strokeWidth="2.5" strokeDasharray="56.5" strokeDashoffset="18" strokeLinecap="round" />
+          </svg>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
@@ -227,7 +259,8 @@ export default function OverviewCards({ onNavigate, envMode }) {
       {/* 4. Net Debt Balance */}
       <div
         onClick={() => onNavigate('debts')}
-        className="fih-card-interactive"
+        onMouseMove={handleCardMouseMove}
+        className="fih-card-interactive fih-spotlight"
         style={{
           padding: '18px 20px',
           borderRadius: 16,
@@ -264,7 +297,7 @@ export default function OverviewCards({ onNavigate, envMode }) {
             <CreditCard size={16} />
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <span
             className="tabular-nums"
             style={{
@@ -281,6 +314,9 @@ export default function OverviewCards({ onNavigate, envMode }) {
           >
             {data.loading ? '—' : `₹${Math.abs(data.netDebt).toLocaleString('en-IN')}`}
           </span>
+          <div style={{ display: 'flex', alignItems: 'center', color: data.netDebt >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)' }}>
+            {data.netDebt >= 0 ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+          </div>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading

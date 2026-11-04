@@ -300,6 +300,34 @@ html, body {
   will-change: transform;
 }
 
+/* ── Interactive Spotlight Surface ───────────────────────────────────────── */
+.fih-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.fih-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    380px circle at var(--mouse-x, -200px) var(--mouse-y, -200px),
+    var(--accent-primary-glow),
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease;
+  z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fih-spotlight:hover::before {
+    opacity: 1;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .card-interactive:hover, .fih-card-interactive:hover {
     transform: translateY(-2px);
