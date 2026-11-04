@@ -290,7 +290,7 @@ export default function PixelWorldCanvas({
     stateRef.current.scaleTilt = net > 0 ? 1 : net < 0 ? -1 : 0;
   }, [debtsData]);
 
-  // 3. Keyboard Controls: WASD, Arrow Keys, [E] Interact, [Esc] Back to Map
+  // 3. Keyboard Controls: WASD, Arrow Keys, [E] Interact, [P] Panel Only, [Esc] Back to Map
   useEffect(() => {
     function handleKeyDown(e) {
       // Ignore if user is typing in a form field
@@ -311,7 +311,14 @@ export default function PixelWorldCanvas({
         if (nearby && onNavigateToChapter) {
           e.preventDefault();
           soundManager.playSfx('wood');
-          onNavigateToChapter(nearby.id);
+          onNavigateToChapter(nearby.id, { panelOnly: false });
+        }
+      } else if (code === 'KeyP') {
+        const nearby = stateRef.current.nearbyBuilding;
+        if (nearby && onNavigateToChapter) {
+          e.preventDefault();
+          soundManager.playSfx('wood');
+          onNavigateToChapter(nearby.id, { panelOnly: true });
         }
       } else if (code === 'Escape') {
         if (activeTab && onCloseChapter) {
@@ -382,7 +389,7 @@ export default function PixelWorldCanvas({
       const pip = stateRef.current.pip;
       const dist = Math.hypot(pip.x - hit.doorX, pip.y - hit.doorY);
       if (dist < 32 && onNavigateToChapter) {
-        onNavigateToChapter(hit.id);
+        onNavigateToChapter(hit.id, { panelOnly: false });
       } else {
         // Set auto-walk target to the door of this building
         stateRef.current.clickTarget = {
@@ -501,7 +508,7 @@ export default function PixelWorldCanvas({
         } else {
           pip.walking = false;
           if (target.buildingId && onNavigateToChapter) {
-            onNavigateToChapter(target.buildingId);
+            onNavigateToChapter(target.buildingId, { panelOnly: false });
           }
           state.clickTarget = null;
         }
@@ -914,7 +921,7 @@ export default function PixelWorldCanvas({
 
         ctx.save();
         ctx.font = 'bold 7px monospace';
-        const promptText = `[E] Enter ${nb.name}`;
+        const promptText = `[E] Enter  •  [P] Panel Only`;
         const pWidth = ctx.measureText(promptText).width;
         const bW = pWidth + 8;
         const bH = 12;

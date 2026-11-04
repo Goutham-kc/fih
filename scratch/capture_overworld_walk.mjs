@@ -16,7 +16,7 @@ const tilesetBase64 = fs.readFileSync('public/assets/tilesets/village_tileset.pn
 const pipBase64 = fs.readFileSync('public/assets/characters/pip_walk.png').toString('base64');
 const bramBase64 = fs.readFileSync('public/assets/characters/bram_factor.png').toString('base64');
 
-function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false }) {
+function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const isOverworld = !activeTab;
   return `<!DOCTYPE html>
 <html>
@@ -47,7 +47,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
       position: fixed;
       top: 12px;
       left: 14px;
-      right: ${!isOverworld && !isMobile ? '510px' : '14px'};
+      right: ${!isOverworld && !isMobile && !panelOnly ? '510px' : '14px'};
       z-index: 80;
       padding: 8px 12px;
       display: flex;
@@ -106,7 +106,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
       border: 3px solid #120b06;
       box-shadow: inset 2px 2px 0 #6e3d1b, inset -2px -2px 0 #120b06, 0 8px 24px rgba(0,0,0,0.85);
       padding: 10px 14px;
-      display: flex;
+      display: ${panelOnly ? 'none' : 'flex'};
       gap: 12px;
       align-items: center;
     }
@@ -159,11 +159,13 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
     }
     .parchment-panel {
       position: fixed;
-      top: ${isMobile ? '38vh' : '14px'};
-      right: ${isMobile ? '8px' : '14px'};
-      bottom: ${isMobile ? '68px' : '74px'};
-      left: ${isMobile ? '8px' : 'auto'};
-      width: ${isMobile ? 'auto' : '480px'};
+      top: ${panelOnly ? '60px' : isMobile ? '38vh' : '14px'};
+      right: ${panelOnly ? '14px' : isMobile ? '8px' : '14px'};
+      bottom: ${panelOnly ? '74px' : isMobile ? '68px' : '74px'};
+      left: ${panelOnly ? '14px' : isMobile ? '8px' : 'auto'};
+      width: ${panelOnly ? 'auto' : isMobile ? 'auto' : '480px'};
+      max-width: ${panelOnly ? '900px' : 'none'};
+      margin: ${panelOnly ? '0 auto' : '0'};
       background: #fdf6e2;
       border: 3px solid #452817;
       box-shadow: inset 2px 2px 0 #fff8db, inset -2px -2px 0 #bfa882, 0 8px 30px rgba(0,0,0,0.7);
@@ -188,15 +190,15 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
       <div style="font-size:11px; color:#60a5fa;">☀️ Clear</div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      ${isOverworld ? '<div class="controls-pill">🎮 WASD / Arrows to Walk • Click or [E] to Enter</div>' : '<button class="btn-pixel btn-gold">🗺️ Village Map (Esc)</button>'}
-      <button class="btn-pixel">📜 Panel Only</button>
+      ${isOverworld ? '<div class="controls-pill">🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only</div>' : '<button class="btn-pixel btn-gold">🗺️ Village Map (Esc)</button>'}
+      <button class="btn-pixel ${panelOnly ? 'btn-gold' : ''}">${panelOnly ? '🗺️ Show World' : '📜 Panel Only'}</button>
     </div>
   </div>
 
   <!-- Canvas -->
-  <canvas id="viewport" width="${isMobile ? 390 : 1280}" height="${isMobile ? (isOverworld ? 844 : 320) : 800}" style="display:block; width:100%; height:${isMobile ? (isOverworld ? '100vh' : '38vh') : '100vh'};"></canvas>
+  ${!panelOnly ? `<canvas id="viewport" width="${isMobile ? 390 : 1280}" height="${isMobile ? (isOverworld ? 844 : 320) : 800}" style="display:block; width:100%; height:${isMobile ? (isOverworld ? '100vh' : '38vh') : '100vh'};"></canvas>` : ''}
 
-  <!-- Side Parchment Panel (if chapter is active) -->
+  <!-- Side / Fullscreen Parchment Panel (if chapter is active) -->
   ${!isOverworld ? `
   <div class="parchment-panel">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #452817; padding-bottom:8px; margin-bottom:12px;">
@@ -204,7 +206,11 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
         <div style="font-family:'PressStart2P', monospace; font-size:11px; color:#452817; font-weight:700;">THE LEDGER HUT</div>
         <div style="font-size:10px; color:#784323; margin-top:2px;">16-bit RPG Ledger • Bram the Honest Factor</div>
       </div>
-      <button class="btn-pixel btn-gold">🗺️ Map (Esc)</button>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-pixel ${panelOnly ? 'btn-gold' : ''}">${panelOnly ? '🗺️ Split World' : '📜 Panel Only'}</button>
+        <button class="btn-pixel btn-gold">✕ Map (Esc)</button>
+        <button class="btn-pixel">▼ Min</button>
+      </div>
     </div>
     <div style="background:#fef3c7; border:1px solid #d97706; padding:8px; margin-bottom:12px; font-size:11px; color:#78350f;">
       🪙 Net Balance: <strong>+₹1,580g</strong> • 2 Active Tabs Recorded
@@ -228,6 +234,7 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
   </div>` : ''}
 
   <!-- Dialogue Box -->
+  ${!panelOnly ? `
   <div class="dialogue-box">
     <div class="portrait">${isOverworld ? '🧑‍🌾' : '🦡'}</div>
     <div>
@@ -236,11 +243,11 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
       </div>
       <div style="font-size:11px; line-height:1.4; color:#fdf6e2;">
         ${isOverworld 
-          ? 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk around. Click any house or walk up and press [E] to enter.' 
+          ? 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.' 
           : 'Clear accounts make steadfast friends! Settle your tabs before the fair, and your pouch will always jingle.'}
       </div>
     </div>
-  </div>
+  </div>` : ''}
 
   <!-- Hotbar -->
   <div class="hotbar">
@@ -257,322 +264,252 @@ function buildHTML({ activeTab = null, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0
 
   <script>
     const canvas = document.getElementById('viewport');
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
 
-    const tilesetImg = new Image();
-    const pipImg = new Image();
-    const bramImg = new Image();
+      const tilesetImg = new Image();
+      const pipImg = new Image();
+      const bramImg = new Image();
 
-    tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
-    pipImg.src = 'data:image/png;base64,${pipBase64}';
-    bramImg.src = 'data:image/png;base64,${bramBase64}';
+      tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
+      pipImg.src = 'data:image/png;base64,${pipBase64}';
+      bramImg.src = 'data:image/png;base64,${bramBase64}';
 
-    let loaded = 0;
-    function checkLoaded() {
-      loaded++;
-      if (loaded === 3) drawWorld();
-    }
-    tilesetImg.onload = checkLoaded;
-    pipImg.onload = checkLoaded;
-    bramImg.onload = checkLoaded;
-
-    const scale = ${isMobile ? 3 : 4};
-    const TILE_SIZE = 16;
-    const MAP_W = 38;
-    const MAP_H = 26;
-
-    const BUILDINGS = [
-      { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 4*16-6 },
-      { id: 'reminders', label: '🔔 Belfry Alerts', bx: 18*16, by: 2*16-6 },
-      { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 7*16-6 },
-      { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 14*16-6 },
-      { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 16*16-6 },
-      { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 17*16-6 },
-      { id: 'audit', label: '📜 Archive Cellar', bx: 28*16, by: 2*16-6 },
-      { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 8*16, by: 2*16-6 },
-    ];
-
-    function drawWorld() {
-      const viewW = Math.floor(canvas.width / scale);
-      const viewH = Math.floor(canvas.height / scale);
-
-      const camX = ${isOverworld ? pipPos.x : 26 * 16};
-      const camY = ${isOverworld ? pipPos.y : 11 * 16};
-
-      ctx.save();
-      ctx.scale(scale, scale);
-
-      const offsetX = Math.floor(viewW / 2 - camX);
-      const offsetY = Math.floor(viewH / 2 - camY);
-      ctx.translate(offsetX, offsetY);
-
-      // Layer 1: Ground
-      for (let ty = 0; ty < MAP_H; ty++) {
-        for (let tx = 0; tx < MAP_W; tx++) {
-          let tileCol = (tx * 7 + ty * 13) % 4;
-          const isMainEW = ty >= 12 && ty <= 13 && tx >= 4 && tx <= 32;
-          const isMainNS = tx >= 17 && tx <= 18 && ty >= 5 && ty <= 21;
-          const isWNB = tx === 8 && ty >= 4 && ty <= 12;
-          const isWSB = tx === 6 && ty >= 14 && ty <= 20;
-          const isENB = tx === 28 && ty >= 4 && ty <= 11;
-          const isESB = tx === 28 && ty >= 14 && ty <= 20;
-
-          if (isMainEW || isMainNS || isWNB || isWSB || isENB || isESB) tileCol = 4;
-
-          const isPond = tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18;
-          if (isPond) {
-            ctx.drawImage(tilesetImg, 0, 16, 16, 16, tx * 16, ty * 16, 16, 16);
-            continue;
-          }
-
-          const isGarden = tx >= 5 && tx <= 7 && ty >= 9 && ty <= 10;
-          if (isGarden) {
-            ctx.drawImage(tilesetImg, 7 * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
-            continue;
-          }
-
-          ctx.drawImage(tilesetImg, tileCol * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
-        }
+      let loaded = 0;
+      function checkLoaded() {
+        loaded++;
+        if (loaded === 3) drawWorld();
       }
+      tilesetImg.onload = checkLoaded;
+      pipImg.onload = checkLoaded;
+      bramImg.onload = checkLoaded;
 
-      // Cobblestones
-      for (let cx = 16; cx <= 20; cx++) {
-        for (let cy = 11; cy <= 13; cy++) {
-          ctx.drawImage(tilesetImg, 4 * 16, 16, 16, 16, cx * 16, cy * 16, 16, 16);
-        }
-      }
-      for (let cx = 24; cx <= 28; cx++) {
-        for (let cy = 11; cy <= 13; cy++) {
-          ctx.drawImage(tilesetImg, 4 * 16, 16, 16, 16, cx * 16, cy * 16, 16, 16);
-        }
-      }
+      const scale = ${isMobile ? 3 : 4};
+      const TILE_SIZE = 16;
+      const MAP_W = 38;
+      const MAP_H = 26;
 
-      // Fences
-      for (let fx = 4; fx <= 10; fx++) {
-        ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 8 * 16, 16, 16);
-      }
-      for (let fx = 19; fx <= 24; fx++) {
-        ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 14 * 16, 16, 16);
-      }
+      const BUILDINGS = [
+        { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 4*16-6 },
+        { id: 'reminders', label: '🔔 Belfry Alerts', bx: 18*16, by: 2*16-6 },
+        { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 7*16-6 },
+        { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 14*16-6 },
+        { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 16*16-6 },
+        { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 17*16-6 },
+        { id: 'audit', label: '📜 Archive Cellar', bx: 28*16, by: 2*16-6 },
+        { id: 'settings', label: '🛠️ Toolshed Workshop', bx: 8*16, by: 2*16-6 },
+      ];
 
-      // Depth sorted renderables
-      const renderables = [];
+      function drawWorld() {
+        const viewW = Math.floor(canvas.width / scale);
+        const viewH = Math.floor(canvas.height / scale);
 
-      // 1. Farmstead
-      renderables.push({
-        y: 8 * 16,
-        render: () => {
-          const bx = 6 * 16, by = 4 * 16;
-          for (let rx = 0; rx < 4; rx++) {
-            ctx.drawImage(tilesetImg, 0, 32, 16, 16, bx + rx * 16, by, 16, 16);
-            ctx.drawImage(tilesetImg, 0, 32, 16, 16, bx + rx * 16, by + 16, 16, 16);
-            ctx.drawImage(tilesetImg, (rx === 2 ? 3 : rx === 1 ? 2 : 1) * 16, 32, 16, 16, bx + rx * 16, by + 32, 16, 16);
-          }
-          ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 5 * 16, 9 * 16, 16, 16);
-          ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 6 * 16, 9 * 16, 16, 16);
-          ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 7 * 16, 10 * 16, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, 9 * 16, 12 * 16, 16, 16);
-        }
-      });
+        const camX = ${isOverworld ? pipPos.x : 26 * 16};
+        const camY = ${isOverworld ? pipPos.y : 11 * 16};
 
-      // 2. Ledger Hut
-      renderables.push({
-        y: 10 * 16,
-        render: () => {
-          const hx = 24 * 16, hy = 7 * 16;
-          for (let rx = 0; rx < 5; rx++) {
-            ctx.drawImage(tilesetImg, 0, 32, 16, 16, hx + rx * 16, hy, 16, 16);
-            ctx.drawImage(tilesetImg, 0, 32, 16, 16, hx + rx * 16, hy + 16, 16, 16);
-            const wallTile = (rx === 3 ? 3 : rx === 0 || rx === 4 ? 2 : 1);
-            ctx.drawImage(tilesetImg, wallTile * 16, 32, 16, 16, hx + rx * 16, hy + 32, 16, 16);
-          }
-          ctx.drawImage(tilesetImg, 4 * 16, 32, 16, 16, hx + 4 * 16, hy + 32, 16, 16);
-        }
-      });
-
-      // Bram
-      renderables.push({
-        y: 11 * 16 + 2,
-        render: () => {
-          ctx.drawImage(bramImg, 0, 0, 24, 32, 26 * 16 - 4, 10 * 16, 24, 32);
-        }
-      });
-
-      // Ledger Counter
-      renderables.push({
-        y: 11 * 16 + 8,
-        render: () => {
-          const cx = 25 * 16, cy = 11 * 16;
-          ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx, cy, 16, 16);
-          ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx + 16, cy, 16, 16);
-          ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx + 32, cy, 16, 16);
-          ctx.drawImage(tilesetImg, 6 * 16, 16, 16, 16, cx + 16, cy, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, cx + 2, cy - 2, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, cx + 8, cy - 2, 16, 16);
-        }
-      });
-
-      // 3. Bell Tower
-      renderables.push({
-        y: 7 * 16,
-        render: () => {
-          const tx = 17 * 16, ty = 2 * 16;
-          ctx.drawImage(tilesetImg, 0, 48, 16, 16, tx, ty, 16, 16);
-          ctx.drawImage(tilesetImg, 0, 48, 16, 16, tx + 16, ty, 16, 16);
-          ctx.drawImage(tilesetImg, 16, 48, 16, 16, tx, ty + 16, 16, 16);
-          ctx.drawImage(tilesetImg, 2 * 16, 48, 16, 16, tx + 16, ty + 16, 16, 16);
-          ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, tx, ty + 32, 16, 16);
-          ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, tx + 16, ty + 32, 16, 16);
-        }
-      });
-
-      // 4. Notice Board
-      renderables.push({
-        y: 17 * 16,
-        render: () => {
-          const nx = 17 * 16, ny = 15 * 16;
-          ctx.drawImage(tilesetImg, 4 * 16, 64, 16, 16, nx, ny, 16, 16);
-          ctx.drawImage(tilesetImg, 4 * 16, 64, 16, 16, nx + 16, ny, 16, 16);
-          ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, nx + 32, ny, 16, 16);
-        }
-      });
-
-      // 5. Fountain
-      renderables.push({
-        y: 13 * 16,
-        render: () => {
-          ctx.drawImage(tilesetImg, 5 * 16, 64, 16, 16, 18 * 16, 11 * 16, 16, 16);
-        }
-      });
-
-      // 6. Festival Grounds
-      renderables.push({
-        y: 20 * 16,
-        render: () => {
-          const gx = 27 * 16, gy = 17 * 16;
-          ctx.drawImage(tilesetImg, 7 * 16, 48, 16, 16, gx, gy, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 48, 16, 16, gx + 16, gy, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 32, 16, 16, gx - 16, gy + 16, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 32, 16, 16, gx + 32, gy + 16, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 64, 16, 16, gx - 16, gy + 32, 16, 16);
-          ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, gx + 16, gy + 32, 16, 16);
-        }
-      });
-
-      // 7. Cinema
-      renderables.push({
-        y: 20 * 16,
-        render: () => {
-          const mx = 4 * 16, my = 18 * 16;
-          ctx.drawImage(tilesetImg, 4 * 16, 48, 16, 16, mx, my, 16, 16);
-          ctx.drawImage(tilesetImg, 4 * 16, 48, 16, 16, mx + 16, my, 16, 16);
-          ctx.drawImage(tilesetImg, 3 * 16, 48, 16, 16, mx + 48, my + 16, 16, 16);
-          ctx.drawImage(tilesetImg, 6 * 16, 64, 16, 16, mx + 32, my + 32, 16, 16);
-        }
-      });
-
-      // 8. Cellar
-      renderables.push({
-        y: 6 * 16,
-        render: () => {
-          const ax = 27 * 16, ay = 2 * 16;
-          ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, ax, ay, 16, 16);
-          ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, ax + 16, ay, 16, 16);
-          ctx.drawImage(tilesetImg, 5 * 16, 48, 16, 16, ax + 32, ay + 16, 16, 16);
-          ctx.drawImage(tilesetImg, 7 * 16, 64, 16, 16, ax - 16, ay + 16, 16, 16);
-        }
-      });
-
-      // 9. Toolshed
-      renderables.push({
-        y: 6 * 16,
-        render: () => {
-          const sx = 7 * 16, sy = 2 * 16;
-          ctx.drawImage(tilesetImg, 6 * 16, 32, 16, 16, sx, sy, 16, 16);
-          ctx.drawImage(tilesetImg, 6 * 16, 32, 16, 16, sx + 16, sy, 16, 16);
-          ctx.drawImage(tilesetImg, 6 * 16, 48, 16, 16, sx + 32, sy + 16, 16, 16);
-        }
-      });
-
-      // Trees
-      renderables.push({
-        y: 11 * 16,
-        render: () => {
-          ctx.drawImage(tilesetImg, 0, 80, 16, 16, 3 * 16, 9 * 16, 16, 16);
-          ctx.drawImage(tilesetImg, 16, 80, 16, 16, 3 * 16, 10 * 16, 16, 16);
-        }
-      });
-      renderables.push({
-        y: 8 * 16,
-        render: () => {
-          ctx.drawImage(tilesetImg, 2 * 16, 80, 16, 16, 10 * 16, 6 * 16, 16, 16);
-          ctx.drawImage(tilesetImg, 3 * 16, 80, 16, 16, 10 * 16, 7 * 16, 16, 16);
-        }
-      });
-      renderables.push({
-        y: 6 * 16,
-        render: () => {
-          ctx.drawImage(tilesetImg, 4 * 16, 80, 16, 16, 21 * 16, 4 * 16, 16, 16);
-        }
-      });
-
-      // Pip
-      renderables.push({
-        y: ${pipPos.y} + 30,
-        render: () => {
-          ctx.drawImage(pipImg, 0, ${pipPos.dir} * 32, 16, 32, ${pipPos.x}, ${pipPos.y}, 16, 32);
-        }
-      });
-
-      renderables.sort((a, b) => a.y - b.y);
-      renderables.forEach(r => r.render());
-
-      // Floating signposts
-      BUILDINGS.forEach(b => {
         ctx.save();
-        ctx.font = '7px monospace';
-        const tw = ctx.measureText(b.label).width;
-        const pad = 4;
-        const bw = tw + pad * 2;
-        const bh = 10;
-        const bx = Math.floor(b.bx - bw / 2);
-        const by = Math.floor(b.by);
+        ctx.scale(scale, scale);
 
-        ctx.fillStyle = 'rgba(28, 17, 10, 0.9)';
+        const offsetX = Math.floor(viewW / 2 - camX);
+        const offsetY = Math.floor(viewH / 2 - camY);
+        ctx.translate(offsetX, offsetY);
+
+        // Ground
+        for (let ty = 0; ty < MAP_H; ty++) {
+          for (let tx = 0; tx < MAP_W; tx++) {
+            let tileCol = (tx * 7 + ty * 13) % 4;
+            const isMainEW = ty >= 12 && ty <= 13 && tx >= 4 && tx <= 32;
+            const isMainNS = tx >= 17 && tx <= 18 && ty >= 5 && ty <= 21;
+            const isWNB = tx === 8 && ty >= 4 && ty <= 12;
+            const isWSB = tx === 6 && ty >= 14 && ty <= 20;
+            const isENB = tx === 28 && ty >= 4 && ty <= 11;
+            const isESB = tx === 28 && ty >= 14 && ty <= 20;
+
+            if (isMainEW || isMainNS || isWNB || isWSB || isENB || isESB) tileCol = 4;
+
+            const isPond = tx >= 12 && tx <= 15 && ty >= 16 && ty <= 18;
+            if (isPond) {
+              ctx.drawImage(tilesetImg, 0, 16, 16, 16, tx * 16, ty * 16, 16, 16);
+              continue;
+            }
+
+            const isGarden = tx >= 5 && tx <= 7 && ty >= 9 && ty <= 10;
+            if (isGarden) {
+              ctx.drawImage(tilesetImg, 7 * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
+              continue;
+            }
+
+            ctx.drawImage(tilesetImg, tileCol * 16, 0, 16, 16, tx * 16, ty * 16, 16, 16);
+          }
+        }
+
+        // Cobblestones
+        for (let cx = 16; cx <= 20; cx++) {
+          for (let cy = 11; cy <= 13; cy++) {
+            ctx.drawImage(tilesetImg, 4 * 16, 16, 16, 16, cx * 16, cy * 16, 16, 16);
+          }
+        }
+        for (let cx = 24; cx <= 28; cx++) {
+          for (let cy = 11; cy <= 13; cy++) {
+            ctx.drawImage(tilesetImg, 4 * 16, 16, 16, 16, cx * 16, cy * 16, 16, 16);
+          }
+        }
+
+        // Fences
+        for (let fx = 4; fx <= 10; fx++) {
+          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 8 * 16, 16, 16);
+        }
+        for (let fx = 19; fx <= 24; fx++) {
+          ctx.drawImage(tilesetImg, 2 * 16, 16, 16, 16, fx * 16, 14 * 16, 16, 16);
+        }
+
+        const renderables = [];
+
+        // Farmstead
+        renderables.push({
+          y: 8 * 16,
+          render: () => {
+            const bx = 6 * 16, by = 4 * 16;
+            for (let rx = 0; rx < 4; rx++) {
+              ctx.drawImage(tilesetImg, 0, 32, 16, 16, bx + rx * 16, by, 16, 16);
+              ctx.drawImage(tilesetImg, 0, 32, 16, 16, bx + rx * 16, by + 16, 16, 16);
+              ctx.drawImage(tilesetImg, (rx === 2 ? 3 : rx === 1 ? 2 : 1) * 16, 32, 16, 16, bx + rx * 16, by + 32, 16, 16);
+            }
+            ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 5 * 16, 9 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 2 * 16, 64, 16, 16, 6 * 16, 9 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 3 * 16, 64, 16, 16, 7 * 16, 10 * 16, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 80, 16, 16, 9 * 16, 12 * 16, 16, 16);
+          }
+        });
+
+        // Ledger Hut
+        renderables.push({
+          y: 10 * 16,
+          render: () => {
+            const hx = 24 * 16, hy = 7 * 16;
+            for (let rx = 0; rx < 5; rx++) {
+              ctx.drawImage(tilesetImg, 0, 32, 16, 16, hx + rx * 16, hy, 16, 16);
+              ctx.drawImage(tilesetImg, 0, 32, 16, 16, hx + rx * 16, hy + 16, 16, 16);
+              const wallTile = (rx === 3 ? 3 : rx === 0 || rx === 4 ? 2 : 1);
+              ctx.drawImage(tilesetImg, wallTile * 16, 32, 16, 16, hx + rx * 16, hy + 32, 16, 16);
+            }
+            ctx.drawImage(tilesetImg, 4 * 16, 32, 16, 16, hx + 4 * 16, hy + 32, 16, 16);
+          }
+        });
+
+        // Bram
+        renderables.push({
+          y: 11 * 16 + 2,
+          render: () => {
+            ctx.drawImage(bramImg, 0, 0, 24, 32, 26 * 16 - 4, 10 * 16, 24, 32);
+          }
+        });
+
+        // Ledger Counter
+        renderables.push({
+          y: 11 * 16 + 8,
+          render: () => {
+            const cx = 25 * 16, cy = 11 * 16;
+            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx, cy, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx + 16, cy, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 16, 16, 16, cx + 32, cy, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 16, 16, 16, cx + 16, cy, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, cx + 2, cy - 2, 16, 16);
+            ctx.drawImage(tilesetImg, 7 * 16, 16, 16, 16, cx + 8, cy - 2, 16, 16);
+          }
+        });
+
+        // Bell Tower
+        renderables.push({
+          y: 7 * 16,
+          render: () => {
+            const tx = 17 * 16, ty = 2 * 16;
+            ctx.drawImage(tilesetImg, 0, 48, 16, 16, tx, ty, 16, 16);
+            ctx.drawImage(tilesetImg, 0, 48, 16, 16, tx + 16, ty, 16, 16);
+            ctx.drawImage(tilesetImg, 16, 48, 16, 16, tx, ty + 16, 16, 16);
+            ctx.drawImage(tilesetImg, 2 * 16, 48, 16, 16, tx + 16, ty + 16, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, tx, ty + 32, 16, 16);
+            ctx.drawImage(tilesetImg, 5 * 16, 32, 16, 16, tx + 16, ty + 32, 16, 16);
+          }
+        });
+
+        // Notice Board
+        renderables.push({
+          y: 17 * 16,
+          render: () => {
+            const nx = 17 * 16, ny = 15 * 16;
+            ctx.drawImage(tilesetImg, 4 * 16, 64, 16, 16, nx, ny, 16, 16);
+            ctx.drawImage(tilesetImg, 4 * 16, 64, 16, 16, nx + 16, ny, 16, 16);
+            ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, nx + 32, ny, 16, 16);
+          }
+        });
+
+        // Fountain
+        renderables.push({
+          y: 13 * 16,
+          render: () => {
+            ctx.drawImage(tilesetImg, 5 * 16, 64, 16, 16, 18 * 16, 11 * 16, 16, 16);
+          }
+        });
+
+        // Pip
+        renderables.push({
+          y: ${pipPos.y} + 30,
+          render: () => {
+            ctx.drawImage(pipImg, 0, ${pipPos.dir} * 32, 16, 32, ${pipPos.x}, ${pipPos.y}, 16, 32);
+          }
+        });
+
+        renderables.sort((a, b) => a.y - b.y);
+        renderables.forEach(r => r.render());
+
+        // Floating signposts
+        BUILDINGS.forEach(b => {
+          ctx.save();
+          ctx.font = '7px monospace';
+          const tw = ctx.measureText(b.label).width;
+          const pad = 4;
+          const bw = tw + pad * 2;
+          const bh = 10;
+          const bx = Math.floor(b.bx - bw / 2);
+          const by = Math.floor(b.by);
+
+          ctx.fillStyle = 'rgba(28, 17, 10, 0.9)';
+          ctx.fillRect(bx, by, bw, bh);
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(bx, by, bw, bh);
+
+          ctx.fillStyle = '#fef08a';
+          ctx.fillText(b.label, bx + pad, by + 7);
+          ctx.restore();
+        });
+
+        // Proximity bubble
+        ${nearbyBuilding ? `
+        ctx.save();
+        ctx.font = 'bold 7px monospace';
+        const promptText = '[E] Enter  •  [P] Panel Only';
+        const pw = ctx.measureText(promptText).width;
+        const bw = pw + 8;
+        const bh = 12;
+        const bx = Math.floor(${pipPos.x} + 8 - bw / 2);
+        const by = Math.floor(${pipPos.y} - 14);
+
+        ctx.fillStyle = '#fef3c7';
         ctx.fillRect(bx, by, bw, bh);
-        ctx.strokeStyle = '#d97706';
+        ctx.strokeStyle = '#b45309';
         ctx.lineWidth = 1;
         ctx.strokeRect(bx, by, bw, bh);
 
-        ctx.fillStyle = '#fef08a';
-        ctx.fillText(b.label, bx + pad, by + 7);
+        ctx.fillStyle = '#78350f';
+        ctx.fillText(promptText, bx + 4, by + 8);
         ctx.restore();
-      });
+        ` : ''}
 
-      // Proximity interaction bubble
-      ${nearbyBuilding ? `
-      ctx.save();
-      ctx.font = 'bold 7px monospace';
-      const promptText = '[E] Enter ${nearbyBuilding}';
-      const pw = ctx.measureText(promptText).width;
-      const bw = pw + 8;
-      const bh = 12;
-      const bx = Math.floor(${pipPos.x} + 8 - bw / 2);
-      const by = Math.floor(${pipPos.y} - 14);
-
-      ctx.fillStyle = '#fef3c7';
-      ctx.fillRect(bx, by, bw, bh);
-      ctx.strokeStyle = '#b45309';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(bx, by, bw, bh);
-
-      ctx.fillStyle = '#78350f';
-      ctx.fillText(promptText, bx + 4, by + 8);
-      ctx.restore();
-      ` : ''}
-
-      ctx.restore();
+        ctx.restore();
+      }
     }
   </script>
 </body>
@@ -604,44 +541,35 @@ server.listen(PORT, async () => {
 
   const page = await browser.newPage();
 
-  // 1. Initial Overworld View upon Login (Desktop)
-  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: false });
-  await page.setViewport({ width: 1280, height: 800 });
-  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
-  await new Promise(r => setTimeout(r, 600));
-  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-map-desktop.png') });
-  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-desktop.png') });
-  console.log('✓ Captured overworld-map-desktop.png');
-
-  // 2. Initial Overworld View upon Login (Mobile)
-  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding: null, isMobile: true });
-  await page.setViewport({ width: 390, height: 844 });
-  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
-  await new Promise(r => setTimeout(r, 600));
-  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-map-mobile.png') });
-  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-map-mobile.png') });
-  console.log('✓ Captured overworld-map-mobile.png');
-
-  // 3. Pip walking with keyboard controls to the Ledger Hut with [E] Enter prompt (Desktop)
-  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false });
+  // 1. Proximity prompt with [E] Enter & [P] Panel Only
+  currentHTML = buildHTML({ activeTab: null, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-walk-proximity-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-walk-proximity-desktop.png') });
-  console.log('✓ Captured overworld-walk-proximity-desktop.png');
+  console.log('✓ Captured updated overworld-walk-proximity-desktop.png');
 
-  // 4. Entered Ledger Hut (Parchment panel open with 🗺️ Village Map (Esc) button)
-  currentHTML = buildHTML({ activeTab: 'debts', pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false });
+  // 2. Entered Ledger Hut in Split World View (with Panel Only toggle in header)
+  currentHTML = buildHTML({ activeTab: 'debts', pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: false });
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
   await new Promise(r => setTimeout(r, 600));
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-entered-ledger-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-entered-ledger-desktop.png') });
-  console.log('✓ Captured overworld-entered-ledger-desktop.png');
+  console.log('✓ Captured updated overworld-entered-ledger-desktop.png');
+
+  // 3. Entered in Fullscreen "Panel Only" View
+  currentHTML = buildHTML({ activeTab: 'debts', pipPos: { x: 24 * 16, y: 11 * 16 + 8, dir: 2 }, nearbyBuilding: null, isMobile: false, panelOnly: true });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-panel-only-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-panel-only-desktop.png') });
+  console.log('✓ Captured overworld-panel-only-desktop.png');
 
   await browser.close();
   server.close();
-  console.log('All overworld exploration captures complete!');
+  console.log('All captures complete!');
   process.exit(0);
 });

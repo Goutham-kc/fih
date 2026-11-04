@@ -104,12 +104,16 @@ export default function Dashboard() {
     }
   }, [router.isReady, router.query.tab]);
 
-  const handleTabChange = (tabId) => {
+  const handleTabChange = (tabId, options = {}) => {
     soundManager.playSfx('wood');
+    if (options.panelOnly !== undefined) {
+      setShowCanvas(!options.panelOnly);
+    }
     setActiveTab(tabId);
     if (tabId) {
       router.replace({ query: { ...router.query, tab: tabId } }, undefined, { shallow: true });
     } else {
+      setShowCanvas(true);
       const q = { ...router.query };
       delete q.tab;
       router.replace({ query: q }, undefined, { shallow: true });
@@ -118,6 +122,7 @@ export default function Dashboard() {
 
   const handleCloseChapter = () => {
     soundManager.playSfx('wood');
+    setShowCanvas(true);
     setActiveTab(null);
     const q = { ...router.query };
     delete q.tab;
@@ -200,7 +205,7 @@ export default function Dashboard() {
   let currentResidentId = 'pip';
   let residentFullName = 'Pip the Farmhand';
   let chapterTitle = 'Pixel Valley Overworld';
-  let dialogueLine = 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk. Click any house or walk up and press [E] to enter.';
+  let dialogueLine = 'Welcome to Pixel Valley! Use WASD or Arrow Keys to walk. Click any house, press [E] to enter, or [P] for Panel Only view.';
 
   if (activeTab) {
     const chapterDialogue = dialogueContent[activeTab] || dialogueContent.debts;
@@ -362,7 +367,7 @@ export default function Dashboard() {
                   gap: 4,
                 }}
               >
-                <span>🎮 WASD / Arrows to Walk • Click or [E] to Enter</span>
+                <span>🎮 WASD / Arrows to Walk • [E] Enter • [P] Panel Only</span>
               </div>
             )}
 
@@ -382,7 +387,7 @@ export default function Dashboard() {
             {/* Accessible View Toggle */}
             <button
               type="button"
-              className="btn-pixel"
+              className={`btn-pixel ${!showCanvas ? 'btn-gold' : ''}`}
               onClick={() => setShowCanvas(!showCanvas)}
               style={{ padding: '3px 8px', fontSize: 9 }}
               title="Toggle between 16-bit Top-down World and Plain Ledger view"
@@ -412,7 +417,7 @@ export default function Dashboard() {
                 gap: 16,
               }}
             >
-              {/* Parchment Header & Close/Minimize */}
+              {/* Parchment Header & Close/Minimize/Panel Only */}
               <div
                 style={{
                   display: 'flex',
@@ -441,6 +446,16 @@ export default function Dashboard() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 6 }}>
+                  {/* Panel Only / Split World Toggle Option right when opened */}
+                  <button
+                    type="button"
+                    className={`btn-pixel ${!showCanvas ? 'btn-gold' : ''}`}
+                    onClick={() => setShowCanvas(!showCanvas)}
+                    style={{ padding: '4px 8px', fontSize: 9 }}
+                    title={showCanvas ? 'Switch to Fullscreen Panel Only' : 'Switch to Split World View'}
+                  >
+                    {showCanvas ? '📜 Panel Only' : '🗺️ Split World'}
+                  </button>
                   <button
                     type="button"
                     className="btn-pixel btn-gold"
@@ -448,7 +463,7 @@ export default function Dashboard() {
                     style={{ padding: '4px 8px', fontSize: 9 }}
                     title="Return to Village Map (Esc)"
                   >
-                    🗺️ Village Map (Esc)
+                    ✕ Map (Esc)
                   </button>
                   <button
                     type="button"
