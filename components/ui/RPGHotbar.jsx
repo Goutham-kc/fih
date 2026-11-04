@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 const CHAPTER_HOTBAR = [
+  { id: null, label: 'Map', icon: '🗺️', num: 'M' },
   { id: 'todos', label: 'Quests', icon: '🌾', num: '1' },
   { id: 'reminders', label: 'Belfry', icon: '🔔', num: '2' },
   { id: 'debts', label: 'Ledger', icon: '🪙', num: '3' },
@@ -11,15 +12,19 @@ const CHAPTER_HOTBAR = [
   { id: 'settings', label: 'Toolshed', icon: '🔧', num: '8' },
 ];
 
-export default function RPGHotbar({ activeTab = 'debts', onSelectTab }) {
+export default function RPGHotbar({ activeTab = null, onSelectTab }) {
   useEffect(() => {
     function handleKeyDown(e) {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName) || e.target?.isContentEditable) {
         return;
       }
+      if (e.code === 'KeyM' || e.key === '0') {
+        if (onSelectTab) onSelectTab(null);
+        return;
+      }
       const num = parseInt(e.key, 10);
-      if (num >= 1 && num <= CHAPTER_HOTBAR.length) {
-        const target = CHAPTER_HOTBAR[num - 1];
+      if (num >= 1 && num <= 8) {
+        const target = CHAPTER_HOTBAR[num]; // index 1 to 8 (since index 0 is Map)
         if (target && onSelectTab) {
           onSelectTab(target.id);
         }
@@ -28,6 +33,7 @@ export default function RPGHotbar({ activeTab = 'debts', onSelectTab }) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onSelectTab]);
+
   return (
     <nav
       className="rpg-hotbar"
@@ -51,7 +57,7 @@ export default function RPGHotbar({ activeTab = 'debts', onSelectTab }) {
         const isActive = activeTab === item.id;
         return (
           <button
-            key={item.id}
+            key={item.id || 'map'}
             type="button"
             onClick={() => onSelectTab && onSelectTab(item.id)}
             title={`${item.label} (${item.num})`}
@@ -82,7 +88,7 @@ export default function RPGHotbar({ activeTab = 'debts', onSelectTab }) {
                 left: 3,
                 fontSize: 8,
                 fontWeight: 800,
-                color: '#a38d7b',
+                color: item.id === null ? '#60a5fa' : '#a38d7b',
                 fontFamily: 'var(--font-pixel-display)',
               }}
             >
@@ -98,9 +104,10 @@ export default function RPGHotbar({ activeTab = 'debts', onSelectTab }) {
                 style={{
                   position: 'absolute',
                   bottom: -2,
-                  width: 4,
-                  height: 4,
+                  width: 6,
+                  height: 6,
                   background: '#facc15',
+                  boxShadow: '0 0 4px #facc15',
                 }}
               />
             )}
