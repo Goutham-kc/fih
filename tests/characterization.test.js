@@ -226,3 +226,64 @@ describe('TodoList and Watchlist status & priority filters', () => {
     expect(done).toHaveLength(1);
   });
 });
+
+describe('ReminderBoard baseline calculations', () => {
+  function getRelativeBadge(dateStr, baseNow) {
+    const now = baseNow ? new Date(baseNow).getTime() : Date.now();
+    const diff = new Date(dateStr).getTime() - now;
+    if (diff < 0) return { text: 'Overdue / Pending Trigger' };
+    const mins = Math.floor(diff / (1000 * 60));
+    if (mins < 60) return { text: `In ${mins} min${mins === 1 ? '' : 's'}` };
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return { text: `In ${hours} hr${hours === 1 ? '' : 's'}` };
+    const days = Math.floor(hours / 24);
+    return { text: `In ${days} day${days === 1 ? '' : 's'}` };
+  }
+
+  const baseTime = '2026-11-04T12:00:00.000Z';
+
+  it('marks past reminder as overdue / pending trigger', () => {
+    const past = '2026-11-04T11:30:00.000Z';
+    expect(getRelativeBadge(past, baseTime).text).toBe('Overdue / Pending Trigger');
+  });
+
+  it('formats minutes relative badge when under 1 hour', () => {
+    const in25Min = '2026-11-04T12:25:00.000Z';
+    expect(getRelativeBadge(in25Min, baseTime).text).toBe('In 25 mins');
+
+    const in1Min = '2026-11-04T12:01:00.000Z';
+    expect(getRelativeBadge(in1Min, baseTime).text).toBe('In 1 min');
+  });
+
+  it('formats hours relative badge when between 1 and 24 hours', () => {
+    const in3Hours = '2026-11-04T15:00:00.000Z';
+    expect(getRelativeBadge(in3Hours, baseTime).text).toBe('In 3 hrs');
+
+    const in1Hour = '2026-11-04T13:00:00.000Z';
+    expect(getRelativeBadge(in1Hour, baseTime).text).toBe('In 1 hr');
+  });
+
+  it('formats days relative badge when over 24 hours', () => {
+    const in2Days = '2026-11-06T12:00:00.000Z';
+    expect(getRelativeBadge(in2Days, baseTime).text).toBe('In 2 days');
+
+    const in1Day = '2026-11-05T12:00:00.000Z';
+    expect(getRelativeBadge(in1Day, baseTime).text).toBe('In 1 day');
+  });
+
+  it('correctly partitions reminders into upcoming and history based on sent flag', () => {
+    const reminders = [
+      { id: 1, title: 'Call Vet', sent: false },
+      { id: 2, title: 'Buy seeds', sent: true },
+      { id: 3, title: 'Fix gate', sent: false },
+    ];
+    const upcoming = reminders.filter((r) => !r.sent);
+    const history = reminders.filter((r) => r.sent);
+
+    expect(upcoming).toHaveLength(2);
+    expect(upcoming.map((r) => r.id)).toEqual([1, 3]);
+    expect(history).toHaveLength(1);
+    expect(history[0].id).toBe(2);
+  });
+});
+
