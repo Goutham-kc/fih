@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { fireSuccessBurst } from '@/lib/confetti';
-import { Plus, Trash2, RefreshCw, Star, Film, BookOpen } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Star, Film, BookOpen, Sparkles } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import { playSound } from '@/lib/soundEffects';
 
 export default function Watchlist() {
   const [items, setItems] = useState([]);
@@ -37,9 +38,10 @@ export default function Watchlist() {
     });
 
     if (res.ok) {
+      playSound('paper');
       setTitle('');
       setType('show');
-      toast.success('Added to watchlist');
+      toast.success('Archived in Gunther’s Library 📚');
       await fetchItems();
     } else {
       toast.error('Failed to add item');
@@ -50,7 +52,10 @@ export default function Watchlist() {
   async function updateStatus(id, status, rating) {
     try {
       if (status === 'done') {
+        playSound('harvest');
         fireSuccessBurst();
+      } else {
+        playSound('click');
       }
       const res = await fetch(`/api/watchlist/${id}`, {
         method: 'PATCH',

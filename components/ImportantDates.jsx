@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, Plus, Trash2, RefreshCw, Calendar } from 'lucide-react';
+import { Sparkles, Plus, Trash2, RefreshCw, Calendar, Gift } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import { playSound } from '@/lib/soundEffects';
 
 function getDaysUntil(dateStr) {
   const now = new Date();
@@ -67,10 +68,11 @@ export default function ImportantDates() {
     });
 
     if (res.ok) {
+      playSound('fanfare');
       setTitle('');
       setDate('');
       setRecurring('none');
-      toast.success('Important date tracked');
+      toast.success('Festival date inscribed on the calendar 🌸');
       await fetchDates();
     } else {
       toast.error('Failed to save date');

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2, RefreshCw, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Calendar, Clock, AlertTriangle, Pin } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import { playSound } from '@/lib/soundEffects';
 
 export default function DeadlineBoard() {
   const [deadlines, setDeadlines] = useState([]);
@@ -37,10 +38,11 @@ export default function DeadlineBoard() {
     });
 
     if (res.ok) {
+      playSound('wood');
       setTitle('');
       setDueDate('');
       setCategory('personal');
-      toast.success('Deadline recorded');
+      toast.success('Notice pinned to Town Bulletin Board 📌');
       await fetchDeadlines();
     } else {
       toast.error('Failed to create deadline');
@@ -117,7 +119,7 @@ export default function DeadlineBoard() {
                 className="fih-input"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. End Semester Exam"
+                placeholder="e.g. End Semester Exam, Pierre Crop Delivery"
                 required
               />
             </div>

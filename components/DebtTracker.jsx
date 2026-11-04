@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { fireSuccessBurst, fireBigCelebration } from '@/lib/confetti';
 import { toast } from 'sonner';
-import { Plus, Check, RefreshCw, ArrowUpRight, ArrowDownLeft, CheckCircle2 } from 'lucide-react';
+import { Plus, Check, RefreshCw, ArrowUpRight, ArrowDownLeft, CheckCircle2, Coins } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import { playSound } from '@/lib/soundEffects';
 
 function cleanNote(note, personName) {
   if (!note) return '';
@@ -53,11 +54,12 @@ export default function DebtTracker() {
     });
 
     if (res.ok) {
+      playSound('coin');
       setPerson('');
       setAmount('');
       setNote('');
       setDirection('i_owe');
-      toast.success('Record saved to ledger');
+      toast.success('Favor recorded in Pierre’s ledger 🪙');
       await fetchDebts();
     } else {
       toast.error('Failed to save record');
@@ -66,17 +68,19 @@ export default function DebtTracker() {
   }
 
   async function settleSingleDebt(debtId) {
+    playSound('coin');
     fireSuccessBurst();
     await fetch(`/api/debts/${debtId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ settled: true }),
     });
-    toast.success('Debt marked as settled');
+    toast.success('Favor settled in gold!');
     fetchDebts();
   }
 
   async function settleAll(personName) {
+    playSound('fanfare');
     fireBigCelebration();
     const toSettle = debts.filter((d) => d.person === personName && !d.settled);
     await Promise.all(
@@ -88,7 +92,7 @@ export default function DebtTracker() {
         })
       )
     );
-    toast.success(`Settled all balances with ${personName}`);
+    toast.success(`Settled all tabs with ${personName} 🪙`);
     fetchDebts();
   }
 

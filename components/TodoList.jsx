@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { fireSuccessBurst } from '@/lib/confetti';
 import { toast } from 'sonner';
-import { Plus, RefreshCw, Trash2, Calendar, Check, AlertCircle } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, Calendar, Check, AlertCircle, Sparkles } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import { playSound } from '@/lib/soundEffects';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -39,13 +40,14 @@ export default function TodoList() {
     });
 
     if (res.ok) {
+      playSound('quest');
       setTitle('');
       setDueDate('');
       setPriority('medium');
-      toast.success('Task added successfully');
+      toast.success('Quest recorded on the farm ledger 🌾');
       await fetchTodos();
     } else {
-      toast.error('Failed to add task');
+      toast.error('Failed to add quest');
     }
     setAdding(false);
   }
@@ -53,7 +55,10 @@ export default function TodoList() {
   async function markDone(id, currentStatus) {
     const nextStatus = currentStatus === 'done' ? 'open' : 'done';
     if (nextStatus === 'done') {
+      playSound('harvest');
       fireSuccessBurst();
+    } else {
+      playSound('click');
     }
     await fetch(`/api/todos/${id}`, {
       method: 'PATCH',
@@ -119,7 +124,7 @@ export default function TodoList() {
                 style={{ flex: 1, fontSize: 14 }}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="What needs to be done today?"
+                placeholder="What chore will you tackle today on the farm?"
                 required
               />
               <button
@@ -129,7 +134,7 @@ export default function TodoList() {
                 style={{ height: 42, padding: '0 20px', flexShrink: 0 }}
               >
                 <Plus size={16} />
-                <span>{adding ? 'Adding...' : 'Add Task'}</span>
+                <span>{adding ? 'Inscribing...' : 'Add Quest'}</span>
               </button>
             </div>
 
@@ -180,13 +185,13 @@ export default function TodoList() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em' }}>
-            Open Tasks ({open.length})
+            🌾 Daily Farmstead Quests ({open.length})
           </h2>
           <button
             className="btn btn-secondary"
             onClick={fetchTodos}
             style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
-            title="Refresh tasks"
+            title="Refresh quests"
           >
             <RefreshCw size={13} />
             <span>Refresh</span>

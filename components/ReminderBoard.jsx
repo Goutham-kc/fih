@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Clock, Plus, Trash2, RefreshCw, Check, Calendar } from 'lucide-react';
+import { Clock, Plus, Trash2, RefreshCw, Check, Calendar, Mail } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import { playSound } from '@/lib/soundEffects';
 
 export default function ReminderBoard() {
   const [reminders, setReminders] = useState([]);
@@ -47,9 +48,10 @@ export default function ReminderBoard() {
       });
 
       if (res.ok) {
+        playSound('mail');
         setTitle('');
         setRemindAt('');
-        toast.success('Reminder scheduled');
+        toast.success('Pigeon dispatch scheduled 📬');
         fetchReminders();
       } else {
         toast.error('Failed to schedule reminder');

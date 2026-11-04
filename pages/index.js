@@ -27,16 +27,19 @@ import AuditLogView from '@/components/AuditLogView';
 import OverviewCards from '@/components/OverviewCards';
 import AnalyticsPulse from '@/components/AnalyticsPulse';
 import InteractiveTelemetry from '@/components/InteractiveTelemetry';
-import AuroraBackground from '@/components/AuroraBackground';
+import StardewHUD from '@/components/StardewHUD';
+import StardewAtmosphere from '@/components/StardewAtmosphere';
+import TabStoryBanner from '@/components/TabStoryBanner';
+import { playSound } from '@/lib/soundEffects';
 
 const TABS = [
-  { id: 'todos', label: 'Tasks', icon: CheckSquare },
-  { id: 'reminders', label: 'Reminders', icon: Clock },
-  { id: 'debts', label: 'Ledger', icon: CreditCard },
-  { id: 'deadlines', label: 'Deadlines', icon: Calendar },
-  { id: 'dates', label: 'Dates', icon: Sparkles },
-  { id: 'watchlist', label: 'Watchlist', icon: Film },
-  { id: 'audit', label: 'Audit Log', icon: History },
+  { id: 'todos', label: 'Daily Quests', icon: CheckSquare },
+  { id: 'reminders', label: 'Mailbox', icon: Clock },
+  { id: 'debts', label: 'Gold Ledger', icon: CreditCard },
+  { id: 'deadlines', label: 'Town Board', icon: Calendar },
+  { id: 'dates', label: 'Festivals', icon: Sparkles },
+  { id: 'watchlist', label: 'The Library', icon: Film },
+  { id: 'audit', label: 'Chronicle', icon: History },
 ];
 
 export default function Dashboard() {
@@ -71,6 +74,7 @@ export default function Dashboard() {
   }, [router.isReady, router.query.tab]);
 
   const handleTabChange = (tabId) => {
+    playSound('wood');
     setActiveTab(tabId);
     setMoreSheetOpen(false);
     router.replace({ query: { ...router.query, tab: tabId } }, undefined, { shallow: true });
@@ -160,11 +164,11 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>fih — Personal Operating System</title>
+        <title>fih — Stardew Valley Chronicle</title>
         <meta name="description" content="Precision Personal Life Operations & WhatsApp Chronicle" />
       </Head>
 
-      <AuroraBackground />
+      <StardewAtmosphere />
       {/* Ambient Radial Accent */}
       <div className="ambient-glow" style={{ top: -80, left: '20%' }} />
 
@@ -185,8 +189,8 @@ export default function Dashboard() {
             >
               fih
             </span>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 2 }}>
-              Chronicle
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f59e0b', marginTop: 2 }}>
+              Valley Chronicle 🌾
             </div>
           </div>
           <ThemeToggle size={18} />
@@ -382,11 +386,16 @@ export default function Dashboard() {
                   fontWeight: 600,
                   letterSpacing: '0.06em',
                   textTransform: 'uppercase',
-                  color: 'var(--text-muted)',
+                  color: '#f59e0b',
                   marginBottom: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
-                {dateStr || 'Personal Operating System'} • {envMode === 'live' ? 'Live Mode' : 'Sandbox Mode'}
+                <span>🌾 Farmstead Life Chronicle</span>
+                <span>•</span>
+                <span>{envMode === 'live' ? 'Live World' : 'Sandbox Farm'}</span>
               </div>
               <h1
                 style={{
@@ -401,10 +410,10 @@ export default function Dashboard() {
                 }}
               >
                 {activeTab === 'settings'
-                  ? 'Settings & Controls'
+                  ? 'Farmhouse Settings'
                   : activeTab === 'audit'
-                  ? 'System Audit Chronicle'
-                  : `${greeting}, Goutham.`}
+                  ? 'Valley Chronicle Archive'
+                  : `${greeting}, Farmer Goutham.`}
               </h1>
             </div>
 
@@ -447,11 +456,15 @@ export default function Dashboard() {
         {/* Top Graphical Pulse & Overview Metrics */}
         {activeTab !== 'settings' && activeTab !== 'audit' && (
           <>
+            <StardewHUD envMode={envMode} />
             <InteractiveTelemetry onNavigate={handleTabChange} envMode={envMode} />
             <AnalyticsPulse onNavigate={handleTabChange} envMode={envMode} />
             <OverviewCards onNavigate={handleTabChange} envMode={envMode} />
           </>
         )}
+
+        {/* Interactive Stardew Story Chapter Header for Active Tab */}
+        <TabStoryBanner activeTab={activeTab} envMode={envMode} />
 
         {/* Tab Content Component with Emil Kowalski page transition */}
         <section key={activeTab} className="page-enter">
@@ -505,10 +518,10 @@ export default function Dashboard() {
       <nav className="mobile-bottom-nav">
         <div style={{ display: 'flex', width: '100%', justifyContent: 'space-around', alignItems: 'center' }}>
           {[
-            { id: 'todos', label: 'Tasks', icon: CheckSquare },
-            { id: 'reminders', label: 'Alerts', icon: Clock },
+            { id: 'todos', label: 'Quests', icon: CheckSquare },
+            { id: 'reminders', label: 'Mailbox', icon: Clock },
             { id: 'debts', label: 'Ledger', icon: CreditCard },
-            { id: 'deadlines', label: 'Due', icon: Calendar },
+            { id: 'deadlines', label: 'Board', icon: Calendar },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -653,10 +666,10 @@ export default function Dashboard() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20 }}>
               {[
-                { id: 'dates', label: 'Dates', icon: Sparkles, desc: 'Anniversaries & events' },
-                { id: 'watchlist', label: 'Watchlist', icon: Film, desc: 'Movies & queue' },
-                { id: 'audit', label: 'Audit Log', icon: History, desc: 'Chronicle telemetry' },
-                { id: 'settings', label: 'Settings', icon: Settings, desc: 'System preferences' },
+                { id: 'dates', label: 'Festivals', icon: Sparkles, desc: 'Events & milestones' },
+                { id: 'watchlist', label: 'The Library', icon: Film, desc: 'Tales, reels & hearth' },
+                { id: 'audit', label: 'Chronicle', icon: History, desc: 'Pelican Town archive' },
+                { id: 'settings', label: 'Farmhouse', icon: Settings, desc: 'Homestead settings' },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;

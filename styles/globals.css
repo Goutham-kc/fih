@@ -786,6 +786,41 @@ select.input option, select.fih-input option {
   gap: 16px;
 }
 
+/* ── Stardew Valley Storybook & Farmstead Enhancements ───────────────────── */
+.stardew-hud-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.stardew-hud-card:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.12);
+}
+
+.stardew-gold {
+  color: #f59e0b;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stardew-badge-quest {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  font-weight: 700;
+}
+
+.stardew-badge-harvest {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-weight: 700;
+}
+
 .summary-card {
   background: var(--bg-card);
   border-radius: 14px;
@@ -1037,3 +1072,99 @@ select.input option, select.fih-input option {
     display: none !important;
   }
 }
+
+/* ── Stardew Valley Cozy Storybook Design System ────────────────────────── */
+@keyframes stardewFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.5deg);
+  }
+}
+
+@keyframes stardewHarvest {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes stardewShimmer {
+  0% {
+    filter: drop-shadow(0 0 2px #f59e0b);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px #f59e0b) brightness(1.15);
+  }
+  100% {
+    filter: drop-shadow(0 0 2px #f59e0b);
+  }
+}
+
+@keyframes stardewWobble {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+.stardew-story-card {
+  transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.stardew-story-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.stardew-lore-btn:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  transform: scale(1.02);
+}
+
+.stardew-lore-btn:active {
+  transform: scale(0.97);
+}
+
+.stardew-wood-card {
+  background: linear-gradient(135deg, rgba(32, 21, 14, 0.88) 0%, rgba(20, 14, 9, 0.94) 100%);
+  border: 2px solid rgba(196, 136, 63, 0.35);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+[data-theme="light"] .stardew-wood-card {
+  background: linear-gradient(135deg, #fffcf5 0%, #faf5ea 100%);
+  border: 2px solid #d4a373;
+  box-shadow: 0 4px 18px rgba(92, 51, 23, 0.1), inset 0 1px 0 #ffffff;
+}
+
+.stardew-wax-seal {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: 1.5px solid #991b1b;
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fef2f2;
+  font-size: 10px;
+  font-weight: 800;
+}
+
