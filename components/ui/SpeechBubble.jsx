@@ -1,37 +1,92 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Volume2, VolumeX, BookOpen, ChevronRight } from 'lucide-react';
-import { playSound, isSoundEnabled, toggleSound } from '@/lib/soundEffects';
+import CharacterSprite from '@/components/character/CharacterSprite';
+import { soundManager } from '@/lib/soundManager';
+import { eventBus, EVENTS } from '@/lib/eventBus';
 
 export default function SpeechBubble({
-  character, // { id, name, role, avatar, chapter, themeColor }
+  character, // { id, name, role, chapter, themeColor }
   tales = [],
-  onNextTale,
+  contextText = null,
+  onNextTale = null,
 }) {
   const [taleIndex, setTaleIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState(() => tales[0] || '');
+  const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
+  const [soundMuted, setSoundMuted] = useState(() => soundManager.isMuted());
+  const [spriteState, setSpriteState] = useState('idle');
 
-  const currentTale = tales[taleIndex] || tales[0] || '';
+  const fullText = contextText || tales[taleIndex] || tales[0] || '';
+  const timerRef = useRef(null);
+
+  // Subscribe to external sound toggle events
+  useEffect(() => {
+    const unsub = eventBus.on(EVENTS.SOUND_TOGGLED, ({ muted }) => {
+      setSoundMuted(muted);
+    });
+    return () => unsub();
+  }, []);
+
+  // Asynchronous typewriter effect whenever fullText changes
+  useEffect(() => {
+    if (!fullText) return;
+
+    const prefersReducedMotion = typeof window !== 'undefined' &&
+      (localStorage.getItem('pv_reduced_motion') === 'true' ||
+       window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    let charIdx = 0;
+    clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      if (prefersReducedMotion) {
+        setDisplayedText(fullText);
+        setIsTyping(false);
+        setSpriteState('idle');
+        clearInterval(timerRef.current);
+        return;
+      }
+
+      charIdx++;
+      if (charIdx <= fullText.length) {
+        setDisplayedText(fullText.slice(0, charIdx));
+        setIsTyping(true);
+        setSpriteState('talk');
+        if (charIdx % 2 === 0) {
+          soundManager.playDialogueBlip(character?.id || 'pip');
+        }
+      } else {
+        clearInterval(timerRef.current);
+        setIsTyping(false);
+        setSpriteState('idle');
+      }
+    }, 24);
+
+    return () => {
+      clearInterval(timerRef.current);
+    };
+  }, [fullText, character?.id]);
 
   const handleSkipOrNext = () => {
     if (isTyping) {
       // Instant reveal
-      setDisplayedText(currentTale);
+      clearInterval(timerRef.current);
+      setDisplayedText(fullText);
       setIsTyping(false);
-      playSound('paper');
+      setSpriteState('idle');
+      soundManager.playSfx('paper');
     } else if (tales.length > 1) {
-      playSound('paper');
+      soundManager.playSfx('paper');
       const nextIdx = (taleIndex + 1) % tales.length;
       setTaleIndex(nextIdx);
-      setDisplayedText(tales[nextIdx] || '');
       if (onNextTale) onNextTale(nextIdx);
     }
   };
 
-  const handleSoundToggle = () => {
-    const nextState = toggleSound();
-    setSoundOn(nextState);
+  const handleSoundToggle = (e) => {
+    e.stopPropagation();
+    const next = soundManager.toggleMute();
+    setSoundMuted(next);
   };
 
   if (!character) return null;
@@ -47,13 +102,14 @@ export default function SpeechBubble({
         background: 'linear-gradient(180deg, #2b1a11 0%, #1a0f08 100%)',
         border: '3px solid #7b4a28',
         borderRadius: 14,
-        padding: '14px 18px',
-        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(201, 143, 85, 0.3)',
+        padding: '12px 18px',
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(201, 143, 85, 0.3)',
         marginBottom: 20,
         position: 'relative',
+        cursor: 'pointer',
       }}
       onClick={handleSkipOrNext}
-      title={isTyping ? 'Click to show full tale' : 'Click to hear next lore'}
+      title={isTyping ? 'Click to show entire story' : 'Click to hear next tale'}
     >
       {/* Corner Studs */}
       <span style={{ position: 'absolute', top: 4, left: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
@@ -61,31 +117,30 @@ export default function SpeechBubble({
       <span style={{ position: 'absolute', bottom: 4, left: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
       <span style={{ position: 'absolute', bottom: 4, right: 4, width: 5, height: 5, background: '#f2c230', borderRadius: 1 }} />
 
-      {/* Character Portrait Box */}
+      {/* Character Portrait Box with Procedural Pixel Sprite */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: 72,
-          height: 80,
+          width: 76,
+          height: 84,
           borderRadius: 10,
           background: 'linear-gradient(180deg, #3d2315 0%, #24140b 100%)',
           border: '2px solid #a36c3a',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 8px rgba(0,0,0,0.5)',
           flexShrink: 0,
           userSelect: 'none',
+          padding: 4,
         }}
       >
-        <span
-          style={{
-            fontSize: 32,
-            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
-          }}
-        >
-          {character.avatar}
-        </span>
+        <CharacterSprite
+          characterId={character.id}
+          state={spriteState}
+          size={52}
+          interactive={false}
+        />
         <span
           style={{
             fontSize: 9,
@@ -105,7 +160,7 @@ export default function SpeechBubble({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: character.themeColor || '#f2c230' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: character.themeColor || '#f2c230' }}>
               {character.name}
             </span>
             <span style={{ fontSize: 11, color: '#a38d7b' }}>
@@ -116,9 +171,10 @@ export default function SpeechBubble({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => e.stopPropagation()}>
             {tales.length > 1 && (
               <button
+                type="button"
                 onClick={handleSkipOrNext}
                 className="pixel-btn secondary"
-                style={{ fontSize: 10, padding: '3px 8px', minHeight: 26 }}
+                style={{ fontSize: 10, padding: '3px 8px', minHeight: 24, cursor: 'pointer' }}
               >
                 <BookOpen size={11} />
                 <span>Next Lore ({taleIndex + 1}/{tales.length})</span>
@@ -127,19 +183,20 @@ export default function SpeechBubble({
             )}
 
             <button
+              type="button"
               onClick={handleSoundToggle}
-              title={soundOn ? 'Sound On' : 'Sound Muted'}
+              title={soundMuted ? 'Sound Muted (Click to Unmute)' : 'Sound Active (Click to Mute)'}
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: soundOn ? '#f2c230' : '#8d8a86',
+                color: soundMuted ? '#c2415a' : '#8fc45a',
                 cursor: 'pointer',
                 padding: 4,
                 display: 'inline-flex',
                 alignItems: 'center',
               }}
             >
-              {soundOn ? <Volume2 size={14} /> : <VolumeX size={14} />}
+              {soundMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
             </button>
           </div>
         </div>
@@ -158,7 +215,19 @@ export default function SpeechBubble({
           }}
         >
           “{displayedText}”
-          {isTyping && <span className="pixel-caret" style={{ display: 'inline-block', width: 6, height: 12, background: '#f2c230', marginLeft: 4 }} />}
+          {isTyping && (
+            <span
+              className="pixel-caret"
+              style={{
+                display: 'inline-block',
+                width: 6,
+                height: 12,
+                background: '#f2c230',
+                marginLeft: 4,
+                verticalAlign: 'middle',
+              }}
+            />
+          )}
         </p>
       </div>
     </div>
