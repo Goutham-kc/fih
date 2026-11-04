@@ -107,3 +107,9 @@ This document lists every sprite, frame layout, and coordinate in `/public/asset
 - **World Rendering:** Scaled to 76×79 world px (placed at world coordinates x: 92, y: 37)
 - **Features:** Terracotta tiled roof with twin gables, stone masonry chimney on right, rustic wooden door with stone doorstep, wooden flowerbox planter with pink blossoms, blue-paned window, glowing amber lantern, attic dormer window, cut-stone foundation.
 - **Interactive Role:** Chapter 1: The Farmstead (Daily Quests / Todos). Door entrance at world position `(8 * 16, 7 * 16 + 4)`.
+
+### The Notice Board (`notice_board.png`)
+- **Source:** User Custom Sprite (Cropped to 752×665 px, transparent alpha background)
+- **World Rendering:** Scaled to 52×46 world px (placed at world coordinates x: 262, y: 200)
+- **Features:** Timber support posts with stone footing pedestals and pink flower shrubs, terracotta shingled canopy roof, multi-page pinned community notices (house sketch parchment, central town manifest with torn lower hem, list docket, botanical flower illustration).
+- **Interactive Role:** Chapter 4: The Notice Board (Town Deadlines). Viewing pad at world position `(18 * 16, 16 * 16)`.

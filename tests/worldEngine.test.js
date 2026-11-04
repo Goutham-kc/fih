@@ -162,6 +162,21 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitHouse).not.toBeNull();
     expect(hitHouse.id).toBe('todos');
     expect(hitHouse.name).toBe('The Farmstead');
+
+    // Clicking on the new Notice Board (at tx: 18, ty: 14) hits The Notice Board
+    const hitBoard = getHitBuilding(18 * 16, 14 * 16);
+    expect(hitBoard).not.toBeNull();
+    expect(hitBoard.id).toBe('deadlines');
+    expect(hitBoard.name).toBe('The Notice Board');
+  });
+
+  it('detects viewing pad proximity for the custom Notice Board', async () => {
+    const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
+
+    // Standing on the viewing pad in front of the board at (tx: 18, ty: 16) detects The Notice Board
+    const nearby = getNearbyBuilding(18 * 16, 16 * 16, 36);
+    expect(nearby).not.toBeNull();
+    expect(nearby.id).toBe('deadlines');
   });
 
   it('detects front porch door proximity for the custom Farmstead house', async () => {

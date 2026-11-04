@@ -16,6 +16,7 @@ const tilesetBase64 = fs.readFileSync('public/assets/tilesets/village_tileset.pn
 const pipBase64 = fs.readFileSync('public/assets/characters/pip_walk.png').toString('base64');
 const bramBase64 = fs.readFileSync('public/assets/characters/bram_factor.png').toString('base64');
 const farmhouseBase64 = fs.readFileSync('public/assets/buildings/farmhouse.png').toString('base64');
+const noticeBoardBase64 = fs.readFileSync('public/assets/buildings/notice_board.png').toString('base64');
 
 function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 * 16, y: 13 * 16, dir: 0 }, nearbyBuilding = null, isMobile = false, panelOnly = false }) {
   const isOverworld = !activeTab;
@@ -240,13 +241,15 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
   <!-- Dialogue Box -->
   ${showDialogue ? `
   <div class="dialogue-box">
-    <div class="portrait">${nearbyBuilding === 'The Farmstead' ? '🧑‍🌾' : (!isOverworld || nearbyBuilding ? '🦡' : '🧑‍🌾')}</div>
+    <div class="portrait">${nearbyBuilding === 'The Notice Board' ? '📋' : nearbyBuilding === 'The Farmstead' ? '🧑‍🌾' : (!isOverworld || nearbyBuilding ? '🦡' : '🧑‍🌾')}</div>
     <div>
       <div style="font-family:'PressStart2P', monospace; font-size:9px; color:#facc15; margin-bottom:4px;">
-        ${nearbyBuilding === 'The Farmstead' ? 'Pip the Farmhand (The Farmstead)' : (!isOverworld || nearbyBuilding ? 'Bram the Honest Factor (The Ledger Hut)' : 'Pip the Farmhand (Fih Valley Overworld)')}
+        ${nearbyBuilding === 'The Notice Board' ? 'Marigold the Festival Herald (The Notice Board)' : nearbyBuilding === 'The Farmstead' ? 'Pip the Farmhand (The Farmstead)' : (!isOverworld || nearbyBuilding ? 'Bram the Honest Factor (The Ledger Hut)' : 'Pip the Farmhand (Fih Valley Overworld)')}
       </div>
       <div style="font-size:11px; line-height:1.4; color:#fdf6e2;">
-        ${nearbyBuilding === 'The Farmstead'
+        ${nearbyBuilding === 'The Notice Board'
+          ? 'Good morning! The town board has fresh notices pinned with bright festival ribbons. What due dates are ripening? Press [E] to enter or [P] for Panel Only.'
+          : nearbyBuilding === 'The Farmstead'
           ? 'The sun is shining over the crops. Check off your chores one by one and watch the farmstead flourish! Press [E] to enter or [P] for Panel Only.'
           : (!isOverworld || nearbyBuilding
             ? 'Clear accounts make steadfast friends! Settle your tabs before the fair. Press [E] to enter or [P] for Panel Only.'
@@ -278,21 +281,24 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
       const pipImg = new Image();
       const bramImg = new Image();
       const farmhouseImg = new Image();
+      const noticeBoardImg = new Image();
 
       tilesetImg.src = 'data:image/png;base64,${tilesetBase64}';
       pipImg.src = 'data:image/png;base64,${pipBase64}';
       bramImg.src = 'data:image/png;base64,${bramBase64}';
       farmhouseImg.src = 'data:image/png;base64,${farmhouseBase64}';
+      noticeBoardImg.src = 'data:image/png;base64,${noticeBoardBase64}';
 
       let loaded = 0;
       function checkLoaded() {
         loaded++;
-        if (loaded === 4) drawWorld();
+        if (loaded === 5) drawWorld();
       }
       tilesetImg.onload = checkLoaded;
       pipImg.onload = checkLoaded;
       bramImg.onload = checkLoaded;
       farmhouseImg.onload = checkLoaded;
+      noticeBoardImg.onload = checkLoaded;
 
       const scale = ${isMobile ? 3 : 4};
       const TILE_SIZE = 16;
@@ -303,7 +309,7 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
         { id: 'todos', label: '🌾 Daily Quests', bx: 8*16, by: 2*16-6 },
         { id: 'reminders', label: '🔔 Belfry Alerts', bx: 18*16, by: 2*16-6 },
         { id: 'debts', label: '🪙 Gold Ledger', bx: 26*16, by: 7*16-6 },
-        { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 14*16-6 },
+        { id: 'deadlines', label: '📋 Town Deadlines', bx: 18*16, by: 13*16-12 },
         { id: 'dates', label: '🎪 Festival Grounds', bx: 28*16, by: 16*16-6 },
         { id: 'watchlist', label: '🎬 Moonlight Cinema', bx: 6*16, by: 17*16-6 },
         { id: 'audit', label: '📜 Archive Cellar', bx: 28*16, by: 2*16-6 },
@@ -477,14 +483,14 @@ function buildHTML({ activeTab = null, hasInteracted = false, pipPos = { x: 18 *
           }
         });
 
-        // Notice Board
+        // Notice Board (New Custom Notice Board)
         renderables.push({
-          y: 17 * 16,
+          y: 15 * 16 + 6,
           render: () => {
-            const nx = 17 * 16, ny = 15 * 16;
-            ctx.drawImage(tilesetImg, 4 * 16, 64, 16, 16, nx, ny, 16, 16);
-            ctx.drawImage(tilesetImg, 4 * 16, 64, 16, 16, nx + 16, ny, 16, 16);
-            ctx.drawImage(tilesetImg, 6 * 16, 80, 16, 16, nx + 32, ny, 16, 16);
+            const bW = 52, bH = 46;
+            const bX = 18 * 16 - bW / 2;
+            const bY = 15 * 16 - bH + 6;
+            ctx.drawImage(noticeBoardImg, bX, bY, bW, bH);
           }
         });
 
@@ -620,6 +626,15 @@ server.listen(PORT, async () => {
   await page.screenshot({ path: path.join(OUT_DIR, 'overworld-farmstead-custom-house-desktop.png') });
   await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-farmstead-custom-house-desktop.png') });
   console.log('✓ Captured overworld-farmstead-custom-house-desktop.png');
+
+  // 0e. Pip outside the new custom Notice Board
+  currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 18 * 16, y: 16 * 16, dir: 3 }, nearbyBuilding: 'The Notice Board', isMobile: false, panelOnly: false });
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'overworld-notice-board-custom-desktop.png') });
+  await page.screenshot({ path: path.join(ARTIFACT_DIR, 'overworld-notice-board-custom-desktop.png') });
+  console.log('✓ Captured overworld-notice-board-custom-desktop.png');
 
   // 1. Proximity prompt with [E] Enter & [P] Panel Only (interacting with Ledger Hut)
   currentHTML = buildHTML({ activeTab: null, hasInteracted: true, pipPos: { x: 26 * 16, y: 11 * 16 + 8, dir: 3 }, nearbyBuilding: 'The Ledger Hut', isMobile: false, panelOnly: false });

@@ -71,11 +71,11 @@ export const BUILDING_HITBOXES = [
     doorX: 18 * TILE_SIZE,
     doorY: 16 * TILE_SIZE,
     minX: 16 * TILE_SIZE,
-    minY: 14 * TILE_SIZE,
-    maxX: 21 * TILE_SIZE,
-    maxY: 18 * TILE_SIZE,
+    minY: 13 * TILE_SIZE,
+    maxX: 20 * TILE_SIZE,
+    maxY: 16 * TILE_SIZE,
     bannerX: 18 * TILE_SIZE,
-    bannerY: 14 * TILE_SIZE - 6,
+    bannerY: 13 * TILE_SIZE - 12,
   },
   {
     id: 'dates',
@@ -426,7 +426,7 @@ export default function PixelWorldCanvas({
   const lastReportedNearbyRef = useRef(undefined);
 
   const stateRef = useRef({
-    images: { tileset: null, pip: null, bram: null, farmhouse: null },
+    images: { tileset: null, pip: null, bram: null, farmhouse: null, notice_board: null },
     loaded: false,
     camera: { x: 18 * 16, y: 12 * 16 }, // Center at Village Square on spawn
     targetCamera: { x: 18 * 16, y: 12 * 16 },
@@ -453,6 +453,7 @@ export default function PixelWorldCanvas({
       { key: 'pip', src: '/assets/characters/pip_walk.png' },
       { key: 'bram', src: '/assets/characters/bram_factor.png' },
       { key: 'farmhouse', src: '/assets/buildings/farmhouse.png' },
+      { key: 'notice_board', src: '/assets/buildings/notice_board.png' },
     ];
 
     let count = 0;
@@ -987,15 +988,24 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 4. Chapter 4: The Notice Board (x: 18, y: 16) ──
+      // ── 4. Chapter 4: The Notice Board (New Custom Notice Board) ──
       renderables.push({
-        y: 17 * TILE_SIZE,
+        y: 15 * TILE_SIZE + 6,
         render: () => {
-          const nx = 17 * TILE_SIZE;
-          const ny = 15 * TILE_SIZE;
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx, ny, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 4 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx + TILE_SIZE, ny, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx + 2 * TILE_SIZE, ny, TILE_SIZE, TILE_SIZE);
+          const boardImg = state.images.notice_board;
+          const bW = 52;
+          const bH = 46;
+          const bX = 18 * TILE_SIZE - bW / 2; // 262px
+          const bY = 15 * TILE_SIZE - bH + 6; // 200px
+          if (boardImg) {
+            ctx.drawImage(boardImg, bX, bY, bW, bH);
+          } else {
+            const nx = 17 * TILE_SIZE;
+            const ny = 15 * TILE_SIZE;
+            ctx.drawImage(tileset, 4 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx, ny, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 4 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx + TILE_SIZE, ny, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, nx + 2 * TILE_SIZE, ny, TILE_SIZE, TILE_SIZE);
+          }
         },
       });
 
