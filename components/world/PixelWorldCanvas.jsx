@@ -1267,7 +1267,8 @@ function ClassicPixelCanvas({
   useEffect(() => {
     let mounted = true;
     const imagesToLoad = [
-      // Base autotiles & player sprites
+      // Base autotiles, town layout & player sprites
+      { key: 'town_layout', src: '/village_assets/rm_town_square.png' },
       { key: 'tileset', src: '/village_assets/environment/tilesets/generic/spr_main_exteriors_spring.png' },
       { key: 'grass', src: '/village_assets/environment/tilesets/farm/spr_farm_ground_grass_spring.png' },
       { key: 'pip', src: '/village_assets/villagers/Celine/Sprites/Spring/spr_npc_celine_spring_walk_south.png' },
@@ -1674,130 +1675,135 @@ function ClassicPixelCanvas({
 
       const tileset = state.images.tileset;
 
-      // ── Layer 1: Ground Tiles (Grass, Continuous Dirt Paths, Cobblestone Aprons, Pond, Tilled Soil) ──
-      const minTx = Math.max(0, Math.floor((cam.x - viewW / 2 - 32) / TILE_SIZE));
-      const maxTx = Math.min(MAP_WIDTH_TILES - 1, Math.ceil((cam.x + viewW / 2 + 32) / TILE_SIZE));
-      const minTy = Math.max(0, Math.floor((cam.y - viewH / 2 - 32) / TILE_SIZE));
-      const maxTy = Math.min(MAP_HEIGHT_TILES - 1, Math.ceil((cam.y + viewH / 2 + 32) / TILE_SIZE));
+      // ── Layer 1: Ground Tiles (Authentic Fields of Mistria rm_town Layout with Procedural Fallback) ──
+      const townLayout = state.images.town_layout;
+      if (townLayout && townLayout.complete && townLayout.naturalWidth > 0) {
+        ctx.drawImage(townLayout, 0, 0, MAP_WIDTH_TILES * TILE_SIZE, MAP_HEIGHT_TILES * TILE_SIZE);
+      } else {
+        const minTx = Math.max(0, Math.floor((cam.x - viewW / 2 - 32) / TILE_SIZE));
+        const maxTx = Math.min(MAP_WIDTH_TILES - 1, Math.ceil((cam.x + viewW / 2 + 32) / TILE_SIZE));
+        const minTy = Math.max(0, Math.floor((cam.y - viewH / 2 - 32) / TILE_SIZE));
+        const maxTy = Math.min(MAP_HEIGHT_TILES - 1, Math.ceil((cam.y + viewH / 2 + 32) / TILE_SIZE));
 
-      for (let ty = minTy; ty <= maxTy; ty++) {
-        for (let tx = minTx; tx <= maxTx; tx++) {
-          const wx = tx * TILE_SIZE;
-          const wy = ty * TILE_SIZE;
+        for (let ty = minTy; ty <= maxTy; ty++) {
+          for (let tx = minTx; tx <= maxTx; tx++) {
+            const wx = tx * TILE_SIZE;
+            const wy = ty * TILE_SIZE;
 
-          // Woodland Pond (excluding the footbridge column)
-          if (isPondTile(tx, ty)) {
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-            ctx.fillStyle = '#0284c7';
-            ctx.fillRect(wx, wy + TILE_SIZE - 3, TILE_SIZE, 3);
-            const waveOff = (state.animFrame * 0.08 + tx * 1.5 + ty) % 6;
-            if (waveOff < 2) {
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-              ctx.fillRect(wx + 2, wy + 5, 8, 1);
+            // Woodland Pond (excluding the footbridge column)
+            if (isPondTile(tx, ty)) {
+              ctx.fillStyle = '#38bdf8';
+              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+              ctx.fillStyle = '#0284c7';
+              ctx.fillRect(wx, wy + TILE_SIZE - 3, TILE_SIZE, 3);
+              const waveOff = (state.animFrame * 0.08 + tx * 1.5 + ty) % 6;
+              if (waveOff < 2) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.fillRect(wx + 2, wy + 5, 8, 1);
+              }
+              continue;
             }
-            continue;
-          }
 
-          // Tilled soil plots in Farmstead zone (tx: 11..13, ty: 15..17)
-          const isGarden = tx >= 11 && tx <= 13 && ty >= 15 && ty <= 17;
-          if (isGarden) {
-            ctx.fillStyle = '#5c3d22';
-            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-            ctx.fillStyle = '#7a5228';
-            ctx.fillRect(wx, wy + 2, TILE_SIZE, 3);
-            ctx.fillRect(wx, wy + 8, TILE_SIZE, 3);
-            ctx.fillRect(wx, wy + 13, TILE_SIZE, 2);
-            continue;
-          }
-
-          // Cobblestone plazas and building aprons
-          const isCobble = isVillageCobble(tx, ty);
-          if (isCobble) {
-            ctx.fillStyle = '#b5afa5';
-            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-            ctx.fillStyle = '#cfc9bf';
-            ctx.fillRect(wx, wy, TILE_SIZE - 1, 1);
-            ctx.fillRect(wx, wy, 1, TILE_SIZE - 1);
-            ctx.fillStyle = '#7a746a';
-            ctx.fillRect(wx + TILE_SIZE - 1, wy, 1, TILE_SIZE);
-            ctx.fillRect(wx, wy + TILE_SIZE - 1, TILE_SIZE, 1);
-            ctx.fillStyle = '#948e84';
-            ctx.fillRect(wx + 8, wy, 1, TILE_SIZE);
-            ctx.fillRect(wx, wy + 8, TILE_SIZE, 1);
-            continue;
-          }
-
-          // Dirt paths with organic earthy borders
-          const pathTile = getPathTileInfo(tx, ty);
-          if (pathTile) {
-            ctx.fillStyle = '#c2945d';
-            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-
-            const upGrass = !isGround(tx, ty - 1);
-            const downGrass = !isGround(tx, ty + 1);
-            const leftGrass = !isGround(tx - 1, ty);
-            const rightGrass = !isGround(tx + 1, ty);
-
-            ctx.fillStyle = '#8a5e35';
-            if (upGrass) ctx.fillRect(wx, wy, TILE_SIZE, 2);
-            if (downGrass) ctx.fillRect(wx, wy + TILE_SIZE - 2, TILE_SIZE, 2);
-            if (leftGrass) ctx.fillRect(wx, wy, 2, TILE_SIZE);
-            if (rightGrass) ctx.fillRect(wx + TILE_SIZE - 2, wy, 2, TILE_SIZE);
-
-            const pHash = hash2D(tx, ty, 333);
-            ctx.fillStyle = '#d9aa74';
-            ctx.fillRect(wx + (pHash % 10) + 2, wy + ((pHash >> 2) % 10) + 2, 2, 1);
-
-            // Flagstone paver slabs embedded along the dirt path (reference style)
-            if (isSteppingStoneTile(tx, ty)) {
-              ctx.save();
-              const pW = 11, pH = 7;
-              const px = wx + Math.floor((TILE_SIZE - pW) / 2);
-              const py = wy + Math.floor((TILE_SIZE - pH) / 2);
-              ctx.fillStyle = 'rgba(68, 60, 50, 0.45)';
-              ctx.fillRect(px, py + 1, pW, pH);
-              ctx.fillStyle = '#d5cfc5';
-              ctx.fillRect(px, py, pW, pH);
-              ctx.fillStyle = '#8e887d';
-              ctx.fillRect(px, py + pH - 1, pW, 1);
-              ctx.fillRect(px + pW - 1, py, 1, pH);
-              ctx.fillStyle = '#f8f6f0';
-              ctx.fillRect(px, py, pW - 1, 1);
-              ctx.fillRect(px, py, 1, pH - 1);
-              ctx.restore();
+            // Tilled soil plots in Farmstead zone (tx: 11..13, ty: 15..17)
+            const isGarden = tx >= 11 && tx <= 13 && ty >= 15 && ty <= 17;
+            if (isGarden) {
+              ctx.fillStyle = '#5c3d22';
+              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+              ctx.fillStyle = '#7a5228';
+              ctx.fillRect(wx, wy + 2, TILE_SIZE, 3);
+              ctx.fillRect(wx, wy + 8, TILE_SIZE, 3);
+              ctx.fillRect(wx, wy + 13, TILE_SIZE, 2);
+              continue;
             }
-            continue;
-          }
 
-          // Lush Meadow Grass (matching reference screenshot tone #8dc653)
-          ctx.fillStyle = '#8dc653';
-          ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+            // Cobblestone plazas and building aprons
+            const isCobble = isVillageCobble(tx, ty);
+            if (isCobble) {
+              ctx.fillStyle = '#b5afa5';
+              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+              ctx.fillStyle = '#cfc9bf';
+              ctx.fillRect(wx, wy, TILE_SIZE - 1, 1);
+              ctx.fillRect(wx, wy, 1, TILE_SIZE - 1);
+              ctx.fillStyle = '#7a746a';
+              ctx.fillRect(wx + TILE_SIZE - 1, wy, 1, TILE_SIZE);
+              ctx.fillRect(wx, wy + TILE_SIZE - 1, TILE_SIZE, 1);
+              ctx.fillStyle = '#948e84';
+              ctx.fillRect(wx + 8, wy, 1, TILE_SIZE);
+              ctx.fillRect(wx, wy + 8, TILE_SIZE, 1);
+              continue;
+            }
 
-          const gHash = hash2D(tx, ty, 777);
-          if (gHash % 4 === 0) {
-            ctx.fillStyle = '#7db944';
-            ctx.fillRect(wx + (gHash % 10) + 2, wy + ((gHash >> 3) % 10) + 2, 2, 2);
-          } else if (gHash % 7 === 0) {
-            ctx.fillStyle = '#9dd962';
-            ctx.fillRect(wx + (gHash % 10) + 3, wy + ((gHash >> 2) % 10) + 3, 2, 1);
-          }
+            // Dirt paths with organic earthy borders
+            const pathTile = getPathTileInfo(tx, ty);
+            if (pathTile) {
+              ctx.fillStyle = '#c2945d';
+              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
 
-          // Scattered 4-petal white wildflowers & yellow buttercups
-          const fHash = hash2D(tx, ty);
-          if (fHash % 17 === 0) {
-            const fx = wx + 3 + (fHash % 8);
-            const fy = wy + 3 + ((fHash >> 3) % 8);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(fx, fy - 1, 1, 3);
-            ctx.fillRect(fx - 1, fy, 3, 1);
-            ctx.fillStyle = '#facc15';
-            ctx.fillRect(fx, fy, 1, 1);
-          } else if (fHash % 23 === 0) {
-            const bx = wx + 4 + (fHash % 7);
-            const by = wy + 4 + ((fHash >> 2) % 7);
-            ctx.fillStyle = '#fde047';
-            ctx.fillRect(bx, by, 2, 2);
+              const upGrass = !isGround(tx, ty - 1);
+              const downGrass = !isGround(tx, ty + 1);
+              const leftGrass = !isGround(tx - 1, ty);
+              const rightGrass = !isGround(tx + 1, ty);
+
+              ctx.fillStyle = '#8a5e35';
+              if (upGrass) ctx.fillRect(wx, wy, TILE_SIZE, 2);
+              if (downGrass) ctx.fillRect(wx, wy + TILE_SIZE - 2, TILE_SIZE, 2);
+              if (leftGrass) ctx.fillRect(wx, wy, 2, TILE_SIZE);
+              if (rightGrass) ctx.fillRect(wx + TILE_SIZE - 2, wy, 2, TILE_SIZE);
+
+              const pHash = hash2D(tx, ty, 333);
+              ctx.fillStyle = '#d9aa74';
+              ctx.fillRect(wx + (pHash % 10) + 2, wy + ((pHash >> 2) % 10) + 2, 2, 1);
+
+              // Flagstone paver slabs embedded along the dirt path (reference style)
+              if (isSteppingStoneTile(tx, ty)) {
+                ctx.save();
+                const pW = 11, pH = 7;
+                const px = wx + Math.floor((TILE_SIZE - pW) / 2);
+                const py = wy + Math.floor((TILE_SIZE - pH) / 2);
+                ctx.fillStyle = 'rgba(68, 60, 50, 0.45)';
+                ctx.fillRect(px, py + 1, pW, pH);
+                ctx.fillStyle = '#d5cfc5';
+                ctx.fillRect(px, py, pW, pH);
+                ctx.fillStyle = '#8e887d';
+                ctx.fillRect(px, py + pH - 1, pW, 1);
+                ctx.fillRect(px + pW - 1, py, 1, pH);
+                ctx.fillStyle = '#f8f6f0';
+                ctx.fillRect(px, py, pW - 1, 1);
+                ctx.fillRect(px, py, 1, pH - 1);
+                ctx.restore();
+              }
+              continue;
+            }
+
+            // Lush Meadow Grass (matching reference screenshot tone #8dc653)
+            ctx.fillStyle = '#8dc653';
+            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+
+            const gHash = hash2D(tx, ty, 777);
+            if (gHash % 4 === 0) {
+              ctx.fillStyle = '#7db944';
+              ctx.fillRect(wx + (gHash % 10) + 2, wy + ((gHash >> 3) % 10) + 2, 2, 2);
+            } else if (gHash % 7 === 0) {
+              ctx.fillStyle = '#9dd962';
+              ctx.fillRect(wx + (gHash % 10) + 3, wy + ((gHash >> 2) % 10) + 3, 2, 1);
+            }
+
+            // Scattered 4-petal white wildflowers & yellow buttercups
+            const fHash = hash2D(tx, ty);
+            if (fHash % 17 === 0) {
+              const fx = wx + 3 + (fHash % 8);
+              const fy = wy + 3 + ((fHash >> 3) % 8);
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(fx, fy - 1, 1, 3);
+              ctx.fillRect(fx - 1, fy, 3, 1);
+              ctx.fillStyle = '#facc15';
+              ctx.fillRect(fx, fy, 1, 1);
+            } else if (fHash % 23 === 0) {
+              const bx = wx + 4 + (fHash % 7);
+              const by = wy + 4 + ((fHash >> 2) % 7);
+              ctx.fillStyle = '#fde047';
+              ctx.fillRect(bx, by, 2, 2);
+            }
           }
         }
       }
