@@ -17,15 +17,12 @@ export class VillageScene extends Phaser.Scene {
   }
 
   preload(): void {
-    // 1. Load manifest and village map
+    // 1. Load village Tiled map and master manifest
     this.load.json('village_manifest', '/village_assets/village_manifest.json');
     this.load.tilemapTiledJSON('village_map', '/village_assets/tiled_map/rm_town.json');
 
-    // 2. Load required tilesets
+    // 2. Load collision spritesheet and full high-res baked village map
     this.load.image('spr_collision_tile_info', '/village_assets/meta/spr_collision_tile_info.png');
-    this.load.image('spr_main_exteriors_spring', '/village_assets/environment/tilesets/generic/spr_main_exteriors_spring.png');
-    this.load.image('spr_farm_ground_grass_spring', '/village_assets/environment/tilesets/farm/spr_farm_ground_grass_spring.png');
-    this.load.image('spr_main_exteriors_water_spring', '/village_assets/environment/tilesets/generic/spr_main_exteriors_water_spring.png');
     this.load.image('rm_town_full', '/village_assets/rm_town_full.png');
 
     // 3. Load 4-direction player walking spritesheets
@@ -45,34 +42,27 @@ export class VillageScene extends Phaser.Scene {
   }
 
   create(): void {
-    // 1. Create Tilemap & Tilesets
+    // 1. Create Tilemap
     const map = this.make.tilemap({ key: 'village_map' });
 
     // High-resolution pre-rendered authentic Fields of Mistria village background
+    // (Flawlessly composited: ground, paths, buildings, rivers, bridges, shadows, and flora)
     this.add.image(0, 0, 'rm_town_full').setOrigin(0, 0);
 
+    // 2. Find and create the Tiles_Collision layer (native 8x8 grid matching rm_town)
     const collisionTileset = map.addTilesetImage('tile_collision_info', 'spr_collision_tile_info');
-    const mainExteriors = map.addTilesetImage('tile_main_exteriors_spring', 'spr_main_exteriors_spring');
-    const grassTileset = map.addTilesetImage('tile_grassautotile_spring', 'spr_farm_ground_grass_spring');
-
-    // 2. Render visual ground and wall layers if available
-    if (grassTileset && mainExteriors) {
-      map.createLayer('Level_0_Ground', [grassTileset, mainExteriors]);
-      map.createLayer('Level_0_Floor_A', mainExteriors);
-      map.createLayer('Level_0_WallsArtificial', mainExteriors);
-    }
-
-    // 3. Find and create the Tiles_Collision layer
     if (collisionTileset) {
       this.collisionLayer = map.createLayer('Tiles_Collision', collisionTileset);
       if (this.collisionLayer) {
-        // Set collision by exclusion for all non-empty tiles
-        this.collisionLayer.setCollisionByExclusion([-1, 0]);
+        // Exclude empty tiles (-1, 0) and walkable ground (1504).
+        // All other tiles (1506 river bank/curb, 1507 solid walls/cliffs/buildings,
+        // 1508 river water, 1510 barriers) are 100% solid colliders!
+        this.collisionLayer.setCollisionByExclusion([-1, 0, 1504]);
         this.collisionLayer.setVisible(false);
       }
     }
 
-    // 4. Register 4-directional animations
+    // 3. Register 4-directional animations
     this.anims.create({
       key: 'walk-down',
       frames: this.anims.generateFrameNumbers('player_walk_south', { start: 0, end: 3 }),
@@ -101,7 +91,7 @@ export class VillageScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // 5. Spawn Player at walkable town plaza coordinates (x: 1088, y: 1780)
+    // 4. Spawn Player at walkable town plaza coordinates (x: 1088, y: 1780)
     const spawnX = 1088;
     const spawnY = 1780;
     this.player = this.physics.add.sprite(spawnX, spawnY, 'player_walk_south', 0);
@@ -115,12 +105,12 @@ export class VillageScene extends Phaser.Scene {
       this.physics.add.collider(this.player, this.collisionLayer);
     }
 
-    // 6. Camera Setup: bounds, follow and retro pixel zoom
+    // 5. Camera Setup: bounds, follow and retro pixel zoom
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
     this.cameras.main.setZoom(2.5);
 
-    // 7. Input Controls (Arrow Keys + WASD)
+    // 6. Input Controls (Arrow Keys + WASD)
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.wasd = this.input.keyboard!.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,

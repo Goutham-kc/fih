@@ -45,7 +45,7 @@ for (let i = 0; i < tmj.tilesets.length; i++) {
     tileheight = 8;
   }
 
-  // Exactly cover the span to the next tileset so no tile index in any layer is ever unmapped!
+  // Exactly cover the span to the next tileset so no tile index in any layer is ever unmapped
   const tilecount = nextFirstGid - ts.firstgid;
   let columns = 32;
   if (tilecount < 32) columns = tilecount;
@@ -74,23 +74,45 @@ for (let i = 0; i < tmj.tilesets.length; i++) {
 
 tmj.tilesets = embeddedTilesets;
 
-// Recursively flatten all layers so Phaser 3 map.createLayer(layerName) can find any layer directly!
-function flatten(layers) {
+// Recursively find all tile layers
+function findTileLayers(layers) {
   let flat = [];
   for (const l of layers) {
     if (l.type === 'tilelayer') {
       flat.push(l);
     } else if (l.layers) {
-      flat = flat.concat(flatten(l.layers));
+      flat = flat.concat(findTileLayers(l.layers));
     }
   }
   return flat;
 }
 
-const flatTileLayers = flatten(tmj.layers);
-console.log(`Flattened ${flatTileLayers.length} tile layers.`);
+const flatTileLayers = findTileLayers(tmj.layers);
+
+// Merge all specialized building / stall collision layers into the main Tiles_Collision layer!
+const mainCol = flatTileLayers.find(l => l.name === 'Tiles_Collision');
+if (mainCol && mainCol.data) {
+  const otherCols = flatTileLayers.filter(l => l.name.startsWith('Tiles_Collision_') && l.name !== 'Tiles_Collision');
+  let merged = 0;
+  for (const oc of otherCols) {
+    if (!oc.data) continue;
+    for (let i = 0; i < oc.data.length; i++) {
+      const gid = oc.data[i] & 0x1FFFFFFF;
+      // 1506 (river bank/curb), 1507 (solid wall/stall), 1508 (water), 1510 (barrier)
+      if (gid === 1506 || gid === 1507 || gid === 1508 || gid === 1510) {
+        const cur = mainCol.data[i] & 0x1FFFFFFF;
+        if (cur === 1504 || cur === 0) {
+          mainCol.data[i] = gid;
+          merged++;
+        }
+      }
+    }
+  }
+  console.log(`Merged ${merged} solid building/stall tiles into Tiles_Collision.`);
+}
+
 tmj.layers = flatTileLayers;
 
 fs.writeFileSync('public/village_assets/tiled_map/rm_town.json', JSON.stringify(tmj), 'utf8');
 fs.writeFileSync('village_assets/tiled_map/rm_town.json', JSON.stringify(tmj), 'utf8');
-console.log('Successfully written complete rm_town.json with full tileset coverage!');
+console.log('Successfully written rm_town.json with merged collision layer!');

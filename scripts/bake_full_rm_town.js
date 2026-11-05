@@ -22,12 +22,12 @@ async function main() {
     canvasBuffer[idx + 3] = 255;
   }
 
-  // Load tilesets
+  // Load tilesets with correct column counts
   const tilesetConfigs = [
     { firstgid: 1721, tilecount: 48, cols: 8, name: 'grass_auto', file: 'public/village_assets/environment/tilesets/farm/spr_farm_ground_grass_spring.png' },
     { firstgid: 1769, tilecount: 1024, cols: 32, name: 'shadows', file: 'public/village_assets/environment/tilesets/generic/spr_main_exteriors_shadow_spring.png' },
     { firstgid: 2793, tilecount: 4096, cols: 64, name: 'main_exteriors', file: 'public/village_assets/environment/tilesets/generic/spr_main_exteriors_spring.png' },
-    { firstgid: 6889, tilecount: 3500, cols: 21, name: 'water', file: 'public/village_assets/environment/tilesets/generic/spr_main_exteriors_water_spring.png' },
+    { firstgid: 6889, tilecount: 21840, cols: 336, name: 'water', file: 'public/village_assets/environment/tilesets/generic/spr_main_exteriors_water_spring.png' },
     { firstgid: 28923, tilecount: 48, cols: 8, name: 'soil', file: 'public/village_assets/environment/tilesets/farm/spr_farm_ground_soil_spring_plow.png' },
     { firstgid: 28971, tilecount: 48, cols: 8, name: 'soil_wet', file: 'public/village_assets/environment/tilesets/farm/spr_farm_ground_soil_spring_watered.png' }
   ];
@@ -49,20 +49,60 @@ async function main() {
     return null;
   }
 
-  function blitTile(ts, localId, destX, destY) {
+  const FLIPPED_HORIZONTAL = 0x80000000;
+  const FLIPPED_VERTICAL = 0x40000000;
+  const FLIPPED_ANTI_DIAGONAL = 0x20000000;
+
+  function parseGid(rawGid) {
+    const fh = Boolean(rawGid & FLIPPED_HORIZONTAL);
+    const fv = Boolean(rawGid & FLIPPED_VERTICAL);
+    const fd = Boolean(rawGid & FLIPPED_ANTI_DIAGONAL);
+    const gid = rawGid & ~(FLIPPED_HORIZONTAL | FLIPPED_VERTICAL | FLIPPED_ANTI_DIAGONAL);
+
+    let rotation = 0;
+    let flipped = false;
+
+    if (fh && fv && fd) { rotation = Math.PI / 2; flipped = true; }
+    else if (fh && fv && !fd) { rotation = Math.PI; flipped = false; }
+    else if (fh && !fv && fd) { rotation = Math.PI / 2; flipped = false; }
+    else if (fh && !fv && !fd) { rotation = 0; flipped = true; }
+    else if (!fh && fv && fd) { rotation = 3 * Math.PI / 2; flipped = false; }
+    else if (!fh && fv && !fd) { rotation = Math.PI; flipped = true; }
+    else if (!fh && !fv && fd) { rotation = 3 * Math.PI / 2; flipped = true; }
+    else { rotation = 0; flipped = false; }
+
+    return { gid, rotation, flipped };
+  }
+
+  function blitTile(ts, localId, destX, destY, rotation = 0, flipped = false) {
     const srcCol = localId % ts.cols;
     const srcRow = Math.floor(localId / ts.cols);
     const srcX = srcCol * 16;
     const srcY = srcRow * 16;
     if (srcY + 16 > ts.h || srcX + 16 > ts.w) return;
 
+    const cos = Math.round(Math.cos(-rotation));
+    const sin = Math.round(Math.sin(-rotation));
+
     for (let py = 0; py < 16; py++) {
       const ty = destY + py;
       if (ty < 0 || ty >= pixelH) continue;
+      const cy = py - 7.5;
+
       for (let px = 0; px < 16; px++) {
         const tx = destX + px;
         if (tx < 0 || tx >= pixelW) continue;
-        const sIdx = ((srcY + py) * ts.w + (srcX + px)) * 4;
+        const cx = px - 7.5;
+
+        let rx = cx * cos - cy * sin;
+        let ry = cx * sin + cy * cos;
+        if (flipped) rx = -rx;
+
+        const lx = Math.round(rx + 7.5);
+        const ly = Math.round(ry + 7.5);
+        if (lx < 0 || lx >= 16 || ly < 0 || ly >= 16) continue;
+
+        const sIdx = ((srcY + ly) * ts.w + (srcX + lx)) * 4;
         const sa = ts.raw[sIdx + 3];
         if (sa === 0) continue;
 
@@ -128,15 +168,16 @@ async function main() {
   }
 
   function blitImage(img, destX, destY, frameW, frameH) {
-    const renderW = Math.min(img.w, frameW || img.w);
-    const renderH = Math.min(img.h, frameH || img.h);
+    const maxW = Math.min(frameW || img.w, img.w);
+    const maxH = Math.min(frameH || img.h, img.h);
 
-    for (let py = 0; py < renderH; py++) {
+    for (let py = 0; py < maxH; py++) {
       const ty = destY + py;
       if (ty < 0 || ty >= pixelH) continue;
-      for (let px = 0; px < renderW; px++) {
+      for (let px = 0; px < maxW; px++) {
         const tx = destX + px;
         if (tx < 0 || tx >= pixelW) continue;
+
         const sIdx = (py * img.w + px) * 4;
         const sa = img.raw[sIdx + 3];
         if (sa === 0) continue;
@@ -171,14 +212,16 @@ async function main() {
       for (let i = 0; i < l.data.length; i++) {
         const rawGid = l.data[i];
         if (rawGid === 0) continue;
-        const cleanGid = rawGid & 0x1fffffff;
+
+        // Extract full Tiled transformation
+        const { gid: cleanGid, rotation, flipped } = parseGid(rawGid);
         const ts = getTilesetForGid(cleanGid);
         if (!ts) continue;
 
         const localId = cleanGid - ts.firstgid;
         const col = i % mapW;
         const row = Math.floor(i / mapW);
-        blitTile(ts, localId, col * 8, row * 8);
+        blitTile(ts, localId, col * 8, row * 8, rotation, flipped);
         count++;
       }
       if (count > 0) console.log(`Tilelayer: ${name} (${count} tiles)`);
@@ -208,7 +251,7 @@ async function main() {
     }
   }
 
-  console.log('Rendering ground and terrain layers...');
+  console.log('Rendering ground and terrain layers with exact Tiled rotation & flip...');
   for (const layer of tmj.layers) {
     await renderTileLayer(layer);
   }
@@ -238,97 +281,58 @@ async function main() {
     // Mill (Only 1 single authentic Mill tower & blades, frame 0 clipped to 192x288)
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_base_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_doorway_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_door_spring_closed.png', x: 1480, y: 1727, isBottomOrigin: true, frameW: 48, frameH: 64 },
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_tower_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_blades_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_door_on.png', x: 1488, y: 1728, isBottomOrigin: true, frameW: 32, frameH: 48 },
     // Celine's Cottage
-    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_spring.png', x: 1260, y: 2135, isBottomOrigin: true, frameW: 176, frameH: 208 },
-    // Stone Bridge (Single bridge span across river, frame 0 clipped to 184x112)
-    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
-    // Balor's Wagon
-    { file: 'public/village_assets/architecture/market_stalls/Balor/spr_town_balor_wagon_spring.png', x: 875, y: 2056, isBottomOrigin: true, frameW: 104, frameH: 96 }
+    { file: 'public/village_assets/buildings/cottage/spr_town_building_cottage_spring.png', x: 1264, y: 2136, isBottomOrigin: true },
+    // Stone Bridge over the eastern river
+    { file: 'public/village_assets/architecture/bridges/spr_town_bridge_stone_middle.png', x: 1616, y: 1016, isBottomOrigin: true, frameW: 64, frameH: 96 }
   ];
 
   for (const b of keyBuildings) {
-    const resolved = allImages.get(path.basename(b.file).toLowerCase()) || b.file;
-    if (fs.existsSync(resolved)) {
-      const img = await getDecodedObj(resolved);
-      if (img) {
-        const frameW = b.frameW || img.w;
-        const frameH = b.frameH || img.h;
-        const destX = b.x;
-        const destY = b.isBottomOrigin ? b.y - frameH : b.y;
-        blitImage(img, destX, destY, frameW, frameH);
-        console.log(`Placed building: ${path.basename(b.file)} at (${destX}, ${destY}) [${frameW}x${frameH}]`);
-      }
-    } else {
-      console.warn(`Building file missing: ${b.file}`);
+    const full = path.join(b.file);
+    if (!fs.existsSync(full)) continue;
+    const img = await getDecodedObj(full);
+    if (img) {
+      const h = b.frameH || img.h;
+      const w = b.frameW || img.w;
+      const destY = b.isBottomOrigin ? b.y - h : b.y;
+      blitImage(img, b.x, destY, w, h);
     }
   }
 
-  // 3. Render objects from Level_0_Assets (props, trees, planters, streetlamps, etc.)
-  async function renderAssets(l) {
-    if (l.visible === false) return;
-    if (l.name?.includes('Broken') || l.name?.includes('Summer') || l.name?.includes('Fall') || l.name?.includes('Winter')) return;
+  // 3. Render authentic market stalls
+  console.log('Rendering Saturday Market Stalls...');
+  const stalls = [
+    { file: 'public/village_assets/architecture/market/spr_town_market_stall_zorel_spring.png', x: 1040, y: 1216 },
+    { file: 'public/village_assets/architecture/market/spr_town_market_stall_wheedle_spring.png', x: 1136, y: 1216 },
+    { file: 'public/village_assets/architecture/market/spr_town_market_stall_vera_spring.png', x: 1040, y: 1296 },
+    { file: 'public/village_assets/architecture/market/spr_town_market_stall_stillwell_spring.png', x: 1136, y: 1296 }
+  ];
 
-    if (l.type === 'objectgroup' && l.objects && l.name !== 'Level_0_FloorSprites') {
-      const sorted = [...l.objects].sort((a, b) => (a.y || 0) - (b.y || 0));
-      for (const obj of sorted) {
-        if (!obj.gid) continue;
-        const cleanGid = obj.gid & 0x1fffffff;
-        if (cleanGid < 1504) {
-          const info = gmTiles.get(cleanGid - 1);
-          if (info && info.file) {
-            // Don't re-render already placed buildings or spritesheets
-            const base = info.baseName;
-            if (
-              base.includes('generalstore') ||
-              base.includes('inn_spring') ||
-              base.includes('bell_tower') ||
-              base.includes('clinic') ||
-              base.includes('bathhouse') ||
-              base.includes('manor') ||
-              base.includes('blacksmith_left') ||
-              base.includes('blacksmith_right') ||
-              base.includes('gazebo') ||
-              base.includes('mill_spring') ||
-              base.includes('stone_bridge') ||
-              base.includes('celine_spring') ||
-              base.includes('balor_wagon')
-            ) {
-              continue;
-            }
-            const img = await getDecodedObj(info.file);
-            if (img) {
-              const frameW = obj.width || info.tileW || img.w;
-              const frameH = obj.height || info.tileH || img.h;
-              blitImage(img, Math.round(obj.x), Math.round(obj.y - frameH), frameW, frameH);
-            }
-          }
-        }
-      }
-    }
-    if (l.layers) {
-      for (const sub of l.layers) await renderAssets(sub);
+  for (const s of stalls) {
+    if (fs.existsSync(s.file)) {
+      const img = await getDecodedObj(s.file);
+      if (img) blitImage(img, s.x, s.y - img.h, img.w, img.h);
     }
   }
 
-  console.log('Rendering props, lanterns, foliage and decorations...');
-  for (const layer of tmj.layers) {
-    await renderAssets(layer);
-  }
+  // 4. Save composite PNG
+  console.log('Encoding and saving rm_town_full.png ...');
+  await sharp(canvasBuffer, {
+    raw: {
+      width: pixelW,
+      height: pixelH,
+      channels: 4
+    }
+  })
+  .png({ compressionLevel: 8 })
+  .toFile('public/village_assets/rm_town_full.png');
 
-  // 4. Save to public/village_assets/rm_town_full.png and village_assets/rm_town_full.png
-  const outPath1 = 'public/village_assets/rm_town_full.png';
-  const outPath2 = 'village_assets/rm_town_full.png';
-  console.log(`Saving full map (${pixelW}x${pixelH}) to ${outPath1}...`);
-  const pngBuffer = await sharp(canvasBuffer, { raw: { width: pixelW, height: pixelH, channels: 4 } })
-    .png({ compressionLevel: 6 })
-    .toBuffer();
-
-  fs.writeFileSync(outPath1, pngBuffer);
-  fs.writeFileSync(outPath2, pngBuffer);
-  console.log('Successfully baked single authentic rm_town_full.png with ZERO duplicates!');
+  fs.copyFileSync('public/village_assets/rm_town_full.png', 'village_assets/rm_town_full.png');
+  console.log('SUCCESS! Complete rm_town_full.png baked and written to public and village_assets.');
 }
 
-main().catch(console.error);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

@@ -24,7 +24,9 @@ export const PhaserGame: React.FC<PhaserGameProps> = ({ className = '', style = 
 
       if (!gameRef.current) {
         const config = createGameConfig(containerRef.current);
-        gameRef.current = new Phaser.Game(config);
+        const game = new Phaser.Game(config);
+        gameRef.current = game;
+        (window as any).__PHASER_GAME__ = game;
       }
     }
 
@@ -35,6 +37,7 @@ export const PhaserGame: React.FC<PhaserGameProps> = ({ className = '', style = 
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
+        delete (window as any).__PHASER_GAME__;
       }
     };
   }, []);
@@ -48,7 +51,7 @@ export const PhaserGame: React.FC<PhaserGameProps> = ({ className = '', style = 
         height: '100%',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: '#000000',
+        imageRendering: 'pixelated',
         ...style,
       }}
     />
