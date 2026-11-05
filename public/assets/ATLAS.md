@@ -121,6 +121,9 @@ The Pixel Valley overworld map is structured on a **64 × 64 tile grid** (1024 �
 | **The Festival Grounds** | Clover | Ch. 5 (Festival Grounds) | Custom `festival_grounds.png` | `(16, 48)` | `(16*16, 51*16)` | `[14..18, 47..49]` | `[12*16..20*16, 44*16..52*16]` |
 | **The Moonlight Cinema** | Juniper | Ch. 6 (Moonlight Cinema) | Custom `moonlight_cinema.png` | `(48, 48)` | `(48*16, 51*16)` | `[46..50, 47..49]` | `[44*16..52*16, 44*16..52*16]` |
 | **Woodland Pond & Footbridge**| — | Water Feature | Animated water & wooden bridge| `(32, 41)` | `(32*16, 41*16)` | `[30..34, 40..43]` (excl. 32)| — |
+| **The Whispering Pines Inn**  | Innkeeper | Optional Village Tavern | Custom `inn_tavern.png`       | `(25, 16)` | `(25*16, 17*16)` | `[23..26, 14..16]` | — |
+| **Lavender Artisan Cottage**  | Artisan   | Optional Dwelling       | Custom `cottage_lavender.png` | `(41, 17)` | `(41*16, 18*16)` | `[39..42, 14..17]` | — |
+| **Village Market Produce Stall**| Merchant | Optional Market Stand   | Custom `market_stall.png`     | `(35, 31)` | `(35*16, 32*16)` | `[35..36, 31..31]` | — |
 
 ### Custom Building Sprite Specifications:
 
@@ -165,6 +168,24 @@ The Pixel Valley overworld map is structured on a **64 × 64 tile grid** (1024 �
 - **World Rendering:** Scaled to 76×90 world px (placed at world coordinates x: 154, y: 450)
 - **Features:** Weathered cut-stone masonry with moss accents, pitched terracotta tiled roof with decorative gable ridge, circular attic window, carved wooden signboard featuring an open book and quill insignia, arched double timber doors with forged iron hinges and warm golden interior light, wide stone steps, flanking iron lanterns, leather-bound book stacks, wooden barrels, and blooming flower planters.
 - **Interactive Role:** Chapter 7: The Archive Cellar (The Chronicle & Audit Log / Audit). Front entrance doorstep pad at world position `(12 * 16, 33 * 16)` facing West Archive Way.
+
+### The Whispering Pines Inn & Tavern (`inn_tavern.png`)
+- **Source:** User Reference Asset Sheet (Cropped to 265×260 px, transparent alpha background)
+- **World Rendering:** Scaled to 72×70 world px (placed at world coordinates x: 364, y: 204, center tx: 25, ty: 17)
+- **Features:** Two-story half-timbered woodland inn with terracotta tile gables, hanging carved "INN" signboard, warm amber glowing lantern, blue shuttered windows, rustic arched timber door, potted pink blossoms, adjacent citrus fruit tree, and stacked cider/ale barrels.
+- **Role:** Optional village gathering landmark framing the northern village street between the Farmstead and the Bell Tower.
+
+### The Lavender Artisan Cottage (`cottage_lavender.png`)
+- **Source:** User Reference Asset Sheet (Cropped to 195×360 px, transparent alpha background)
+- **World Rendering:** Scaled to 52×88 world px (placed at world coordinates x: 630, y: 202, center tx: 41, ty: 18)
+- **Features:** Tall storybook cottage with steep violet/lavender shingled gabled roof, grey stone brick chimney, diamond artisan plaque, shuttered cross-pane windows, half-timber cream plaster walls, arched timber doorway, and potted doorstep greenery.
+- **Role:** Optional artisan dwelling framing the northern avenue between the Bell Tower and the Ledger Bank.
+
+### Village Market Produce Stall (`market_stall.png`)
+- **Source:** User Reference Asset Sheet (Cropped to 146×126 px, transparent alpha background)
+- **World Rendering:** Scaled to 42×36 world px (placed at world coordinates x: 556, y: 476, center tx: 35, ty: 31)
+- **Features:** Striped orange-and-cream canvas awning canopy over a carved wooden merchant table displaying fresh harvest produce, fruit bowls, and purple grape bunches.
+- **Role:** Optional market stall on the eastern edge of Central Plaza cobblestones.
 
 ---
 

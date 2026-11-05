@@ -394,6 +394,8 @@ export function generateForestTrees() {
     { minX: 14, maxX: 18, minY: 20, maxY: 24 }, // Toolshed
     { minX: 29, maxX: 35, minY: 39, maxY: 44 }, // Pond
     { minX: 46, maxX: 50, minY: 22, maxY: 26 }, // Sky Post
+    { minX: 22, maxX: 27, minY: 13, maxY: 18 }, // Optional: The Whispering Pines Inn
+    { minX: 39, maxX: 44, minY: 13, maxY: 19 }, // Optional: Lavender Artisan Cottage
   ];
 
   function isClearForTree(tx, ty) {
@@ -595,6 +597,21 @@ export function isWalkable(wx, wy) {
     return false;
   }
 
+  // 14. Optional: The Whispering Pines Inn walls (tx: 23..26, ty: 14..16)
+  if (tx >= 23 && tx <= 26 && ty >= 14 && ty <= 16) {
+    return false;
+  }
+
+  // 15. Optional: Lavender Artisan Cottage walls (tx: 39..42, ty: 14..17)
+  if (tx >= 39 && tx <= 42 && ty >= 14 && ty <= 17) {
+    return false;
+  }
+
+  // 16. Optional: Village Market Produce Stall counter (tx: 35..36, ty: 31)
+  if ((tx === 35 || tx === 36) && ty === 31) {
+    return false;
+  }
+
   // 13. Internal woodland tree trunks (outer forest boundary wx < 6*16 || wx > 58*16 is already impassable)
   if (INTERNAL_TREE_TRUNKS.has(`${tx},${ty}`)) {
     return false;
@@ -729,6 +746,11 @@ export default function PixelWorldCanvas({
       flowers_poppy: null,
       flowers_daisy: null,
       flowers_sunflower: null,
+      inn_tavern: null,
+      cottage_lavender: null,
+      market_stall: null,
+      barrel_stack: null,
+      citrus_tree: null,
     },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
@@ -780,6 +802,11 @@ export default function PixelWorldCanvas({
       { key: 'flowers_poppy', src: '/assets/trees/flowers_poppy.png' },
       { key: 'flowers_daisy', src: '/assets/trees/flowers_daisy.png' },
       { key: 'flowers_sunflower', src: '/assets/trees/flowers_sunflower.png' },
+      { key: 'inn_tavern', src: '/assets/buildings/inn_tavern.png' },
+      { key: 'cottage_lavender', src: '/assets/buildings/cottage_lavender.png' },
+      { key: 'market_stall', src: '/assets/props/market_stall.png' },
+      { key: 'barrel_stack', src: '/assets/props/barrel_stack.png' },
+      { key: 'citrus_tree', src: '/assets/props/citrus_tree.png' },
     ];
 
     let count = 0;
@@ -1461,6 +1488,47 @@ export default function PixelWorldCanvas({
           ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, px - TILE_SIZE, py, TILE_SIZE, TILE_SIZE);
           // Circular poppy flowerbed
           ctx.drawImage(tileset, 2 * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, px + TILE_SIZE, py, TILE_SIZE, TILE_SIZE);
+        },
+      });
+
+      // ── Optional Building 1: The Whispering Pines Inn & Tavern (tx: 25, ty: 17) ──
+      renderables.push({
+        y: 17 * TILE_SIZE,
+        render: () => {
+          const innImg = state.images.inn_tavern;
+          if (innImg) {
+            const bW = 72;
+            const bH = 70;
+            const bX = 25 * TILE_SIZE - bW / 2;
+            const bY = 17 * TILE_SIZE - bH + 2;
+            ctx.drawImage(innImg, bX, bY, bW, bH);
+          }
+        },
+      });
+
+      // ── Optional Building 2: Lavender Artisan Cottage (tx: 41, ty: 18) ──
+      renderables.push({
+        y: 18 * TILE_SIZE,
+        render: () => {
+          const cotImg = state.images.cottage_lavender;
+          if (cotImg) {
+            const bW = 52;
+            const bH = 88;
+            const bX = 41 * TILE_SIZE - bW / 2;
+            const bY = 18 * TILE_SIZE - bH + 2;
+            ctx.drawImage(cotImg, bX, bY, bW, bH);
+          }
+        },
+      });
+
+      // ── Optional Building 3: Village Market Produce Stall (tx: 35..36, ty: 31) ──
+      renderables.push({
+        y: 32 * TILE_SIZE,
+        render: () => {
+          const mImg = state.images.market_stall;
+          if (mImg) {
+            ctx.drawImage(mImg, 35 * TILE_SIZE - 4, 30 * TILE_SIZE - 4, 42, 36);
+          }
         },
       });
 
