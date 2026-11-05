@@ -175,10 +175,22 @@ Dedicated 16-bit RPG woodland vegetation and environmental clutter sprites desig
 ### Asset Registry:
 | Asset | File | Dimensions | Rendering Offset | Description |
 |:---|:---|:---|:---|:---|
-| **Large Oak Tree** | `oak_large.png` | 32×48 px (2×3 tiles) | `x - 8, y - 32` | Broad leafy oak canopy with organic multi-lobed foliage clusters, layered shadow/sunlit leaves, sturdy gnarled trunk with roots, and ground drop shadow. Overlaps across 2-tile grid spacing to create continuous woodland canopy banks. |
-| **Large Pine Conifer** | `pine_large.png` | 32×48 px (2×3 tiles) | `x - 8, y - 32` | Majestic conifer evergreen pine with four stepped conical needle tiers, rich forest emerald palette, textured wood trunk, and soft base shadow. |
-| **Large Cherry Blossom** | `blossom_large.png` | 32×48 px (2×3 tiles) | `x - 8, y - 32` | Billowy flowering cherry blossom tree with vibrant magenta and petal-pink canopy clusters, dark cherry bark trunk, and romantic woodland atmosphere. |
+| **Large Oak Tree** | `oak_large.png` | 36×48 px | `x - 8, y - 32` | Broad leafy oak canopy with organic multi-lobed foliage clusters, layered shadow/sunlit leaves, sturdy gnarled trunk with roots, and ground drop shadow. Overlaps across 2-tile grid spacing to create continuous woodland canopy banks. |
+| **Large Pine Conifer** | `pine_large.png` | 32×48 px | `x - 8, y - 32` | Majestic conifer evergreen pine with four stepped conical needle tiers, rich forest emerald palette, textured wood trunk, and soft base shadow. |
+| **Large Cherry Blossom** | `blossom_large.png` | 36×48 px | `x - 8, y - 32` | Billowy flowering cherry blossom tree with vibrant magenta and petal-pink canopy clusters, dark cherry bark trunk, and romantic woodland atmosphere. |
+| **Stone Village Fountain** | `fountain_stone.png` | 32×32 px (2×2 tiles) | `x, y` | Ornate carved octagonal stone basin with stepped base, pedestal column, and active bubbling fountain jet with crystal water spray. |
+| **Street Lantern Post** | `lantern_post.png` | 16×24 px (1×1.5 tiles) | `x, y - 8` | Wrought-iron village lamppost with four-paned glass carriage housing a warm glowing amber flame, casting ambient nighttime illumination. |
+| **Wooden Park Bench** | `bench_wood.png` | 24×14 px (1.5×1 tiles)| `x - 4, y + 2` | Rustic slotted cedar garden bench with carved armrests and cast iron footings, placed along plaza walkways and meeting spots. |
+| **Weathered Tree Stump**| `tree_stump.png` | 18×18 px | `x - 1, y - 2` | Ancient cut timber stump with detailed annular rings, bark striations, and tiny moss shoots. |
+| **Flowering Emerald Bush**| `bush_green.png` | 22×18 px | `x - 3, y - 2` | Dense rounded garden shrub in deep woodland green with layered leaf tufts. |
+| **Golden Flowering Bush**| `bush_yellow.png` | 22×18 px | `x - 3, y - 2` | Flowering shrub dotted with yellow buttercups and golden star blooms. |
+| **Crimson Berry Bush** | `bush_red.png` | 22×18 px | `x - 3, y - 2` | Lush hedge shrub with ripe scarlet berries and dark green foliage. |
+| **Tiered Topiary Shrub**| `bush_tiered.png` | 22×18 px | `x - 3, y - 2` | Two-tier clipped decorative garden shrub used in formal courtyards and plaza corners. |
+| **Pastel Flower Bush** | `bush_flowers.png` | 24×18 px | `x - 4, y - 2` | Sprawling garden shrub laden with white and lavender wild blossoms. |
+| **Scarlet Poppies** | `flowers_poppy.png` | 16×16 px | `x, y` | Vibrant crimson poppy flowerbed with black seed centers and green leafy stems. |
+| **White Daisies** | `flowers_daisy.png` | 16×16 px | `x, y` | Cheerful cluster of white field daisies with bright yellow button centers. |
+| **Golden Sunflowers** | `flowers_sunflower.png` | 14×18 px | `x + 1, y - 2` | Tall nodding sunflower with golden petals and chocolate seed head, lining garden fences. |
 | **Fallen Mossy Log** | `fallen_log.png` | 32×16 px (2×1 tiles) | `x - 8, y` | Weathered fallen tree trunk with cut end growth rings, bark ridges, verdant moss mantle draping the top curve, and a tiny red sprout mushroom. |
-| **Mossy River Boulder** | `rock_moss.png` | 16×16 px (1×1 tile) | `x, y` | Rounded ancient river stone with slate blue contours, specular highlights, and lush moss cap on upper crest. |
+| **Mossy River Boulder** | `rock_moss.png` | 20×16 px | `x, y` | Rounded ancient river stone with slate blue contours, specular highlights, and lush moss cap on upper crest. |
 | **Amanita Mushrooms** | `mushrooms.png` | 16×16 px (1×1 tile) | `x, y` | Cluster of three woodland amanita mushrooms with vibrant red domed caps, white spots, cream stalks, and ground shadow. |
 

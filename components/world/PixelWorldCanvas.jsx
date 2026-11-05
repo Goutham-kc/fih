@@ -139,6 +139,9 @@ export const BUILDING_HITBOXES = [
 export function isVillageCobble(tx, ty) {
   // 1. Central Plaza surrounding Fountain & Notice Board: tx: 28..36, ty: 28..36
   if (tx >= 28 && tx <= 36 && ty >= 28 && ty <= 36) return true;
+  // Grand entrance aprons extending 1 tile out
+  if (tx >= 30 && tx <= 33 && (ty === 27 || ty === 37)) return true;
+  if ((tx === 27 || tx === 37) && ty >= 31 && ty <= 33) return true;
 
   // 2. Ledger Bank courtyard & apron: tx: 48..52, ty: 13..15
   if (tx >= 48 && tx <= 52 && ty >= 13 && ty <= 15) return true;
@@ -155,8 +158,8 @@ export function isVillageCobble(tx, ty) {
   // 6. Toolshed Apron: tx: 15..17, ty: 22..24
   if (tx >= 15 && tx <= 17 && ty >= 22 && ty <= 24) return true;
 
-  // 7. Notice Board Viewing Pad: tx: 31..33, ty: 35..37
-  if (tx >= 31 && tx <= 33 && ty >= 35 && ty <= 37) return true;
+  // 7. Notice Board Viewing Pad: tx: 31..33, ty: 34..36
+  if (tx >= 31 && tx <= 33 && ty >= 34 && ty <= 36) return true;
 
   // 8. Festival Grounds Apron: tx: 15..17, ty: 50..52
   if (tx >= 15 && tx <= 17 && ty >= 50 && ty <= 52) return true;
@@ -171,54 +174,63 @@ export function isVillageCobble(tx, ty) {
 }
 
 export function isVillagePath(tx, ty) {
-  // 1. North Belfry Avenue: tx: 31..32, ty: 14..28
-  if (tx >= 31 && tx <= 32 && ty >= 14 && ty <= 28) return true;
+  // If it's already a cobblestone plaza/platform, it's not a dirt path
+  if (isVillageCobble(tx, ty)) return false;
 
-  // 2. West Archive Way: tx: 12..28, ty: 32..33
-  if (tx >= 12 && tx <= 28 && ty >= 32 && ty <= 33) return true;
+  // 1. North Belfry Avenue: tx: 31..32, ty: 15..27 (connects Plaza to Bell Tower)
+  if (tx >= 31 && tx <= 32 && ty >= 15 && ty <= 27) return true;
+  if (tx >= 30 && tx <= 33 && ((ty >= 16 && ty <= 17) || (ty >= 24 && ty <= 25))) return true;
 
-  // 3. South Avenue to Woodland Pond & Bridge: tx: 31..32, ty: 36..40
-  if (tx >= 31 && tx <= 32 && ty >= 36 && ty <= 40) return true;
+  // 2. West Archive Way: tx: 13..27, ty: 32..33 (connects Plaza to Archive Cellar)
+  if (tx >= 13 && tx <= 27 && ty >= 32 && ty <= 33) return true;
+  if (tx >= 15 && tx <= 18 && ty >= 33 && ty <= 34) return true;
+  if (tx >= 21 && tx <= 24 && ty >= 31 && ty <= 32) return true;
 
-  // 4. Northwest Farm Road (connecting Central Plaza to Farmstead):
-  // Horizontal stretch (ty: 20..21, tx: 14..28)
-  if (ty >= 20 && ty <= 21 && tx >= 14 && tx <= 28) return true;
-  // Vertical stem into Central Plaza (tx: 27..28, ty: 21..28)
-  if (tx >= 27 && tx <= 28 && ty >= 21 && ty <= 28) return true;
-  // Vertical stem into Farmstead porch (tx: 14..15, ty: 14..21)
-  if (tx >= 14 && tx <= 15 && ty >= 14 && ty <= 21) return true;
+  // 3. Northwest Farm Road (diagonal connecting Plaza to Farmstead & Toolshed):
+  if (tx >= 26 && tx <= 28 && ty >= 27 && ty <= 28) return true;
+  if (tx >= 25 && tx <= 27 && ty >= 25 && ty <= 27) return true;
+  if (tx >= 23 && tx <= 25 && ty >= 23 && ty <= 25) return true;
+  if (tx >= 21 && tx <= 23 && ty >= 21 && ty <= 23) return true;
+  if (tx >= 19 && tx <= 21 && ty >= 20 && ty <= 21) return true; // covers (20, 20)
+  if (tx >= 17 && tx <= 19 && ty >= 19 && ty <= 20) return true;
+  if (tx >= 14 && tx <= 17 && ty >= 17 && ty <= 19) return true; // covers (14, 18)
+  if (tx >= 13 && tx <= 15 && ty >= 15 && ty <= 17) return true; // leads to farm apron
+  // Toolshed connection:
+  if (tx >= 15 && tx <= 17 && ty >= 20 && ty <= 22) return true;
 
-  // 5. Northeast Bank Boulevard (connecting Central Plaza to Bank):
-  // Horizontal stretch (ty: 20..21, tx: 36..50)
-  if (ty >= 20 && ty <= 21 && tx >= 36 && tx <= 50) return true;
-  // Vertical stem into Central Plaza (tx: 36..37, ty: 21..28)
-  if (tx >= 36 && tx <= 37 && ty >= 21 && ty <= 28) return true;
-  // Vertical stem into Bank steps (tx: 49..50, ty: 14..21)
-  if (tx >= 49 && tx <= 50 && ty >= 14 && ty <= 21) return true;
+  // 4. Northeast Bank Boulevard (diagonal connecting Plaza to Bank & Sky Post):
+  if (tx >= 36 && tx <= 38 && ty >= 27 && ty <= 28) return true;
+  if (tx >= 37 && tx <= 39 && ty >= 25 && ty <= 27) return true;
+  if (tx >= 39 && tx <= 41 && ty >= 23 && ty <= 25) return true;
+  if (tx >= 41 && tx <= 43 && ty >= 21 && ty <= 23) return true;
+  if (tx >= 41 && tx <= 43 && ty >= 20 && ty <= 21) return true; // covers (42, 20)
+  if (tx >= 43 && tx <= 46 && ty >= 19 && ty <= 20) return true;
+  if (tx >= 47 && tx <= 50 && ty >= 17 && ty <= 19) return true; // covers (50, 18)
+  if (tx >= 48 && tx <= 51 && ty >= 15 && ty <= 17) return true; // leads to bank apron
+  // Sky Post connection:
+  if (tx >= 46 && tx <= 49 && ty >= 21 && ty <= 24) return true;
 
-  // 6. Southwest Festival Avenue (connecting Central Plaza to Festival Grounds):
-  // Vertical stem from Plaza (tx: 27..28, ty: 36..44)
-  if (tx >= 27 && tx <= 28 && ty >= 36 && ty <= 44) return true;
-  // Horizontal stretch (ty: 44..45, tx: 16..28)
-  if (ty >= 44 && ty <= 45 && tx >= 16 && tx <= 28) return true;
-  // Vertical stem into Festival Grounds (tx: 16..17, ty: 45..51)
-  if (tx >= 16 && tx <= 17 && ty >= 45 && ty <= 51) return true;
+  // 5. Southwest Festival Avenue (diagonal connecting Plaza to Festival):
+  if (tx >= 26 && tx <= 28 && ty >= 36 && ty <= 37) return true;
+  if (tx >= 25 && tx <= 27 && ty >= 37 && ty <= 39) return true;
+  if (tx >= 23 && tx <= 25 && ty >= 39 && ty <= 41) return true;
+  if (tx >= 21 && tx <= 23 && ty >= 41 && ty <= 43) return true;
+  if (tx >= 19 && tx <= 21 && ty >= 43 && ty <= 45) return true; // covers (20, 44)
+  if (tx >= 17 && tx <= 19 && ty >= 45 && ty <= 47) return true;
+  if (tx >= 15 && tx <= 17 && ty >= 47 && ty <= 50) return true; // covers (16, 48) and leads to festival apron
 
-  // 7. Southeast Cinema Boulevard (connecting Central Plaza to Moonlight Cinema):
-  // Vertical stem from Plaza (tx: 36..37, ty: 36..44)
-  if (tx >= 36 && tx <= 37 && ty >= 36 && ty <= 44) return true;
-  // Horizontal stretch (ty: 44..45, tx: 36..48)
-  if (ty >= 44 && ty <= 45 && tx >= 36 && tx <= 48) return true;
-  // Vertical stem into Cinema entrance (tx: 47..48, ty: 45..51)
-  if (tx >= 47 && tx <= 48 && ty >= 45 && ty <= 51) return true;
+  // 6. Southeast Cinema Boulevard (diagonal connecting Plaza to Cinema):
+  if (tx >= 36 && tx <= 38 && ty >= 36 && ty <= 37) return true;
+  if (tx >= 37 && tx <= 39 && ty >= 37 && ty <= 39) return true;
+  if (tx >= 39 && tx <= 41 && ty >= 39 && ty <= 41) return true;
+  if (tx >= 41 && tx <= 43 && ty >= 41 && ty <= 43) return true;
+  if (tx >= 41 && tx <= 43 && ty >= 43 && ty <= 45) return true; // covers (42, 44)
+  if (tx >= 44 && tx <= 46 && ty >= 45 && ty <= 47) return true;
+  if (tx >= 46 && tx <= 49 && ty >= 47 && ty <= 50) return true; // covers (48, 48) and leads to cinema apron
 
-  // 8. Secondary Trails:
-  // Toolshed Branch (tx: 15..16, ty: 21..24)
-  if (tx >= 15 && tx <= 16 && ty >= 21 && ty <= 24) return true;
-  // Sky Post Courier Branch (tx: 47..48, ty: 21..25)
-  if (tx >= 47 && tx <= 48 && ty >= 21 && ty <= 25) return true;
-  // South Trail past bridge (tx: 31..32, ty: 43..48)
-  if (tx >= 31 && tx <= 32 && ty >= 43 && ty <= 48) return true;
+  // 7. South Avenue to Pond:
+  if (tx >= 31 && tx <= 32 && ty >= 37 && ty <= 40) return true; // covers (31, 38)
+  if (tx >= 31 && tx <= 32 && ty >= 43 && ty <= 46) return true;
 
   return false;
 }
@@ -282,7 +294,17 @@ export function getPathTileInfo(tx, ty) {
   }
 
   // 3. Interior Dirt Center
-  return { col: 4, row: 0 }; // dirt_center
+  const pathDetail = hash2D(tx, ty, 888) % 10;
+  if (pathDetail === 0) {
+    return { col: 3, row: 0 }; // Slate river stepping stone
+  }
+  if (pathDetail === 1) {
+    return { col: 4, row: 1 }; // Embedded cobble paver
+  }
+  if (pathDetail === 2) {
+    return { col: 1, row: 7 }; // Autumn leaf on earth
+  }
+  return { col: 4, row: 0 }; // Smooth packed dirt center
 }
 
 export function hash2D(x, y, seed = 12345) {
@@ -292,21 +314,22 @@ export function hash2D(x, y, seed = 12345) {
 }
 
 export function getGroundTile(tx, ty) {
-  // 1. Woodland Pond shoreline (within 2 tiles of water): high density of bluebells & river pebbles (col: 3, row: 0)
+  // 1. Woodland Pond shoreline (within 2 tiles of water): high density of bluebells & river pebbles
   const distPondX = Math.max(0, Math.max(30 - tx, tx - 34));
   const distPondY = Math.max(0, Math.max(40 - ty, ty - 43));
   if (distPondX <= 2 && distPondY <= 2 && (distPondX > 0 || distPondY > 0)) {
     const h = hash2D(tx, ty, 101);
     if (h % 3 === 0) return { col: 3, row: 0 }; // River pebbles & bluebell
     if (h % 3 === 1) return { col: 1, row: 0 }; // Lush clover tuft
-    return { col: 0, row: 0 };
+    return { col: 0, row: 7 }; // Shaded emerald moss
   }
 
-  // 2. Archive Cellar ancient mossy glade: mossy stones and shaded clovers
+  // 2. Archive Cellar ancient mossy glade: mossy stones and shaded forest floor
   if (tx >= 8 && tx <= 16 && ty >= 28 && ty <= 36) {
     const h = hash2D(tx, ty, 202);
     if (h % 4 === 0) return { col: 3, row: 0 }; // Mossy stone
-    if (h % 4 === 1) return { col: 1, row: 0 }; // Deep shaded clover
+    if (h % 4 === 1) return { col: 0, row: 7 }; // Shaded mossy grass
+    if (h % 4 === 2) return { col: 1, row: 7 }; // Autumn leaves
     return { col: 0, row: 0 };
   }
 
@@ -314,7 +337,8 @@ export function getGroundTile(tx, ty) {
   if ((tx >= 12 && tx <= 22 && ty >= 45 && ty <= 54) || (tx >= 42 && tx <= 54 && ty >= 45 && ty <= 54)) {
     const h = hash2D(tx, ty, 303);
     if (h % 5 === 0) return { col: 2, row: 0 }; // Scarlet poppies
-    if (h % 5 === 1) return { col: 1, row: 0 }; // White daisies & clover
+    if (h % 5 === 1) return { col: 2, row: 7 }; // Yellow buttercups & purple clover
+    if (h % 5 === 2) return { col: 1, row: 0 }; // White daisies & clover
     return { col: 0, row: 0 };
   }
 
@@ -326,21 +350,35 @@ export function getGroundTile(tx, ty) {
     return { col: 0, row: 0 };
   }
 
-  // 5. General organic meadow (clustered noise eliminating repetitive patterns)
-  const clumpNoise = hash2D(Math.floor(tx / 3), Math.floor(ty / 3), 505);
-  const detailNoise = hash2D(tx, ty, 606);
+  // 5. Deep Forest Margins (tx <= 8 || tx >= 55 || ty <= 8 || ty >= 55): moss and leaves
+  if (tx <= 8 || tx >= 55 || ty <= 8 || ty >= 55) {
+    const h = hash2D(tx, ty, 505);
+    if (h % 4 === 0) return { col: 0, row: 7 }; // Deep emerald moss
+    if (h % 4 === 1) return { col: 1, row: 7 }; // Scattered leaves
+    if (h % 6 === 2) return { col: 3, row: 0 }; // Forest pebbles
+    return { col: 0, row: 0 };
+  }
+
+  // 6. General organic meadow (clustered noise eliminating repetitive patterns)
+  const clumpNoise = hash2D(Math.floor(tx / 3), Math.floor(ty / 3), 606);
+  const detailNoise = hash2D(tx, ty, 707);
+  if (clumpNoise % 5 === 0) {
+    // Wildflower meadow cluster
+    if (detailNoise % 3 === 0) return { col: 2, row: 0 }; // Poppies
+    if (detailNoise % 3 === 1) return { col: 2, row: 7 }; // Buttercups
+    return { col: 1, row: 0 }; // Daisies & clover
+  }
   if (clumpNoise % 7 === 0) {
-    // Wildflower clump
-    return (detailNoise % 2 === 0) ? { col: 2, row: 0 } : { col: 1, row: 0 };
+    // Rocky pebble & moss outcrop
+    return (detailNoise % 2 === 0) ? { col: 3, row: 0 } : { col: 0, row: 7 };
   }
-  if (clumpNoise % 9 === 0) {
-    // Rocky pebble outcrop
-    return (detailNoise % 2 === 0) ? { col: 3, row: 0 } : { col: 0, row: 0 };
+  if (detailNoise % 5 === 0) {
+    return { col: 1, row: 0 }; // Clover tuft
   }
-  if (detailNoise % 8 === 0) {
-    return { col: 1, row: 0 }; // Occasional clover tuft
+  if (detailNoise % 9 === 0) {
+    return { col: 1, row: 7 }; // Scattered leaf
   }
-  return { col: 0, row: 0 }; // Rich lush grass plain
+  return { col: 0, row: 0 }; // Balanced smooth grass plain
 }
 
 export function generateForestTrees() {
@@ -348,63 +386,57 @@ export function generateForestTrees() {
   const occupied = new Set();
 
   const BUILDING_RESERVES = [
-    { minX: 10, maxX: 18, minY: 9, maxY: 16 }, // Farmstead + garden
-    { minX: 46, maxX: 54, minY: 9, maxY: 16 }, // Bank
-    { minX: 29, maxX: 35, minY: 7, maxY: 15 }, // Bell Tower
-    { minX: 29, maxX: 35, minY: 32, maxY: 37 }, // Notice Board
-    { minX: 11, maxX: 21, minY: 43, maxY: 53 }, // Festival
-    { minX: 43, maxX: 53, minY: 43, maxY: 53 }, // Cinema
-    { minX: 8, maxX: 16, minY: 27, maxY: 35 }, // Archive
-    { minX: 13, maxX: 19, minY: 19, maxY: 25 }, // Toolshed
+    { minX: 11, maxX: 17, minY: 9, maxY: 17 }, // Farmstead + garden
+    { minX: 47, maxX: 53, minY: 9, maxY: 17 }, // Bank
+    { minX: 29, maxX: 35, minY: 7, maxY: 16 }, // Bell Tower
+    { minX: 27, maxX: 37, minY: 27, maxY: 37 }, // Central Plaza & Notice Board
+    { minX: 9, maxX: 15, minY: 27, maxY: 35 }, // Archive Cellar
+    { minX: 14, maxX: 18, minY: 20, maxY: 24 }, // Toolshed
     { minX: 29, maxX: 35, minY: 39, maxY: 44 }, // Pond
-    { minX: 26, maxX: 38, minY: 26, maxY: 38 }, // Central Plaza
     { minX: 46, maxX: 50, minY: 22, maxY: 26 }, // Sky Post
   ];
 
-  function isClearForTree(tx, ty, is2Tile = false) {
+  function isClearForTree(tx, ty) {
     if (tx < 1 || tx > 62 || ty < 1 || ty > 62) return false;
-    const minY = is2Tile ? -2 : -1;
-    for (let dy = minY; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        const cx = tx + dx;
-        const cy = ty + dy;
-        if (cx >= 0 && cx <= 63 && cy >= 0 && cy <= 63) {
-          if (isGround(cx, cy)) return false;
-          for (const b of BUILDING_RESERVES) {
-            if (cx >= b.minX && cx <= b.maxX && cy >= b.minY && cy <= b.maxY) return false;
-          }
-        }
-      }
+    if (isGround(tx, ty)) return false;
+
+    // Circular clearings for Festival & Cinema
+    const dFest = (tx - 16) ** 2 + (ty - 50) ** 2;
+    if (dFest <= 22) return false;
+    const dCinema = (tx - 48) ** 2 + (ty - 50) ** 2;
+    if (dCinema <= 22) return false;
+
+    for (const b of BUILDING_RESERVES) {
+      if (tx >= b.minX && tx <= b.maxX && ty >= b.minY && ty <= b.maxY) return false;
     }
     return true;
   }
 
   function addTree(x, y, type) {
-    const is2Tile = type === 'oak' || type === 'blossom';
-    if (!isClearForTree(x, y, is2Tile)) return false;
-    const key = `${x},${y}`;
-    if (occupied.has(key)) return false;
-    occupied.add(key);
-    occupied.add(`${x},${y - 1}`);
-    occupied.add(`${x},${y + 1}`);
+    if (!isClearForTree(x, y)) return false;
+    const k = `${x},${y}`;
+    if (occupied.has(k) || occupied.has(`${x - 1},${y}`) || occupied.has(`${x + 1},${y}`)) return false;
+    occupied.add(k);
     trees.push({ x, y, type });
     return true;
   }
 
-  // 1. Perimeter border trees (North, South, West, East)
-  for (let y = 1; y <= 6; y += 2) {
-    for (let x = 1; x <= 62; x += 2) {
+  // 1. Dense Perimeter border trees (North, South, West, East)
+  for (let y = 1; y <= 6; y++) {
+    const startX = (y % 2 === 0) ? 1 : 2;
+    for (let x = startX; x <= 62; x += 2) {
       const r = hash2D(x, y) % 3;
       addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
     }
   }
-  for (let y = 57; y <= 62; y += 2) {
-    for (let x = 1; x <= 62; x += 2) {
+  for (let y = 57; y <= 62; y++) {
+    const startX = (y % 2 === 0) ? 1 : 2;
+    for (let x = startX; x <= 62; x += 2) {
       const r = hash2D(x, y) % 3;
       addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
     }
   }
-  for (let y = 7; y <= 56; y += 2) {
+  for (let y = 7; y <= 56; y++) {
     for (let x = 1; x <= 6; x += 2) {
       const r = hash2D(x, y) % 3;
       addTree(x, y, r === 0 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
@@ -417,27 +449,29 @@ export function generateForestTrees() {
 
   // 2. Internal woodland groves (scalloped irregular woodland edges extending into the village)
   const internalGroves = [
-    { minX: 19, maxX: 27, minY: 7, maxY: 17 }, // Northwest Grove (between Farmstead & Bell Tower)
-    { minX: 37, maxX: 45, minY: 7, maxY: 17 }, // Northeast Grove (between Bell Tower & Bank)
-    { minX: 19, maxX: 27, minY: 18, maxY: 25 }, // Grove East of Toolshed
-    { minX: 37, maxX: 45, minY: 18, maxY: 27 }, // Grove Northeast of Plaza
-    { minX: 6, maxX: 11, minY: 23, maxY: 28 }, // West Central Grove (south of Toolshed, north of Archive)
-    { minX: 6, maxX: 12, minY: 36, maxY: 44 }, // Southwest Deep Woods (south of Archive, west of Festival)
-    { minX: 20, maxX: 27, minY: 35, maxY: 44 }, // Woods Southwest of Central Plaza
-    { minX: 37, maxX: 44, minY: 35, maxY: 44 }, // Woods Southeast of Central Plaza
-    { minX: 24, maxX: 28, minY: 39, maxY: 44 }, // Pond West Wooded Bank
-    { minX: 36, maxX: 40, minY: 39, maxY: 44 }, // Pond East Wooded Bank
-    { minX: 20, maxX: 25, minY: 46, maxY: 54 }, // Woods between Festival & Pond
-    { minX: 39, maxX: 44, minY: 46, maxY: 54 }, // Woods between Pond & Cinema
-    { minX: 52, maxX: 56, minY: 18, maxY: 44 }, // East Woodland Band (behind Sky Post down to Cinema)
+    { minX: 18, maxX: 27, minY: 7, maxY: 17 }, // North Copse 1 (between Farmstead & Bell Tower)
+    { minX: 37, maxX: 46, minY: 7, maxY: 17 }, // North Copse 2 (between Bell Tower & Bank)
+    { minX: 18, maxX: 26, minY: 18, maxY: 23 }, // East of Toolshed
+    { minX: 38, maxX: 46, minY: 18, maxY: 24 }, // Northeast of Plaza
+    { minX: 2, maxX: 10, minY: 18, maxY: 28 },  // West deep woods
+    { minX: 2, maxX: 11, minY: 35, maxY: 44 },  // South of Archive
+    { minX: 22, maxX: 28, minY: 37, maxY: 44 }, // West of Pond
+    { minX: 36, maxX: 42, minY: 37, maxY: 44 }, // East of Pond
+    { minX: 52, maxX: 60, minY: 18, maxY: 44 }, // East woodland margin
+    { minX: 2, maxX: 12, minY: 45, maxY: 60 },  // West of Festival
+    { minX: 52, maxX: 62, minY: 45, maxY: 60 }, // East of Cinema
+    { minX: 22, maxX: 27, minY: 46, maxY: 56 }, // Between Festival & Pond
+    { minX: 37, maxX: 42, minY: 46, maxY: 56 }, // Between Pond & Cinema
+    { minX: 28, maxX: 36, minY: 48, maxY: 58 }, // South wilderness
   ];
 
   for (const g of internalGroves) {
     for (let y = g.minY; y <= g.maxY; y += 2) {
-      for (let x = g.minX; x <= g.maxX; x += 2) {
-        const r = hash2D(x, y, 999) % 5;
-        if (r !== 4) {
-          addTree(x, y, r === 0 || r === 3 ? 'oak' : (r === 1 ? 'pine' : 'blossom'));
+      const startX = (y % 2 === 0) ? g.minX : g.minX + 1;
+      for (let x = startX; x <= g.maxX; x += 2) {
+        const r = hash2D(x, y, 777) % 6;
+        if (r !== 5) {
+          addTree(x, y, r === 0 || r === 3 ? 'oak' : (r === 1 || r === 4 ? 'pine' : 'blossom'));
         }
       }
     }
@@ -477,6 +511,11 @@ export const FOREST_PROPS = [
   { x: 53, y: 27, type: 'mushrooms' },
   { x: 23, y: 50, type: 'mushrooms' },
   { x: 41, y: 50, type: 'mushrooms' },
+  // Decorative weathered tree stumps
+  { x: 9, y: 34, type: 'stump' },  // Archive Cellar ancient grove
+  { x: 18, y: 23, type: 'stump' }, // Toolshed chopping block
+  { x: 24, y: 12, type: 'stump' }, // Forest path stump
+  { x: 40, y: 12, type: 'stump' }, // Forest path stump
 ];
 
 export const INTERNAL_TREE_TRUNKS = new Set(
@@ -678,6 +717,18 @@ export default function PixelWorldCanvas({
       fallen_log: null,
       rock_moss: null,
       mushrooms: null,
+      fountain_stone: null,
+      lantern_post: null,
+      bench_wood: null,
+      bush_green: null,
+      bush_yellow: null,
+      bush_red: null,
+      bush_tiered: null,
+      bush_flowers: null,
+      tree_stump: null,
+      flowers_poppy: null,
+      flowers_daisy: null,
+      flowers_sunflower: null,
     },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
@@ -717,6 +768,18 @@ export default function PixelWorldCanvas({
       { key: 'fallen_log', src: '/assets/trees/fallen_log.png' },
       { key: 'rock_moss', src: '/assets/trees/rock_moss.png' },
       { key: 'mushrooms', src: '/assets/trees/mushrooms.png' },
+      { key: 'fountain_stone', src: '/assets/props/fountain_stone.png' },
+      { key: 'lantern_post', src: '/assets/props/lantern_post.png' },
+      { key: 'bench_wood', src: '/assets/props/bench_wood.png' },
+      { key: 'bush_green', src: '/assets/trees/bush_green.png' },
+      { key: 'bush_yellow', src: '/assets/trees/bush_yellow.png' },
+      { key: 'bush_red', src: '/assets/trees/bush_red.png' },
+      { key: 'bush_tiered', src: '/assets/trees/bush_tiered.png' },
+      { key: 'bush_flowers', src: '/assets/trees/bush_flowers.png' },
+      { key: 'tree_stump', src: '/assets/trees/tree_stump.png' },
+      { key: 'flowers_poppy', src: '/assets/trees/flowers_poppy.png' },
+      { key: 'flowers_daisy', src: '/assets/trees/flowers_daisy.png' },
+      { key: 'flowers_sunflower', src: '/assets/trees/flowers_sunflower.png' },
     ];
 
     let count = 0;
@@ -939,7 +1002,8 @@ export default function PixelWorldCanvas({
 
       // Compute Integer Scaling Factor (3x mobile, 4x desktop)
       const isMobile = canvas.clientWidth < 640;
-      const scale = isMobile ? 3 : 4;
+      const isFullMap = typeof window !== 'undefined' && window.location.search.includes('fullMap=true');
+      const scale = isFullMap ? 1 : (isMobile ? 3 : 4);
       state.scaleFactor = scale;
 
       const viewW = Math.floor(canvas.clientWidth / scale);
@@ -1133,6 +1197,11 @@ export default function PixelWorldCanvas({
       // ── Layer 3: Depth-Sorted Entities (Buildings, Props, Characters, Trees) ──
       const renderables = [];
 
+      const camMinX = cam.x - viewW / 2 - 64;
+      const camMaxX = cam.x + viewW / 2 + 64;
+      const camMinY = cam.y - viewH / 2 - 64;
+      const camMaxY = cam.y + viewH / 2 + 64;
+
       // ── 1. Chapter 1: The Farmstead (New Custom House) ──
       renderables.push({
         y: 14 * TILE_SIZE + 2,
@@ -1291,11 +1360,16 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 5. Central Village Stone Fountain (tx: 32, ty: 31) ──
+      // ── 5. Central Village Stone Fountain (tx: 31..32, ty: 30..31) ──
       renderables.push({
         y: 32 * TILE_SIZE,
         render: () => {
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 32 * TILE_SIZE, 31 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          const fImg = state.images.fountain_stone;
+          if (fImg) {
+            ctx.drawImage(fImg, 31 * TILE_SIZE, 30 * TILE_SIZE, 32, 32);
+          } else {
+            ctx.drawImage(tileset, 5 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 32 * TILE_SIZE, 31 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
         },
       });
 
@@ -1355,8 +1429,6 @@ export default function PixelWorldCanvas({
             const ay = 30 * TILE_SIZE;
             ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax, ay, TILE_SIZE, TILE_SIZE);
             ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + TILE_SIZE, ay, TILE_SIZE, TILE_SIZE);
-            ctx.drawImage(tileset, 5 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax + 2 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, ax - 1 * TILE_SIZE, ay + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           }
         },
       });
@@ -1392,107 +1464,7 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 10b. Archive Cellar Ancient Woodland Props (tx: 12, ty: 33) ──
-      renderables.push({
-        y: 34 * TILE_SIZE + 2,
-        render: () => {
-          // Leather-bound bookstacks on cedar barrel (left of steps)
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 10 * TILE_SIZE, 33 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Ancient mossy river boulders (right of steps)
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 14 * TILE_SIZE, 33 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Red woodland amanita mushroom cluster
-          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 10 * TILE_SIZE, 34 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Wooden road signpost pointing down West Archive Way
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 13 * TILE_SIZE, 34 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        },
-      });
-
-      // ── 10c. Bell Tower Rose Planters & Stone Benches (tx: 32, ty: 14) ──
-      renderables.push({
-        y: 15 * TILE_SIZE,
-        render: () => {
-          // Flanking rose planters
-          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 30 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 34 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Stone resting benches
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 30 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 34 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        },
-      });
-
-      // ── 10d. Bank Courtyard Topiaries & Urns (tx: 50, ty: 14) ──
-      renderables.push({
-        y: 15 * TILE_SIZE,
-        render: () => {
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 47 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 53 * TILE_SIZE, 13 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        },
-      });
-
-      // ── 10e. Festival Grounds Bunting & Benches (tx: 16, ty: 51) ──
-      renderables.push({
-        y: 52 * TILE_SIZE,
-        render: () => {
-          // Festive fabric bunting across entrance
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 15 * TILE_SIZE, 50 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 7 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 17 * TILE_SIZE, 50 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Side spectator benches
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 13 * TILE_SIZE, 52 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 19 * TILE_SIZE, 52 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        },
-      });
-
-      // ── 10f. Moonlight Cinema Brass Projector & Seating (tx: 48, ty: 51) ──
-      renderables.push({
-        y: 52 * TILE_SIZE,
-        render: () => {
-          // Brass film projector on wooden tripod
-          ctx.drawImage(tileset, 3 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 48 * TILE_SIZE, 52 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Flanking log benches with cozy blankets
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 45 * TILE_SIZE, 51 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 51 * TILE_SIZE, 51 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        },
-      });
-
-      // ── 10g. Woodland Pond Scenic Benches (tx: 32, ty: 40) ──
-      renderables.push({
-        y: 40 * TILE_SIZE,
-        render: () => {
-          // Resting benches overlooking water
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 29 * TILE_SIZE, 39 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 35 * TILE_SIZE, 39 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        },
-      });
-
-      // ── 11. Environmental Props: Street Lanterns, Benches, Shrubbery, Signposts ──
-      const camMinX = cam.x - viewW / 2 - 64;
-      const camMaxX = cam.x + viewW / 2 + 64;
-      const camMinY = cam.y - viewH / 2 - 64;
-      const camMaxY = cam.y + viewH / 2 + 64;
-
-      // Street Lanterns (Central Plaza, Avenues, Landmark Entrances, Bridgeheads)
-      const streetLanterns = [
-        { x: 28, y: 28 }, { x: 36, y: 28 },
-        { x: 28, y: 36 }, { x: 36, y: 36 },
-        { x: 47, y: 14 }, { x: 53, y: 14 }, // Bank lanterns
-        { x: 31, y: 14 }, { x: 33, y: 14 }, // Bell Tower lanterns
-        { x: 10, y: 33 }, { x: 14, y: 33 }, // Archive lanterns
-        { x: 14, y: 51 }, { x: 18, y: 51 }, // Festival lanterns
-        { x: 46, y: 51 }, { x: 50, y: 51 }, // Cinema lanterns
-        { x: 31, y: 40 }, { x: 33, y: 40 }, // Bridgehead lanterns (north)
-        { x: 31, y: 43 }, { x: 33, y: 43 }, // Bridgehead lanterns (south)
-      ];
-      streetLanterns.forEach((lp) => {
-        if (viewW < 1000 && (lp.x * TILE_SIZE < camMinX || lp.x * TILE_SIZE > camMaxX || lp.y * TILE_SIZE < camMinY || lp.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (lp.y + 1) * TILE_SIZE,
-          render: () => {
-            ctx.drawImage(tileset, 7 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, lp.x * TILE_SIZE, lp.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          },
-        });
-      });
-
-      // Central Plaza Wooden Benches
+      // ── 11a. Central Plaza Wooden Benches ──
       const plazaBenches = [
         { x: 30, y: 31 }, { x: 34, y: 31 },
         { x: 30, y: 33 }, { x: 34, y: 33 },
@@ -1502,46 +1474,105 @@ export default function PixelWorldCanvas({
         renderables.push({
           y: (bp.y + 1) * TILE_SIZE,
           render: () => {
-            ctx.drawImage(tileset, 6 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bp.x * TILE_SIZE, bp.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            const bImg = state.images.bench_wood;
+            if (bImg) {
+              ctx.drawImage(bImg, bp.x * TILE_SIZE - 4, bp.y * TILE_SIZE + 2, 24, 14);
+            }
           },
         });
       });
 
-      // Central Plaza Four Corner Flower Beds with Stone Planters
+      // ── 11b. Street Lanterns (Wrought Iron Lamp Posts) ──
+      const streetLanterns = [
+        // Plaza Four Corners
+        { x: 28, y: 28 }, { x: 36, y: 28 },
+        { x: 28, y: 36 }, { x: 36, y: 36 },
+        // Bell Tower Landmark Lanterns
+        { x: 29, y: 13 }, { x: 35, y: 13 },
+        // Ledger Hut Bank Lanterns
+        { x: 47, y: 13 }, { x: 53, y: 13 },
+        // Archive Cellar Secluded Lantern
+        { x: 14, y: 33 },
+        // Toolshed Workshop Lantern
+        { x: 14, y: 23 },
+        // Sky Post Courier Lantern
+        { x: 50, y: 24 },
+      ];
+      streetLanterns.forEach((lp) => {
+        if (viewW < 1000 && (lp.x * TILE_SIZE < camMinX || lp.x * TILE_SIZE > camMaxX || lp.y * TILE_SIZE < camMinY || lp.y * TILE_SIZE > camMaxY)) return;
+        renderables.push({
+          y: (lp.y + 1) * TILE_SIZE,
+          render: () => {
+            const lImg = state.images.lantern_post;
+            if (lImg) {
+              ctx.drawImage(lImg, lp.x * TILE_SIZE, lp.y * TILE_SIZE - 8, 16, 24);
+            }
+          },
+        });
+      });
+
+      // ── 11c. Location Flowerbeds & Plantings ──
       const flowerBeds = [
-        { x: 29, y: 29 }, { x: 35, y: 29 },
-        { x: 29, y: 35 }, { x: 35, y: 35 },
+        // Plaza Four Corners
+        { x: 29, y: 29, type: 'poppy' }, { x: 35, y: 29, type: 'sunflower' },
+        { x: 29, y: 35, type: 'daisy' }, { x: 35, y: 35, type: 'poppy' },
+        // Bell Tower Circular Garden
+        { x: 29, y: 14, type: 'daisy' }, { x: 35, y: 14, type: 'daisy' },
+        // Bank Courtyard Flowers
+        { x: 47, y: 15, type: 'poppy' }, { x: 53, y: 15, type: 'poppy' },
+        // Farmstead Garden Fence Sunflowers & Poppies
+        { x: 11, y: 15, type: 'sunflower' }, { x: 17, y: 15, type: 'sunflower' },
+        { x: 10, y: 14, type: 'poppy' },
+        // Sky Post Garden
+        { x: 47, y: 25, type: 'daisy' },
       ];
       flowerBeds.forEach((fb) => {
         if (viewW < 1000 && (fb.x * TILE_SIZE < camMinX || fb.x * TILE_SIZE > camMaxX || fb.y * TILE_SIZE < camMinY || fb.y * TILE_SIZE > camMaxY)) return;
         renderables.push({
           y: (fb.y + 1) * TILE_SIZE,
           render: () => {
-            ctx.drawImage(tileset, 2 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fb.x * TILE_SIZE, fb.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            const fImg = fb.type === 'poppy'
+              ? state.images.flowers_poppy
+              : (fb.type === 'sunflower' ? state.images.flowers_sunflower : state.images.flowers_daisy);
+            if (fImg) {
+              const yOff = fb.type === 'sunflower' ? -2 : 0;
+              const w = fb.type === 'sunflower' ? 14 : 16;
+              const h = fb.type === 'sunflower' ? 18 : 16;
+              ctx.drawImage(fImg, fb.x * TILE_SIZE, fb.y * TILE_SIZE + yOff, w, h);
+            }
           },
         });
       });
 
-      // Flowering Berry Bushes (Plaza & Clearing Margins)
+      // ── 11d. Flowering & Decorative Bushes ──
       const bushes = [
-        { x: 29, y: 32 }, { x: 35, y: 32 },
-        { x: 30, y: 35 }, { x: 34, y: 35 },
-        { x: 13, y: 23 }, { x: 47, y: 23 },
-        { x: 27, y: 41 }, { x: 37, y: 41 }, // Pond shoreline shrubs
-        { x: 13, y: 47 }, { x: 19, y: 47 }, // Festival shrubs
-        { x: 45, y: 47 }, { x: 51, y: 47 }, // Cinema shrubs
+        // Plaza Margins
+        { x: 29, y: 32, type: 'green' }, { x: 35, y: 32, type: 'yellow' },
+        { x: 30, y: 35, type: 'red' }, { x: 34, y: 35, type: 'tiered' },
+        // Bell Tower Garden Flanks
+        { x: 28, y: 13, type: 'tiered' }, { x: 36, y: 13, type: 'tiered' },
+        // Bank Courtyard Topiaries
+        { x: 46, y: 14, type: 'green' }, { x: 54, y: 14, type: 'green' },
+        // Woodland Trail & Shoreline Margins
+        { x: 13, y: 23, type: 'green' }, { x: 47, y: 23, type: 'yellow' },
+        { x: 27, y: 41, type: 'tiered' }, { x: 37, y: 41, type: 'green' },
       ];
       bushes.forEach((bp) => {
         if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
         renderables.push({
           y: (bp.y + 1) * TILE_SIZE,
           render: () => {
-            ctx.drawImage(tileset, 5 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bp.x * TILE_SIZE, bp.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            const bImg = bp.type === 'yellow'
+              ? state.images.bush_yellow
+              : (bp.type === 'red' ? state.images.bush_red : (bp.type === 'tiered' ? state.images.bush_tiered : state.images.bush_green));
+            if (bImg) {
+              ctx.drawImage(bImg, bp.x * TILE_SIZE - 3, bp.y * TILE_SIZE - 2, 22, 18);
+            }
           },
         });
       });
 
-      // Directional Road Signposts
+      // ── 11e. Directional Road Signposts ──
       const signposts = [
         { x: 30, y: 27 }, // North Belfry Avenue exit
         { x: 30, y: 37 }, // South Pond exit
@@ -1587,6 +1618,16 @@ export default function PixelWorldCanvas({
             render: () => {
               if (mushImg) {
                 ctx.drawImage(mushImg, prop.x * TILE_SIZE, prop.y * TILE_SIZE, 16, 16);
+              }
+            },
+          });
+        } else if (prop.type === 'stump') {
+          const stumpImg = state.images.tree_stump;
+          renderables.push({
+            y: (prop.y + 1) * TILE_SIZE,
+            render: () => {
+              if (stumpImg) {
+                ctx.drawImage(stumpImg, prop.x * TILE_SIZE - 1, prop.y * TILE_SIZE - 2, 18, 18);
               }
             },
           });
