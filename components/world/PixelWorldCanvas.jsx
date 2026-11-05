@@ -1,6 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { soundManager } from '@/lib/soundManager';
 import { eventBus, EVENTS } from '@/lib/eventBus';
+
+const PhaserWorldCanvas = dynamic(() => import('./PhaserWorldCanvas'), { ssr: false });
 
 // 16-bit RPG Tile Size
 const TILE_SIZE = 16;
@@ -1156,7 +1159,17 @@ function drawCozyOctagonalFountain(ctx, cx, cy, animFrame) {
   ctx.restore();
 }
 
-export default function PixelWorldCanvas({
+export default function PixelWorldCanvas(props) {
+  const { engine = 'phaser' } = props;
+
+  if (engine === 'phaser') {
+    return <PhaserWorldCanvas {...props} />;
+  }
+
+  return <ClassicPixelCanvas {...props} />;
+}
+
+function ClassicPixelCanvas({
   activeTab = null, // null or 'map' = Full Overworld Exploration Mode
   debtsData = [],
   todosData = [],
