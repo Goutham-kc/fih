@@ -26,9 +26,12 @@
     "string-similarity": "^4.0.4"
   },
   "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "puppeteer-core": "^25.16.0",
+    "typescript": "^6.0.3",
     "vitest": "^5.1.0"
   }
 }
