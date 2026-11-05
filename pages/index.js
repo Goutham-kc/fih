@@ -10,11 +10,11 @@ import Watchlist from '@/components/Watchlist';
 import ReminderBoard from '@/components/ReminderBoard';
 import SettingsView from '@/components/SettingsView';
 import AuditLogView from '@/components/AuditLogView';
-import PixelWorldCanvas, {
+import VillageAtlas, {
   CHAPTER_ANCHORS,
   shouldShowDialogue,
   getHudControlsGuide,
-} from '@/components/world/PixelWorldCanvas';
+} from '@/components/world/VillageAtlas';
 import RPGHotbar from '@/components/ui/RPGHotbar';
 import RPGDialogueBox from '@/components/ui/RPGDialogueBox';
 import DevModeIndicator from '@/components/ui/DevModeIndicator';
@@ -126,10 +126,6 @@ export default function Dashboard() {
       const mobile = window.innerWidth <= 768;
 
       setIsMobile(mobile);
-
-      if (mobile && !activeTab) {
-        setActiveTab('todos');
-      }
     }
 
     checkMobile();
@@ -148,15 +144,6 @@ export default function Dashboard() {
         }, 0);
 
         return () => clearTimeout(timer);
-      } else if (
-        typeof window !== 'undefined' &&
-        window.innerWidth <= 768
-      ) {
-        const timer = setTimeout(() => {
-          setActiveTab('todos');
-        }, 0);
-
-        return () => clearTimeout(timer);
       }
     }
   }, [router.isReady, router.query.tab]);
@@ -171,8 +158,7 @@ export default function Dashboard() {
         setShowCanvas(!options.panelOnly);
       }
 
-      const effectiveTab =
-        isMobile && !tabId ? 'todos' : tabId;
+      const effectiveTab = tabId;
 
       setActiveTab(effectiveTab);
 
@@ -200,29 +186,12 @@ export default function Dashboard() {
         );
       }
     },
-    [router, isMobile]
+    [router]
   );
 
   // Close chapter
   const handleCloseChapter = useCallback(() => {
     soundManager.playSfx('wood');
-
-    if (isMobile) {
-      setActiveTab('todos');
-
-      router.replace(
-        {
-          query: {
-            ...router.query,
-            tab: 'todos',
-          },
-        },
-        undefined,
-        { shallow: true }
-      );
-
-      return;
-    }
 
     setShowCanvas(true);
     setActiveTab(null);
@@ -235,7 +204,7 @@ export default function Dashboard() {
       undefined,
       { shallow: true }
     );
-  }, [router, isMobile]);
+  }, [router]);
 
   // Keyboard interactions
   useEffect(() => {
@@ -558,11 +527,10 @@ export default function Dashboard() {
       <div className="fih-dashboard">
 
         {/* Interactive village world */}
-        {!isMobile && showCanvas && (
+        {showCanvas && (
           <div className="world-canvas-wrapper">
-            <PixelWorldCanvas
+            <VillageAtlas
               activeTab={activeTab}
-              debtsData={debts}
               reducedMotion={reducedMotion}
               onNavigateToChapter={handleTabChange}
               onCloseChapter={handleCloseChapter}
@@ -1187,9 +1155,7 @@ export default function Dashboard() {
             font-size: 9px;
           }
 
-          .world-canvas-wrapper {
-            display: none !important;
-          }
+          .world-canvas-wrapper { display: block !important; }
 
           .rpg-parchment-stage,
           .rpg-parchment-stage.mobile-panel-only,

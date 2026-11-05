@@ -1,0 +1,35 @@
+import PendingIntent from '@/models/PendingIntent';
+
+const INTENT_TTL_MINUTES = 30;
+
+/**
+ * Create or update a pending intent for a user.
+ */
+export async function createPendingIntent(userId, { module, partialData, missingField, question, environmentMode }) {
+  const expiresAt = new Date(Date.now() + INTENT_TTL_MINUTES * 60 * 1000);
+  await PendingIntent.findOneAndUpdate(
+    { userId },
+    { userId, module, partialData, missingField, question, expiresAt, environmentMode },
+    { upsert: true, new: true }
+  );
+}
+
+/**
+ * Retrieve the active pending intent for a user (if any).
+ */
+export async function getPendingIntent(userId) {
+  const intent = await PendingIntent.findOne({ userId });
+  if (!intent) return null;
+  if (intent.expiresAt && intent.expiresAt < new Date()) {
+    await PendingIntent.deleteOne({ userId });
+    return null;
+  }
+  return intent;
+}
+
+/**
+ * Delete the pending intent for a user.
+ */
+export async function clearPendingIntent(userId) {
+  await PendingIntent.deleteOne({ userId });
+}
