@@ -779,6 +779,10 @@ export default function PixelWorldCanvas({
       stone_well: null,
       farm_cart: null,
       haystack: null,
+      lilypad: null,
+      lilypad_flower: null,
+      cattails: null,
+      water_caustics: null,
     },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
@@ -796,6 +800,50 @@ export default function PixelWorldCanvas({
     bellSwing: 0,
     fountainFrame: 0,
     isOverworldMode: !activeTab || activeTab === 'map',
+    fireflies: Array.from({ length: 24 }, (_, i) => {
+      let bx = 32 * 16, by = 42 * 16;
+      if (i < 8) {
+        // Archive Cellar ancient grove (tx: 8..16, ty: 29..36)
+        bx = (9 + (i % 4) * 2) * 16 + (Math.random() - 0.5) * 16;
+        by = (30 + Math.floor(i / 4) * 3) * 16 + (Math.random() - 0.5) * 16;
+      } else if (i < 16) {
+        // Woodland Pond & Reeds (tx: 28..36, ty: 39..45)
+        bx = (29 + (i % 4) * 2) * 16 + (Math.random() - 0.5) * 16;
+        by = (40 + Math.floor((i - 8) / 4) * 2) * 16 + (Math.random() - 0.5) * 16;
+      } else if (i < 20) {
+        // Bell Tower grove (tx: 29..35, ty: 8..14)
+        bx = (29 + (i - 16) * 2) * 16 + (Math.random() - 0.5) * 16;
+        by = (9 + ((i - 16) % 2) * 3) * 16 + (Math.random() - 0.5) * 16;
+      } else {
+        // Cinema Forest (tx: 44..52, ty: 45..52)
+        bx = (45 + (i - 20) * 2) * 16 + (Math.random() - 0.5) * 16;
+        by = (46 + ((i - 20) % 2) * 3) * 16 + (Math.random() - 0.5) * 16;
+      }
+      return {
+        x: bx,
+        y: by,
+        baseX: bx,
+        baseY: by,
+        phase: Math.random() * Math.PI * 2,
+        pulsePhase: Math.random() * Math.PI * 2,
+      };
+    }),
+    petals: Array.from({ length: 32 }, (_, i) => {
+      const colors = ['#fbcfe8', '#f472b6', '#fda4af', '#f9a8d4', '#fef08a'];
+      return {
+        x: Math.random() * (64 * 16),
+        y: Math.random() * (64 * 16),
+        speedX: Math.random() * 0.5 + 0.5,
+        speedY: Math.random() * 0.6 + 0.6,
+        swayPhase: Math.random() * Math.PI * 2,
+        angle: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.06,
+        color: colors[i % colors.length],
+        rx: Math.random() * 1.5 + 3.2,
+        ry: Math.random() * 1 + 1.8,
+        alpha: Math.random() * 0.25 + 0.65,
+      };
+    }),
   });
 
   // 1. Load 16-bit sprite sheets
@@ -846,6 +894,10 @@ export default function PixelWorldCanvas({
       { key: 'stone_well', src: '/assets/props/stone_well.png' },
       { key: 'farm_cart', src: '/assets/props/farm_cart.png' },
       { key: 'haystack', src: '/assets/props/haystack.png' },
+      { key: 'lilypad', src: '/assets/props/lilypad.png' },
+      { key: 'lilypad_flower', src: '/assets/props/lilypad_flower.png' },
+      { key: 'cattails', src: '/assets/props/cattails.png' },
+      { key: 'water_caustics', src: '/assets/props/water_caustics.png' },
     ];
 
     let count = 0;
@@ -1051,10 +1103,10 @@ export default function PixelWorldCanvas({
       lastTime = currentTime;
       tickCounter++;
 
-      // Cycle animation frames (~10fps for sprite walk & water shimmer)
+      // Cycle animation frames (~10fps for sprite walk & water caustics shimmer)
       if (tickCounter % 6 === 0) {
         state.animFrame++;
-        state.waterFrame = (state.waterFrame + 1) % 2;
+        state.waterFrame = (state.waterFrame + 1) % 4;
         state.fountainFrame = (state.fountainFrame + 1) % 2;
         state.bellSwing = Math.sin(state.animFrame * 0.4) * 0.15;
 
@@ -1205,6 +1257,11 @@ export default function PixelWorldCanvas({
       const offsetY = Math.floor(viewH / 2 - cam.y);
       ctx.translate(offsetX, offsetY);
 
+      const camMinX = cam.x - viewW / 2 - 64;
+      const camMaxX = cam.x + viewW / 2 + 64;
+      const camMinY = cam.y - viewH / 2 - 64;
+      const camMaxY = cam.y + viewH / 2 + 64;
+
       const tileset = state.images.tileset;
 
       // ── Layer 1: Ground Tiles (Grass, Continuous Dirt Paths, Cobblestone Aprons, Pond, Tilled Soil) ──
@@ -1221,7 +1278,12 @@ export default function PixelWorldCanvas({
           // Woodland Pond (tx: 30..34, ty: 40..43, excluding footbridge at tx: 32)
           const isPondWater = tx >= 30 && tx <= 34 && ty >= 40 && ty <= 43 && tx !== 32;
           if (isPondWater) {
-            ctx.drawImage(tileset, state.waterFrame * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+            const causticsImg = state.images.water_caustics;
+            if (causticsImg) {
+              ctx.drawImage(causticsImg, (state.waterFrame % 4) * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+            } else {
+              ctx.drawImage(tileset, (state.waterFrame % 2) * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+            }
             continue;
           }
 
@@ -1244,6 +1306,29 @@ export default function PixelWorldCanvas({
           ctx.drawImage(tileset, gTile.col * TILE_SIZE, gTile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
         }
       }
+
+      // ── Layer 1b: Dynamic Concentric Water Ripples ──
+      const rippleCenters = [
+        { x: 30.8 * TILE_SIZE, y: 41.3 * TILE_SIZE, phase: 0 },
+        { x: 33.4 * TILE_SIZE, y: 42.1 * TILE_SIZE, phase: 0.3 },
+        { x: 31.4 * TILE_SIZE, y: 42.8 * TILE_SIZE, phase: 0.6 },
+        { x: 33.6 * TILE_SIZE, y: 40.7 * TILE_SIZE, phase: 0.85 },
+        { x: 32.0 * TILE_SIZE, y: 31.2 * TILE_SIZE, phase: 0.45 }, // Central fountain basin
+      ];
+      rippleCenters.forEach((rc) => {
+        if (viewW < 1000 && (rc.x < camMinX || rc.x > camMaxX || rc.y < camMinY || rc.y > camMaxY)) return;
+        const progress = ((state.animFrame * 0.025 + rc.phase) % 1);
+        const rX = 2 + progress * 8;
+        const rY = rX * 0.5;
+        const alpha = (1 - progress) * 0.6;
+        ctx.save();
+        ctx.strokeStyle = `rgba(186, 245, 255, ${alpha.toFixed(3)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(rc.x, rc.y, rX, rY, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      });
 
       // ── Layer 2: Decorative Fences, Rails & Wooden Footbridge ──
       // 1. Upgraded Wooden Footbridge across Woodland Pond (tx: 31..33, ty: 40..43)
@@ -1298,11 +1383,6 @@ export default function PixelWorldCanvas({
 
       // ── Layer 3: Depth-Sorted Entities (Buildings, Props, Characters, Trees) ──
       const renderables = [];
-
-      const camMinX = cam.x - viewW / 2 - 64;
-      const camMaxX = cam.x + viewW / 2 + 64;
-      const camMinY = cam.y - viewH / 2 - 64;
-      const camMaxY = cam.y + viewH / 2 + 64;
 
       // ── 1. Chapter 1: The Farmstead (New Custom House) ──
       renderables.push({
@@ -1625,6 +1705,44 @@ export default function PixelWorldCanvas({
         },
       });
 
+      // ── Floating Bobbing Lily Pads on Woodland Pond ──
+      const lilyPads = [
+        { x: 30.6 * TILE_SIZE, y: 41.2 * TILE_SIZE, type: 'plain', phase: 0 },
+        { x: 33.3 * TILE_SIZE, y: 42.2 * TILE_SIZE, type: 'flower', phase: 1.8 },
+        { x: 31.2 * TILE_SIZE, y: 42.7 * TILE_SIZE, type: 'plain', phase: 3.2 },
+      ];
+      lilyPads.forEach((lp) => {
+        if (viewW < 1000 && (lp.x < camMinX || lp.x > camMaxX || lp.y < camMinY || lp.y > camMaxY)) return;
+        renderables.push({
+          y: lp.y + 12,
+          render: () => {
+            const bobY = lp.y + Math.sin(state.animFrame * 0.08 + lp.phase) * 1.5;
+            const img = lp.type === 'flower' ? state.images.lilypad_flower : state.images.lilypad;
+            if (img) {
+              ctx.drawImage(img, lp.x, bobY, 18, 18);
+            }
+          },
+        });
+      });
+
+      // ── Shoreline Cattails / Water Reeds ──
+      const waterReeds = [
+        { x: 29.5 * TILE_SIZE, y: 42.0 * TILE_SIZE },
+        { x: 34.2 * TILE_SIZE, y: 40.2 * TILE_SIZE },
+      ];
+      waterReeds.forEach((wr) => {
+        if (viewW < 1000 && (wr.x < camMinX || wr.x > camMaxX || wr.y < camMinY || wr.y > camMaxY)) return;
+        renderables.push({
+          y: wr.y + 24,
+          render: () => {
+            const img = state.images.cattails;
+            if (img) {
+              ctx.drawImage(img, wr.x, wr.y, 20, 28);
+            }
+          },
+        });
+      });
+
       // ── 11a. Central Plaza & Landmark Wooden Benches ──
       const plazaBenches = [
         // Central Plaza fountain benches
@@ -1650,8 +1768,6 @@ export default function PixelWorldCanvas({
 
       // ── 11b. Rustic Woodland Log Benches ──
       const logBenches = [
-        // Scenic Woodland Pond Overlook
-        { x: 29, y: 41 }, { x: 35, y: 41 },
         // Northern Forest Trail Rest
         { x: 24, y: 20 }, { x: 40, y: 20 },
       ];
@@ -1660,7 +1776,7 @@ export default function PixelWorldCanvas({
         renderables.push({
           y: (lb.y + 1) * TILE_SIZE,
           render: () => {
-            const lbImg = state.images.bench_log || state.images.bench_wood;
+            const lbImg = state.images.bench_wood;
             if (lbImg) {
               ctx.drawImage(lbImg, lb.x * TILE_SIZE - 5, lb.y * TILE_SIZE, 26, 14);
             }
@@ -1930,7 +2046,101 @@ export default function PixelWorldCanvas({
       renderables.sort((a, b) => a.y - b.y);
       renderables.forEach((item) => item.render());
 
-      // ── Layer 4: Floating Building Signposts & Hover Highlights ──
+      // ── Layer 4a: Ambient Lantern Radial Halos & Flame Flicker ──
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const allLanternLights = [
+        // Street Timber Bracket Post Lanterns
+        ...streetLanterns.map((l) => ({ x: l.x * TILE_SIZE + 13, y: l.y * TILE_SIZE + 2, radius: 34 })),
+        // Portable Oil Lanterns
+        ...oilLanterns.map((l) => ({ x: l.x * TILE_SIZE + 7, y: l.y * TILE_SIZE + 6, radius: 24 })),
+        // Porch & Doorway Lanterns
+        { x: 14 * TILE_SIZE + 28, y: 13 * TILE_SIZE + 4, radius: 30 }, // Farmhouse porch
+        { x: 50 * TILE_SIZE + 18, y: 12 * TILE_SIZE + 10, radius: 32 }, // Bank door
+      ];
+
+      allLanternLights.forEach((ll, lIdx) => {
+        if (viewW < 1000 && (ll.x < camMinX - 32 || ll.x > camMaxX + 32 || ll.y < camMinY - 32 || ll.y > camMaxY + 32)) return;
+        const flicker = Math.sin(state.animFrame * 0.2 + lIdx * 2.1) * 0.08 + Math.cos(state.animFrame * 0.35 + lIdx * 1.3) * 0.04;
+        const r = ll.radius * (1 + flicker);
+        const grad = ctx.createRadialGradient(ll.x, ll.y, 1, ll.x, ll.y, r);
+        grad.addColorStop(0, `rgba(254, 240, 138, ${(0.40 + flicker * 0.22).toFixed(3)})`);
+        grad.addColorStop(0.35, `rgba(245, 158, 11, 0.15)`);
+        grad.addColorStop(0.7, `rgba(217, 119, 6, 0.05)`);
+        grad.addColorStop(1, 'rgba(180, 83, 9, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(ll.x, ll.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+
+      // ── Layer 4b: Bioluminescent Woodland Fireflies ──
+      state.fireflies.forEach((f) => {
+        f.x = f.baseX + Math.sin(f.phase + state.animFrame * 0.05) * 14;
+        f.y = f.baseY + Math.cos(f.phase * 1.4 + state.animFrame * 0.04) * 10;
+        if (viewW < 1000 && (f.x < camMinX || f.x > camMaxX || f.y < camMinY || f.y > camMaxY)) return;
+
+        const pulse = (Math.sin(state.animFrame * 0.12 + f.pulsePhase) + 1) / 2;
+        const alpha = 0.25 + pulse * 0.65;
+
+        ctx.save();
+        const grad = ctx.createRadialGradient(f.x, f.y, 0.5, f.x, f.y, 6);
+        grad.addColorStop(0, `rgba(254, 240, 138, ${alpha.toFixed(3)})`);
+        grad.addColorStop(0.4, `rgba(134, 239, 172, ${(alpha * 0.6).toFixed(3)})`);
+        grad.addColorStop(1, 'rgba(134, 239, 172, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(Math.floor(f.x), Math.floor(f.y), 1.5, 1.5);
+        ctx.restore();
+      });
+
+      // ── Layer 4c: Falling Cherry Blossom Petals & Autumn Breeze ──
+      state.petals.forEach((p) => {
+        p.x += p.speedX + Math.sin(p.swayPhase + state.animFrame * 0.05) * 0.8;
+        p.y += p.speedY;
+        p.angle += p.rotSpeed;
+
+        if (viewW < 1000) {
+          if (p.y > camMaxY + 20) { p.y = camMinY - 20; p.x = camMinX + Math.random() * (viewW + 60) - 30; }
+          if (p.x > camMaxX + 20) { p.x = camMinX - 20; }
+        } else {
+          if (p.y > 64 * TILE_SIZE + 20) { p.y = -20; p.x = Math.random() * 64 * TILE_SIZE; }
+          if (p.x > 64 * TILE_SIZE + 20) { p.x = -20; }
+        }
+
+        if (viewW < 1000 && (p.x < camMinX || p.x > camMaxX || p.y < camMinY || p.y > camMaxY)) return;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.globalAlpha = p.alpha;
+
+        // Shadow under petal
+        ctx.fillStyle = 'rgba(20, 30, 20, 0.22)';
+        ctx.beginPath();
+        ctx.ellipse(0.5, 1, p.rx, p.ry * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Petal body
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.rx, p.ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Petal highlight tip
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = p.alpha * 0.45;
+        ctx.fillRect(-1, -0.5, 1.5, 1);
+        ctx.restore();
+      });
+
+      // ── Layer 4d: Floating Building Signposts & Hover Highlights ──
       BUILDING_HITBOXES.forEach((b) => {
         const isHovered = state.hoverBuilding?.id === b.id;
         const bx = b.bannerX;

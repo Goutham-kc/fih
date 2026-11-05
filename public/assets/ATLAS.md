@@ -233,3 +233,14 @@ Dedicated 16-bit RPG woodland vegetation and environmental clutter sprites desig
 | **Wooden Farm Cart** | `farm_cart.png` | 36×26 px | Farmstead field (`17, 12.5`) | Two-wheeled wooden farm cart with side slat panels, timber spoke wheels, and front pull handles. |
 | **Golden Haystack** | `haystack.png` | 20×22 px | Farmstead crops (`10, 15`) | Domed golden straw hay bale with rustic pitchfork accent. |
 | **Ancient Oak Tree Stump** | `tree_stump.png` | 22×20 px | Woodland clearings | Weathered tree stump with prominent annular growth rings, bark ridges, and root flares. |
+
+### Atmospheric Effects & Water Animation Registry (Extracted & Animated):
+| Asset / Effect | File / System | Dimensions | Placement / Behavior | Description |
+|:---|:---|:---|:---|:---|
+| **Water Caustics** | `water_caustics.png` | 64×16 px (4 frames of 16×16) | `tx: 30..34, ty: 40..43` | 4-frame animated crystal water caustic shimmer reflecting sunlight across the Woodland Pond. |
+| **Concentric Water Ripples** | Procedural Canvas VFX | Expanding oval rings (r: 2..10 px) | Pond surface & Central Fountain basin | Periodic gentle elliptical water ripple rings expanding outward and fading smoothly (`rgba(186, 245, 255, alpha)`). |
+| **Floating Lily Pads** | `lilypad.png` / `lilypad_flower.png` | 18×18 px | Woodland Pond (`30.6, 41.2` & `33.3, 42.2`) | Round notched green lily pads with vein detailing and pink lotus blossom, gently bobbing with water currents (`sin(animFrame)`). |
+| **Shoreline Cattails** | `cattails.png` | 20×28 px | Pond shoreline banks (`29.5, 42.0` & `34.2, 40.2`) | Dense cluster of green water reeds topped with velvety brown cylindrical cattail spikes and base water ripples. |
+| **Lantern Glow & Flame Flicker** | Dynamic Radial Lighting Pass | Radius: 24..38 px | All 12 lanterns + doorways | Multi-stop radial gradients (`rgba(254, 240, 138)` -> `rgba(245, 158, 11)`) with organic flame flicker physics illuminating ground, paths, and characters via additive blending. |
+| **Woodland Fireflies** | Bioluminescent Particle Pool | 24 motes, radius: 5..8 px | Archive grove, Pond, Bell Tower & Cinema | Drifting bioluminescent fireflies with figure-8 wandering physics and soft pulsing golden-green radiance. |
+| **Falling Petals & Leaves** | Viewport Particle System | 32 tumbling petals, 4×2.5 px | Overworld breeze | Fluttering cherry blossom petals (`#fbcfe8`, `#f472b6`, `#fda4af`) and golden leaf motes swaying horizontally with tumbling rotation. |
