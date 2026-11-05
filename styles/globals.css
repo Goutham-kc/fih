@@ -1286,7 +1286,7 @@ select.input option, select.fih-input option {
 }
 
 .pixel-cursor-hand {
-  cursor: url('/assets/ui/ui_atlas.png'), pointer;
+  cursor: pointer;
 }
 
 

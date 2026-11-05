@@ -737,6 +737,7 @@ export default function PixelWorldCanvas({
       festival_grounds: null,
       moonlight_cinema: null,
       archive_cellar: null,
+      toolshed: null,
       tree_oak: null,
       tree_pine: null,
       tree_blossom: null,
@@ -758,8 +759,6 @@ export default function PixelWorldCanvas({
       inn_tavern: null,
       cottage_lavender: null,
       market_stall: null,
-      barrel_stack: null,
-      citrus_tree: null,
       fence_wood: null,
       fence_post: null,
       lantern_wood_post: null,
@@ -769,15 +768,10 @@ export default function PixelWorldCanvas({
       stone_monument: null,
       bridge_wood: null,
       stone_well: null,
-      farm_cart: null,
-      haystack: null,
       lilypad: null,
       lilypad_flower: null,
       cattails: null,
       water_caustics: null,
-      grain_sack: null,
-      flower_planter: null,
-      wash_tub: null,
       treasure_chest: null,
     },
     loaded: false,
@@ -800,63 +794,63 @@ export default function PixelWorldCanvas({
     petals: createInitialPetals(),
   });
 
-  // 1. Load 16-bit sprite sheets
+  // 1. Load 16-bit sprite sheets (Purely from new asset collections)
   useEffect(() => {
     let mounted = true;
     const imagesToLoad = [
-      { key: 'tileset', src: '/assets/tilesets/village_tileset.png' },
-      { key: 'pip', src: '/assets/characters/pip_walk.png' },
-      { key: 'bram', src: '/assets/characters/bram_factor.png' },
-      { key: 'farmhouse', src: '/assets/buildings/farmhouse.png' },
-      { key: 'notice_board', src: '/assets/buildings/notice_board.png' },
-      { key: 'bank', src: '/assets/buildings/bank.png' },
-      { key: 'bell_tower', src: '/assets/buildings/bell_tower.png' },
-      { key: 'festival_grounds', src: '/assets/buildings/festival_grounds.png' },
-      { key: 'moonlight_cinema', src: '/assets/buildings/moonlight_cinema.png' },
-      { key: 'archive_cellar', src: '/assets/buildings/archive_cellar.png' },
-      { key: 'toolshed', src: '/assets/buildings/toolshed.png' },
-      { key: 'tree_oak', src: '/assets/trees/oak_large.png' },
-      { key: 'tree_pine', src: '/assets/trees/pine_large.png' },
-      { key: 'tree_blossom', src: '/assets/trees/blossom_large.png' },
-      { key: 'fallen_log', src: '/assets/trees/fallen_log.png' },
-      { key: 'rock_moss', src: '/assets/trees/rock_moss.png' },
-      { key: 'mushrooms', src: '/assets/trees/mushrooms.png' },
-      { key: 'fountain_stone', src: '/assets/props/fountain_stone.png' },
-      { key: 'lantern_post', src: '/assets/props/lantern_post.png' },
-      { key: 'bench_wood', src: '/assets/props/bench_wood.png' },
-      { key: 'bush_green', src: '/assets/trees/bush_green.png' },
-      { key: 'bush_yellow', src: '/assets/trees/bush_yellow.png' },
-      { key: 'bush_red', src: '/assets/trees/bush_red.png' },
-      { key: 'bush_tiered', src: '/assets/trees/bush_tiered.png' },
-      { key: 'bush_flowers', src: '/assets/trees/bush_flowers.png' },
-      { key: 'tree_stump', src: '/assets/trees/tree_stump.png' },
-      { key: 'flowers_poppy', src: '/assets/trees/flowers_poppy.png' },
-      { key: 'flowers_daisy', src: '/assets/trees/flowers_daisy.png' },
-      { key: 'flowers_sunflower', src: '/assets/trees/flowers_sunflower.png' },
-      { key: 'inn_tavern', src: '/assets/buildings/inn_tavern.png' },
-      { key: 'cottage_lavender', src: '/assets/buildings/cottage_lavender.png' },
-      { key: 'market_stall', src: '/assets/props/market_stall.png' },
-      { key: 'barrel_stack', src: '/assets/props/barrel_stack.png' },
-      { key: 'citrus_tree', src: '/assets/props/citrus_tree.png' },
-      { key: 'fence_wood', src: '/assets/props/fence_wood.png' },
-      { key: 'fence_post', src: '/assets/props/fence_post.png' },
-      { key: 'lantern_wood_post', src: '/assets/props/lantern_wood_post.png' },
-      { key: 'lantern_oil', src: '/assets/props/lantern_oil.png' },
-      { key: 'bench_log', src: '/assets/props/bench_log.png' },
-      { key: 'rock_slate', src: '/assets/props/rock_slate.png' },
-      { key: 'stone_monument', src: '/assets/props/stone_monument.png' },
-      { key: 'bridge_wood', src: '/assets/props/bridge_wood.png' },
-      { key: 'stone_well', src: '/assets/props/stone_well.png' },
-      { key: 'farm_cart', src: '/assets/props/farm_cart.png' },
-      { key: 'haystack', src: '/assets/props/haystack.png' },
-      { key: 'lilypad', src: '/assets/props/lilypad.png' },
-      { key: 'lilypad_flower', src: '/assets/props/lilypad_flower.png' },
-      { key: 'cattails', src: '/assets/props/cattails.png' },
-      { key: 'water_caustics', src: '/assets/props/water_caustics.png' },
-      { key: 'grain_sack', src: '/assets/props/grain_sack.png' },
-      { key: 'flower_planter', src: '/assets/props/flower_planter.png' },
-      { key: 'wash_tub', src: '/assets/props/wash_tub.png' },
-      { key: 'treasure_chest', src: '/assets/props/treasure_chest.png' },
+      // Base autotiles & player sprites
+      { key: 'tileset', src: '/assets/tiles/village_tileset.png' },
+      { key: 'pip', src: '/assets/characters/hero/pip_walk.png' },
+      { key: 'bram', src: '/assets/characters/hero/bram_factor.png' },
+
+      // Sheet 1: Village Architecture & Landmarks
+      { key: 'farmhouse', src: '/assets/buildings/residences/cottage_red_roof_chimney.png' },
+      { key: 'bank', src: '/assets/buildings/residences/manor_fortified_watchtower_red.png' },
+      { key: 'bell_tower', src: '/assets/buildings/landmarks/watchtower_timber_banner_ladder.png' },
+      { key: 'festival_grounds', src: '/assets/buildings/landmarks/gatehouse_fortress_palisade_double_tower.png' },
+      { key: 'moonlight_cinema', src: '/assets/buildings/landmarks/gazebo_garden_hexagonal_pavilion.png' },
+      { key: 'archive_cellar', src: '/assets/buildings/landmarks/ruins_mossy_stone_arch_pillar.png' },
+      { key: 'toolshed', src: '/assets/buildings/utilities/barn_timber_crop_storage.png' },
+      { key: 'inn_tavern', src: '/assets/buildings/residences/tavern_inn_blue_roof_2story.png' },
+      { key: 'cottage_lavender', src: '/assets/buildings/residences/cottage_green_roof_artisan.png' },
+      { key: 'market_stall', src: '/assets/buildings/utilities/stall_general_store_blue_striped.png' },
+      { key: 'stone_well', src: '/assets/buildings/utilities/well_covered_stone_bucket.png' },
+
+      // Sheet 1 & Sheet 2: Structures, Bridges & Props
+      { key: 'notice_board', src: '/assets/structures/props/signpost_and_bulletin_boards.png' },
+      { key: 'bridge_wood', src: '/assets/structures/bridges/bridge_wooden_arched_pond_lilypads.png' },
+      { key: 'fountain_stone', src: '/assets/structures/shrines/shrine_elemental_water_fountain_basin.png' },
+      { key: 'fence_wood', src: '/assets/structures/props/fence_ranch_wood_segment.png' },
+      { key: 'fence_post', src: '/assets/structures/props/fence_ranch_wood_segments.png' },
+      { key: 'lantern_post', src: '/assets/structures/props/lanterns_bracket_and_post_iron.png' },
+      { key: 'lantern_wood_post', src: '/assets/structures/props/lanterns_bracket_and_post_iron.png' },
+      { key: 'lantern_oil', src: '/assets/structures/props/lantern_stone_pagoda_toro.png' },
+      { key: 'stone_monument', src: '/assets/structures/props/pillar_ruined_stone_ivy_wrap.png' },
+      { key: 'treasure_chest', src: '/assets/structures/props/chest_wooden_treasure_ornate.png' },
+      { key: 'water_caustics', src: '/assets/structures/props/water_caustics.png' },
+      { key: 'lilypad', src: '/assets/structures/props/lilypad.png' },
+      { key: 'lilypad_flower', src: '/assets/structures/props/lilypad_flower.png' },
+
+      // Sheet 4: 16-bit Nature Trees, Stumps, Rocks & Florals
+      { key: 'tree_oak', src: '/assets/nature/trees/tree_broadleaf_oak_green.png' },
+      { key: 'tree_pine', src: '/assets/nature/trees/tree_tall_evergreen_pine.png' },
+      { key: 'tree_blossom', src: '/assets/nature/trees/tree_birch_slender_canopy.png' },
+      { key: 'bush_green', src: '/assets/nature/bushes/bush_dense_emerald_round_shrub.png' },
+      { key: 'bush_flowers', src: '/assets/nature/bushes/bush_flowering_rose_hedge.png' },
+      { key: 'bush_yellow', src: '/assets/nature/bushes/bush_forest_undergrowth_canopy.png' },
+      { key: 'bush_red', src: '/assets/nature/bushes/bush_flowering_white_blossoms.png' },
+      { key: 'bush_tiered', src: '/assets/nature/bushes/bush_dense_round_emerald.png' },
+      { key: 'fallen_log', src: '/assets/nature/logs/log_fallen_mossy_vines.png' },
+      { key: 'tree_stump', src: '/assets/nature/logs/stump_large_ancient_roots.png' },
+      { key: 'rock_moss', src: '/assets/nature/rocks/boulder_granite_mossy_large.png' },
+      { key: 'rock_slate', src: '/assets/nature/rocks/rock_granite_flat_stepping_slab.png' },
+      { key: 'bench_wood', src: '/assets/nature/rocks/rock_granite_flat_stepping_slab.png' },
+      { key: 'bench_log', src: '/assets/nature/logs/log_fallen_hollow_weathered.png' },
+      { key: 'mushrooms', src: '/assets/nature/mushrooms/mushrooms_amanita_red_spotted_cluster.png' },
+      { key: 'flowers_poppy', src: '/assets/nature/flowers/flowers_wild_daisies_and_poppies.png' },
+      { key: 'flowers_daisy', src: '/assets/nature/flowers/flowers_wild_daisies_and_poppies.png' },
+      { key: 'flowers_sunflower', src: '/assets/nature/flowers/flowers_cattails_marsh_reeds.png' },
+      { key: 'cattails', src: '/assets/nature/flowers/flowers_cattails_marsh_reeds.png' },
     ];
 
     let count = 0;
@@ -1393,28 +1387,26 @@ export default function PixelWorldCanvas({
             ctx.drawImage(wellImg, 10.5 * TILE_SIZE, 12 * TILE_SIZE - 4, 32, 36);
           }
 
-          // Farmstead Wooden Wash Tub
-          const tubImg = state.images.wash_tub;
-          if (tubImg) {
-            ctx.drawImage(tubImg, 9.5 * TILE_SIZE, 13.5 * TILE_SIZE, 16, 16);
+          // Farmstead Rustic Tree Stump & Stone Accents (from Sheet 4)
+          const stumpImg = state.images.tree_stump;
+          if (stumpImg) {
+            ctx.drawImage(stumpImg, 9.5 * TILE_SIZE, 13.5 * TILE_SIZE, 22, 20);
           }
 
-          // Farmstead Wooden Cart
-          const cartImg = state.images.farm_cart;
-          if (cartImg) {
-            ctx.drawImage(cartImg, 17 * TILE_SIZE, 12.5 * TILE_SIZE, 36, 26);
+          // Farmstead Mossy Boulder & Fallen Timber Log (from Sheet 4)
+          const rockImg = state.images.rock_moss;
+          if (rockImg) {
+            ctx.drawImage(rockImg, 17 * TILE_SIZE, 12.5 * TILE_SIZE, 30, 22);
+          }
+          const logImg = state.images.fallen_log;
+          if (logImg) {
+            ctx.drawImage(logImg, 18.5 * TILE_SIZE, 13.5 * TILE_SIZE, 28, 18);
           }
 
-          // Farmstead Burlap Grain Sack
-          const sackImg = state.images.grain_sack;
-          if (sackImg) {
-            ctx.drawImage(sackImg, 19 * TILE_SIZE, 13 * TILE_SIZE, 24, 20);
-          }
-
-          // Farmstead Golden Haystack
-          const hayImg = state.images.haystack;
-          if (hayImg) {
-            ctx.drawImage(hayImg, 10 * TILE_SIZE - 2, 15 * TILE_SIZE - 6, 20, 22);
+          // Farmstead Wild Red Mushrooms (from Sheet 4)
+          const mushImg = state.images.mushrooms;
+          if (mushImg) {
+            ctx.drawImage(mushImg, 10 * TILE_SIZE - 2, 15 * TILE_SIZE - 4, 18, 18);
           }
         },
       });
@@ -1430,8 +1422,8 @@ export default function PixelWorldCanvas({
             const bX = 50 * TILE_SIZE - bW / 2;
             const bY = 14 * TILE_SIZE + 4 - bH;
             ctx.drawImage(bankImg, bX, bY, bW, bH);
-            // Symmetrical Flower Planter Boxes
-            const planterImg = state.images.flower_planter;
+            // Symmetrical Flower Planters flanking the Bank Entrance (from Sheet 4)
+            const planterImg = state.images.bush_flowers;
             if (planterImg) {
               ctx.drawImage(planterImg, 47 * TILE_SIZE, 14 * TILE_SIZE - 4, 24, 16);
               ctx.drawImage(planterImg, 52.5 * TILE_SIZE, 14 * TILE_SIZE - 4, 24, 16);
@@ -1640,10 +1632,10 @@ export default function PixelWorldCanvas({
           ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x + 2) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
-          // Grain sack stacked beside the yard fence
-          const sackImg = state.images.grain_sack;
-          if (sackImg) {
-            ctx.drawImage(sackImg, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y + 1) * TILE_SIZE - 2, 24, 20);
+          // Timber firewood log stacked beside the yard fence (from Sheet 4)
+          const logImg = state.images.fallen_log;
+          if (logImg) {
+            ctx.drawImage(logImg, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y + 1) * TILE_SIZE - 2, 24, 16);
           }
         },
       });
@@ -1674,8 +1666,8 @@ export default function PixelWorldCanvas({
             const bX = INN.x * TILE_SIZE - bW / 2;
             const bY = INN.y * TILE_SIZE - bH + 2;
             ctx.drawImage(innImg, bX, bY, bW, bH);
-            // Flower planters flanking the inn door
-            const planterImg = state.images.flower_planter;
+            // Flower bushes flanking the inn door (from Sheet 4)
+            const planterImg = state.images.bush_flowers;
             if (planterImg) {
               ctx.drawImage(planterImg, (INN.x - 2) * TILE_SIZE + 2, INN.y * TILE_SIZE - 6, 24, 16);
               ctx.drawImage(planterImg, (INN.x + 1) * TILE_SIZE - 2, INN.y * TILE_SIZE - 6, 24, 16);
