@@ -692,6 +692,470 @@ function createInitialPetals() {
   });
 }
 
+function createInitialRain() {
+  return Array.from({ length: 48 }, (_, i) => ({
+    id: i,
+    x: ((hash2D(i, 201) % 1000) / 1000) * (64 * 16),
+    y: ((hash2D(i, 202) % 1000) / 1000) * (64 * 16),
+    speed: ((hash2D(i, 203) % 1000) / 1000) * 2.5 + 4.5,
+    len: ((hash2D(i, 204) % 1000) / 1000) * 5 + 7,
+    alpha: ((hash2D(i, 205) % 1000) / 1000) * 0.25 + 0.35,
+  }));
+}
+
+function isSteppingStoneTile(tx, ty) {
+  // Flagstone paver paths leading to building entrances & fountain (reference style)
+  if (tx === 14 && ty >= 15 && ty <= 17) return true; // Farmstead entrance
+  if (tx === 32 && ty >= 15 && ty <= 17) return true; // Bell Tower entrance
+  if (tx === 50 && ty >= 15 && ty <= 17) return true; // Bank entrance
+  if (tx === 32 && ty >= 22 && ty <= 24) return true; // Notice Board approach
+  if (tx === 24 && ty >= 25 && ty <= 27) return true; // Inn entrance
+  if (tx === 40 && ty >= 25 && ty <= 27) return true; // Cottage entrance
+  if (tx === 52 && (ty === 33 || ty === 34)) return true; // Toolshed entrance
+  if (tx === 12 && (ty === 33 || ty === 34)) return true; // Archive entrance
+  if (tx === 16 && (ty === 49 || ty === 50)) return true; // Festival entrance
+  if (tx === 48 && (ty === 49 || ty === 50)) return true; // Cinema entrance
+  if (tx === 32 && ty >= 33 && ty <= 41 && ty % 2 === 0) return true; // South Road stepping accents
+  if (ty === 32 && (tx === 30 || tx === 31 || tx === 33 || tx === 34)) return true; // Plaza cross
+  return false;
+}
+
+// ── Pure Drawing Helpers matching reference screenshot aesthetics ──
+function drawSingleLog(ctx, lx, ly, len, dia) {
+  // Drop shadow
+  ctx.fillStyle = 'rgba(40, 30, 20, 0.4)';
+  ctx.fillRect(lx, ly + dia - 1, len, 2);
+  // Bark body
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(lx, ly, len - 3, dia);
+  // Bark texture grooves
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(lx + 2, ly + 2, len - 6, 1);
+  ctx.fillRect(lx + 4, ly + 4, len - 8, 1);
+  // Bark top highlight
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(lx, ly, len - 3, 1);
+
+  // Cut end face
+  const ex = lx + len - 3;
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.ellipse(ex, ly + dia / 2, 3, dia / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Cut ring line
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(ex, ly + dia / 2, 2, dia / 2 - 1, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Heartwood center
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(ex - 0.5, ly + dia / 2 - 0.5, 1, 1);
+}
+
+function drawStackedFirewood(ctx, x, y) {
+  ctx.save();
+  // 3 neatly stacked timber firewood logs (2 on bottom, 1 on top)
+  drawSingleLog(ctx, x, y + 4, 16, 7);
+  drawSingleLog(ctx, x + 8, y + 4, 16, 7);
+  drawSingleLog(ctx, x + 4, y - 2, 16, 7);
+  ctx.restore();
+}
+
+function drawHangingSignpost(ctx, x, y) {
+  ctx.save();
+  // Two vertical timber posts
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(x, y - 4, 3, 18);
+  ctx.fillRect(x + 16, y - 4, 3, 18);
+  ctx.fillStyle = '#a16207';
+  ctx.fillRect(x, y - 4, 1, 18);
+  ctx.fillRect(x + 16, y - 4, 1, 18);
+  // Top horizontal crossbeam
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(x - 2, y - 6, 23, 3);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(x - 2, y - 6, 23, 1);
+
+  // Hanging iron links
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(x + 4, y - 3, 1, 3);
+  ctx.fillRect(x + 14, y - 3, 1, 3);
+
+  // Carved wooden board
+  ctx.fillStyle = '#a16207';
+  ctx.fillRect(x + 2, y, 15, 10);
+  ctx.fillStyle = '#ca8a04';
+  ctx.fillRect(x + 3, y + 1, 13, 8);
+  // Inscribed text lines
+  ctx.fillStyle = '#5c2d0c';
+  ctx.fillRect(x + 5, y + 3, 9, 1);
+  ctx.fillRect(x + 5, y + 5, 7, 1);
+  ctx.fillRect(x + 5, y + 7, 8, 1);
+  ctx.restore();
+}
+
+function drawTimberBracketLantern(ctx, x, y, animFrame, flip = false) {
+  ctx.save();
+  const dir = flip ? -1 : 1;
+
+  // Post shadow
+  ctx.fillStyle = 'rgba(40, 30, 20, 0.45)';
+  ctx.fillRect(x - 2, y + 15, 6, 2);
+
+  // Vertical timber post
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(x, y - 6, 3, 22);
+  ctx.fillStyle = '#a16207';
+  ctx.fillRect(x, y - 6, 1, 22);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(x - 1, y - 7, 5, 2);
+
+  // Horizontal bracket arm
+  const armLen = 8;
+  const armX = dir === 1 ? x + 2 : x - armLen;
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(armX, y - 5, armLen, 3);
+  ctx.fillStyle = '#a16207';
+  ctx.fillRect(armX, y - 5, armLen, 1);
+
+  // Diagonal support strut
+  const strutX = dir === 1 ? x + 2 : x - 3;
+  ctx.fillStyle = '#5c2d0c';
+  ctx.fillRect(strutX, y - 1, 3, 2);
+
+  // Iron chain & lantern cap
+  const lanternX = dir === 1 ? x + armLen - 1 : x - armLen + 1;
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(lanternX, y - 2, 1, 3);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(lanternX - 2, y + 1, 5, 2);
+  ctx.fillRect(lanternX - 2, y + 8, 5, 2);
+
+  // Glowing lantern glass
+  const flicker = Math.sin(animFrame * 0.2 + x) * 0.15;
+  ctx.fillStyle = '#c084fc'; // Purple/violet glass frame
+  ctx.fillRect(lanternX - 2, y + 3, 5, 5);
+  ctx.fillStyle = '#fde047'; // Golden flame core
+  ctx.fillRect(lanternX - 1, y + 4, 3, 3);
+
+  // Soft ambient lantern glow halo
+  const glowGrad = ctx.createRadialGradient(lanternX, y + 5, 1, lanternX, y + 5, 12);
+  glowGrad.addColorStop(0, `rgba(254, 240, 138, ${(0.35 + flicker).toFixed(2)})`);
+  glowGrad.addColorStop(0.5, 'rgba(192, 132, 252, 0.12)');
+  glowGrad.addColorStop(1, 'rgba(192, 132, 252, 0)');
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath();
+  ctx.arc(lanternX, y + 5, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawFencedGardenPlot(ctx, gx, gy, animFrame) {
+  ctx.save();
+  const width = 56;
+  const height = 44;
+
+  // Plot furrow loam
+  ctx.fillStyle = '#5c3a1e';
+  ctx.fillRect(gx, gy, width, height);
+
+  const rowY1 = gy + 8;
+  const rowY2 = gy + 20;
+  const rowY3 = gy + 32;
+
+  // Furrow ridges
+  [rowY1, rowY2, rowY3].forEach((ry) => {
+    ctx.fillStyle = '#4a2c14';
+    ctx.fillRect(gx + 4, ry - 3, width - 8, 7);
+    ctx.fillStyle = '#6d4524';
+    ctx.fillRect(gx + 4, ry - 3, width - 8, 1);
+  });
+
+  // Row 1: Golden Wheat Sheaves
+  const wheatCount = 7;
+  for (let w = 0; w < wheatCount; w++) {
+    const wx = gx + 7 + w * 6;
+    const sway = Math.sin(animFrame * 0.08 + w) * 0.8;
+    ctx.fillStyle = '#ca8a04';
+    ctx.fillRect(wx, rowY1 - 2, 1, 5);
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(wx - 1 + sway, rowY1 - 6, 3, 4);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(wx + sway, rowY1 - 7, 2, 2);
+  }
+
+  // Row 2: Tender Green Sprouts
+  const sproutCount = 7;
+  for (let s = 0; s < sproutCount; s++) {
+    const sx = gx + 7 + s * 6;
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(sx, rowY2 - 1, 1, 4);
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(sx - 2, rowY2 - 3, 2, 2);
+    ctx.fillRect(sx + 1, rowY2 - 3, 2, 2);
+    ctx.fillStyle = '#86efac';
+    ctx.fillRect(sx - 1, rowY2 - 4, 1, 1);
+    ctx.fillRect(sx + 2, rowY2 - 4, 1, 1);
+  }
+
+  // Row 3: Blooming Garden Flowers (Red, Blue, White)
+  const flowerColors = ['#ef4444', '#38bdf8', '#ffffff', '#ef4444', '#38bdf8', '#ffffff', '#f43f5e'];
+  for (let f = 0; f < flowerColors.length; f++) {
+    const fx = gx + 7 + f * 6;
+    ctx.fillStyle = '#16a34a';
+    ctx.fillRect(fx, rowY3 - 1, 1, 4);
+    ctx.fillStyle = flowerColors[f];
+    ctx.fillRect(fx - 1, rowY3 - 4, 3, 3);
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(fx, rowY3 - 3, 1, 1);
+  }
+
+  // Enclosing Split-Rail Wooden Fence
+  const postPositions = [
+    { x: gx + 2, y: gy },
+    { x: gx + 18, y: gy },
+    { x: gx + 36, y: gy },
+    { x: gx + width - 4, y: gy },
+    { x: gx + width - 4, y: gy + 18 },
+    { x: gx + width - 4, y: gy + height - 4 },
+    { x: gx + 36, y: gy + height - 4 },
+    { x: gx + 18, y: gy + height - 4 },
+    { x: gx + 2, y: gy + height - 4 },
+    { x: gx + 2, y: gy + 18 },
+  ];
+
+  ctx.fillStyle = '#78350f';
+  // Top rails
+  ctx.fillRect(gx + 2, gy + 3, width - 6, 2);
+  ctx.fillRect(gx + 2, gy + 7, width - 6, 2);
+  // Bottom rails
+  ctx.fillRect(gx + 2, gy + height - 6, width - 6, 2);
+  ctx.fillRect(gx + 2, gy + height - 2, width - 6, 2);
+  // Side vertical rails
+  ctx.fillRect(gx + 3, gy + 3, 2, height - 5);
+  ctx.fillRect(gx + width - 5, gy + 3, 2, height - 5);
+
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(gx + 2, gy + 3, width - 6, 1);
+  ctx.fillRect(gx + 2, gy + height - 6, width - 6, 1);
+
+  // Fence Posts
+  postPositions.forEach((pos) => {
+    ctx.fillStyle = 'rgba(40, 30, 20, 0.4)';
+    ctx.fillRect(pos.x - 1, pos.y + 10, 4, 2);
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(pos.x, pos.y, 3, 11);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(pos.x, pos.y, 1, 11);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(pos.x, pos.y, 3, 1);
+  });
+
+  // Directional Wooden Signpost
+  const sx = gx + width - 6;
+  const sy = gy + height - 2;
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(sx, sy, 3, 12);
+  ctx.fillStyle = '#a16207';
+  ctx.fillRect(sx - 8, sy + 2, 10, 6);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(sx - 8, sy + 2, 10, 1);
+  ctx.fillStyle = '#a16207';
+  ctx.fillRect(sx - 10, sy + 4, 2, 2);
+
+  ctx.restore();
+}
+
+function drawCozyOctagonalFountain(ctx, cx, cy, animFrame) {
+  ctx.save();
+
+  // 1. Encircling 8 rectangular stepping stone pavers
+  const pavers = [
+    { x: cx - 6, y: cy - 27, w: 12, h: 7 }, // North
+    { x: cx - 6, y: cy + 20, w: 12, h: 7 }, // South
+    { x: cx - 30, y: cy - 3, w: 11, h: 7 }, // West
+    { x: cx + 19, y: cy - 3, w: 11, h: 7 }, // East
+    { x: cx - 23, y: cy - 19, w: 10, h: 7 }, // North-West
+    { x: cx + 13, y: cy - 19, w: 10, h: 7 }, // North-East
+    { x: cx - 23, y: cy + 13, w: 10, h: 7 }, // South-West
+    { x: cx + 13, y: cy + 13, w: 10, h: 7 }, // South-East
+  ];
+
+  pavers.forEach((p) => {
+    ctx.fillStyle = 'rgba(68, 60, 50, 0.45)';
+    ctx.fillRect(p.x, p.y + 1, p.w, p.h);
+    ctx.fillStyle = '#d5cfc5';
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = '#8e887d';
+    ctx.fillRect(p.x, p.y + p.h - 1, p.w, 1);
+    ctx.fillRect(p.x + p.w - 1, p.y, 1, p.h);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(p.x, p.y, p.w - 1, 1);
+    ctx.fillRect(p.x, p.y, 1, p.h - 1);
+  });
+
+  // 2. Octagonal Basin Outer Rim
+  const outerPoly = [
+    [cx - 10, cy - 21],
+    [cx + 10, cy - 21],
+    [cx + 25, cy - 8],
+    [cx + 25, cy + 8],
+    [cx + 10, cy + 21],
+    [cx - 10, cy + 21],
+    [cx - 25, cy + 8],
+    [cx - 25, cy - 8],
+  ];
+
+  // Outer shadow
+  ctx.fillStyle = 'rgba(45, 38, 30, 0.4)';
+  ctx.beginPath();
+  outerPoly.forEach(([px, py], idx) => {
+    if (idx === 0) ctx.moveTo(px, py + 2);
+    else ctx.lineTo(px, py + 2);
+  });
+  ctx.closePath();
+  ctx.fill();
+
+  // Stone rim base
+  ctx.fillStyle = '#9e988f';
+  ctx.beginPath();
+  outerPoly.forEach(([px, py], idx) => {
+    if (idx === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
+  ctx.fill();
+
+  // Stone rim highlights
+  ctx.strokeStyle = '#f5f2eb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 25, cy - 8);
+  ctx.lineTo(cx - 10, cy - 21);
+  ctx.lineTo(cx + 10, cy - 21);
+  ctx.lineTo(cx + 25, cy - 8);
+  ctx.stroke();
+
+  // Stone rim shadows
+  ctx.strokeStyle = '#5c554a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 25, cy + 8);
+  ctx.lineTo(cx + 10, cy + 21);
+  ctx.lineTo(cx - 10, cy + 21);
+  ctx.lineTo(cx - 25, cy + 8);
+  ctx.stroke();
+
+  // 3. Inner Water Basin
+  const innerPoly = [
+    [cx - 8, cy - 16],
+    [cx + 8, cy - 16],
+    [cx + 20, cy - 6],
+    [cx + 20, cy + 6],
+    [cx + 8, cy + 16],
+    [cx - 8, cy + 16],
+    [cx - 20, cy + 6],
+    [cx - 20, cy - 6],
+  ];
+
+  ctx.fillStyle = '#443e35';
+  ctx.beginPath();
+  innerPoly.forEach(([px, py], idx) => {
+    if (idx === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
+  ctx.fill();
+
+  // Turquoise sky-blue pool
+  const waterPoly = [
+    [cx - 7, cy - 15],
+    [cx + 7, cy - 15],
+    [cx + 19, cy - 5],
+    [cx + 19, cy + 5],
+    [cx + 7, cy + 15],
+    [cx - 7, cy + 15],
+    [cx - 19, cy + 5],
+    [cx - 19, cy - 5],
+  ];
+
+  const waterGrad = ctx.createLinearGradient(cx, cy - 15, cx, cy + 15);
+  waterGrad.addColorStop(0, '#38bdf8');
+  waterGrad.addColorStop(0.7, '#0ea5e9');
+  waterGrad.addColorStop(1, '#0284c7');
+
+  ctx.fillStyle = waterGrad;
+  ctx.beginPath();
+  waterPoly.forEach(([px, py], idx) => {
+    if (idx === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
+  ctx.fill();
+
+  // Animated Concentric Water Ripple Waves
+  const rip1 = ((animFrame * 0.04) % 1);
+  const rip2 = (((animFrame * 0.04) + 0.5) % 1);
+  [rip1, rip2].forEach((prog) => {
+    const rx = 4 + prog * 13;
+    const ry = 3 + prog * 9;
+    const alpha = (1 - prog) * 0.65;
+    ctx.strokeStyle = `rgba(224, 242, 254, ${alpha.toFixed(3)})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  // 4. Center Stone Cross-Spout Pillar
+  ctx.fillStyle = '#655e54';
+  ctx.fillRect(cx - 5, cy + 2, 10, 5);
+  ctx.fillStyle = '#b0a99f';
+  ctx.fillRect(cx - 4, cy + 1, 8, 5);
+  ctx.fillStyle = '#f5f2eb';
+  ctx.fillRect(cx - 4, cy + 1, 8, 1);
+
+  // Column
+  ctx.fillStyle = '#5c554a';
+  ctx.fillRect(cx + 1, cy - 14, 2, 16);
+  ctx.fillStyle = '#9e988f';
+  ctx.fillRect(cx - 3, cy - 14, 4, 16);
+  ctx.fillStyle = '#f5f2eb';
+  ctx.fillRect(cx - 3, cy - 14, 1, 16);
+
+  // Crossbar arms
+  ctx.fillStyle = '#5c554a';
+  ctx.fillRect(cx - 9, cy - 7, 18, 5);
+  ctx.fillStyle = '#b0a99f';
+  ctx.fillRect(cx - 9, cy - 8, 18, 4);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(cx - 9, cy - 8, 18, 1);
+  ctx.fillStyle = '#f5f2eb';
+  ctx.fillRect(cx - 9, cy - 8, 1, 4);
+  ctx.fillStyle = '#5c554a';
+  ctx.fillRect(cx + 8, cy - 8, 1, 4);
+
+  // Spout top cap
+  ctx.fillStyle = '#f5f2eb';
+  ctx.fillRect(cx - 3, cy - 15, 6, 2);
+
+  // Cascading water streams and splash droplets
+  const splashPhase = animFrame * 0.25;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(cx - 1, cy - 16 + Math.sin(splashPhase) * 1.5, 2, 2);
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.85)';
+  ctx.fillRect(cx - 8, cy - 4, 2, 6 + Math.sin(splashPhase * 1.3) * 2);
+  ctx.fillRect(cx + 6, cy - 4, 2, 6 + Math.cos(splashPhase * 1.3) * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(cx - 9, cy + 2, 3, 1);
+  ctx.fillRect(cx + 6, cy + 2, 3, 1);
+  ctx.fillRect(cx - 1, cy + 5, 2, 1);
+
+  ctx.restore();
+}
+
 export default function PixelWorldCanvas({
   activeTab = null, // null or 'map' = Full Overworld Exploration Mode
   debtsData = [],
@@ -792,6 +1256,7 @@ export default function PixelWorldCanvas({
     isOverworldMode: !activeTab || activeTab === 'map',
     fireflies: createInitialFireflies(),
     petals: createInitialPetals(),
+    rain: createInitialRain(),
   });
 
   // 1. Load 16-bit sprite sheets (Purely from new asset collections)
@@ -1239,10 +1704,16 @@ export default function PixelWorldCanvas({
             continue;
           }
 
-          // Tilled soil plots in Farmstead zone (tx: 11..13, ty: 15..16)
-          const isGarden = tx >= 11 && tx <= 13 && ty >= 15 && ty <= 16;
+          // Tilled soil plots in Farmstead zone (tx: 11..13, ty: 15..17)
+          const isGarden = tx >= 11 && tx <= 13 && ty >= 15 && ty <= 17;
           if (isGarden) {
-            ctx.drawImage(tileset, 7 * TILE_SIZE, 0 * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+            // Rich dark tilled loam soil with furrow ridges (matching reference style)
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+            ctx.fillStyle = '#7a5228';
+            ctx.fillRect(wx, wy + 2, TILE_SIZE, 3);
+            ctx.fillRect(wx, wy + 8, TILE_SIZE, 3);
+            ctx.fillRect(wx, wy + 13, TILE_SIZE, 2);
             continue;
           }
 
@@ -1250,12 +1721,54 @@ export default function PixelWorldCanvas({
           const pathTile = getPathTileInfo(tx, ty);
           if (pathTile) {
             ctx.drawImage(tileset, pathTile.col * TILE_SIZE, pathTile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+
+            // Flagstone paver slabs embedded along the dirt path (reference style)
+            if (isSteppingStoneTile(tx, ty)) {
+              ctx.save();
+              const pW = 11, pH = 7;
+              const px = wx + Math.floor((TILE_SIZE - pW) / 2);
+              const py = wy + Math.floor((TILE_SIZE - pH) / 2);
+              // Drop shadow
+              ctx.fillStyle = 'rgba(68, 60, 50, 0.45)';
+              ctx.fillRect(px, py + 1, pW, pH);
+              // Stone body
+              ctx.fillStyle = '#d5cfc5';
+              ctx.fillRect(px, py, pW, pH);
+              // Outer bevel edge
+              ctx.fillStyle = '#8e887d';
+              ctx.fillRect(px, py + pH - 1, pW, 1);
+              ctx.fillRect(px + pW - 1, py, 1, pH);
+              // Top-left highlight
+              ctx.fillStyle = '#f8f6f0';
+              ctx.fillRect(px, py, pW - 1, 1);
+              ctx.fillRect(px, py, 1, pH - 1);
+              ctx.restore();
+            }
             continue;
           }
 
           // Procedural Rich Terrain Variety (Clustered Wildflowers, Clovers, Shaded Moss, Pebbles)
           const gTile = getGroundTile(tx, ty);
           ctx.drawImage(tileset, gTile.col * TILE_SIZE, gTile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE, wx, wy, TILE_SIZE, TILE_SIZE);
+
+          // Tiny 4-petal white wildflowers & grass tufts on meadow tiles (matching reference style)
+          const fHash = hash2D(tx, ty);
+          if (fHash % 19 === 0) {
+            const fx = wx + 3 + (fHash % 8);
+            const fy = wy + 3 + ((fHash >> 3) % 8);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(fx, fy - 1, 1, 3);
+            ctx.fillRect(fx - 1, fy, 3, 1);
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(fx, fy, 1, 1);
+          } else if (fHash % 29 === 0) {
+            const gx = wx + 4 + (fHash % 6);
+            const gy = wy + 5 + ((fHash >> 2) % 6);
+            ctx.fillStyle = '#4d7c0f';
+            ctx.fillRect(gx, gy, 1, 3);
+            ctx.fillRect(gx + 2, gy - 1, 1, 4);
+            ctx.fillRect(gx + 4, gy + 1, 1, 2);
+          }
         }
       }
 
@@ -1372,11 +1885,14 @@ export default function PixelWorldCanvas({
             }
           }
 
-          // Farmhouse Garden Crops (Bound to Todos: Stage 2/3)
-          const cropCol = 2; // Ripe parsnip
-          ctx.drawImage(tileset, cropCol * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 11 * TILE_SIZE, 15 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, cropCol * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 12 * TILE_SIZE, 15 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 3 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 13 * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Stacked Firewood beside Farmstead wall (matching reference screenshot)
+          drawStackedFirewood(ctx, 10 * TILE_SIZE, 12.5 * TILE_SIZE);
+
+          // Hanging wooden signpost flanking the doorstep pathway
+          drawHangingSignpost(ctx, 12 * TILE_SIZE - 4, 14.5 * TILE_SIZE);
+
+          // Dedicated Fenced Garden Plot (3 distinct crop rows: Golden Wheat, Green Sprouts, Blooming Flowers)
+          drawFencedGardenPlot(ctx, 9.5 * TILE_SIZE, 15.5 * TILE_SIZE, state.animFrame);
 
           // Courier Bird Wren on mailbox post (x: 15, y: 14)
           ctx.drawImage(tileset, 7 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 15 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -1384,13 +1900,13 @@ export default function PixelWorldCanvas({
           // Farmstead Stone Well with Roof & Bucket
           const wellImg = state.images.stone_well;
           if (wellImg) {
-            ctx.drawImage(wellImg, 10.5 * TILE_SIZE, 12 * TILE_SIZE - 4, 32, 36);
+            ctx.drawImage(wellImg, 9 * TILE_SIZE - 4, 11.5 * TILE_SIZE, 32, 36);
           }
 
           // Farmstead Rustic Tree Stump & Stone Accents (from Sheet 4)
           const stumpImg = state.images.tree_stump;
           if (stumpImg) {
-            ctx.drawImage(stumpImg, 9.5 * TILE_SIZE, 13.5 * TILE_SIZE, 22, 20);
+            ctx.drawImage(stumpImg, 9 * TILE_SIZE, 13.5 * TILE_SIZE, 22, 20);
           }
 
           // Farmstead Mossy Boulder & Fallen Timber Log (from Sheet 4)
@@ -1406,7 +1922,7 @@ export default function PixelWorldCanvas({
           // Farmstead Wild Red Mushrooms (from Sheet 4)
           const mushImg = state.images.mushrooms;
           if (mushImg) {
-            ctx.drawImage(mushImg, 10 * TILE_SIZE - 2, 15 * TILE_SIZE - 4, 18, 18);
+            ctx.drawImage(mushImg, 16.5 * TILE_SIZE, 15 * TILE_SIZE - 4, 18, 18);
           }
         },
       });
@@ -1541,12 +2057,7 @@ export default function PixelWorldCanvas({
       renderables.push({
         y: 32 * TILE_SIZE,
         render: () => {
-          const fImg = state.images.fountain_stone;
-          if (fImg) {
-            ctx.drawImage(fImg, 31 * TILE_SIZE, 30 * TILE_SIZE, 32, 32);
-          } else {
-            ctx.drawImage(tileset, 5 * TILE_SIZE, 4 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 32 * TILE_SIZE, 31 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          }
+          drawCozyOctagonalFountain(ctx, 32 * TILE_SIZE, 31 * TILE_SIZE, state.animFrame);
         },
       });
 
@@ -1632,11 +2143,8 @@ export default function PixelWorldCanvas({
           ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x + 2) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
-          // Timber firewood log stacked beside the yard fence (from Sheet 4)
-          const logImg = state.images.fallen_log;
-          if (logImg) {
-            ctx.drawImage(logImg, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y + 1) * TILE_SIZE - 2, 24, 16);
-          }
+          // Timber firewood log stack beside the yard fence (reference style)
+          drawStackedFirewood(ctx, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y + 1) * TILE_SIZE - 2);
         },
       });
 
@@ -1795,9 +2303,11 @@ export default function PixelWorldCanvas({
 
       // ── 11c. Street Lanterns (Hanging Timber Bracket Posts & Oil Lanterns) ──
       const streetLanterns = [
-        // Plaza Four Corners
-        { x: 28, y: 28 }, { x: 36, y: 28 },
-        { x: 28, y: 36 }, { x: 36, y: 36 },
+        // Central Plaza Road Forks (Timber Bracket Hanging Lanterns matching reference)
+        { x: 30, y: 29, flip: false, bracket: true },
+        { x: 34, y: 29, flip: true, bracket: true },
+        { x: 30, y: 33, flip: false, bracket: true },
+        { x: 34, y: 33, flip: true, bracket: true },
         // Notice Board square corners
         { x: 29, y: 21 }, { x: 35, y: 21 },
         // Bell Tower Landmark Lanterns
@@ -1823,6 +2333,10 @@ export default function PixelWorldCanvas({
         renderables.push({
           y: (lp.y + 1) * TILE_SIZE,
           render: () => {
+            if (lp.bracket) {
+              drawTimberBracketLantern(ctx, lp.x * TILE_SIZE, lp.y * TILE_SIZE, state.animFrame, lp.flip);
+              return;
+            }
             const lImg = state.images.lantern_wood_post || state.images.lantern_post;
             if (lImg) {
               const w = state.images.lantern_wood_post ? 22 : 16;
@@ -2179,6 +2693,37 @@ export default function PixelWorldCanvas({
         ctx.fillRect(-1, -0.5, 1.5, 1);
         ctx.restore();
       });
+
+      // ── Layer 4c-2: Gentle Diagonal Rain Drizzle (matching reference screenshot) ──
+      if (state.rain) {
+        ctx.save();
+        ctx.lineWidth = 1;
+        state.rain.forEach((r) => {
+          r.x += r.speed * 0.35;
+          r.y += r.speed;
+
+          if (viewW < 1000) {
+            if (r.y > camMaxY + 20) {
+              r.y = camMinY - 20;
+              r.x = camMinX + ((hash2D(r.id, Math.floor(state.animFrame)) % 1000) / 1000) * (viewW + 80) - 40;
+            }
+          } else {
+            if (r.y > 64 * TILE_SIZE + 20) {
+              r.y = -20;
+              r.x = ((hash2D(r.id, Math.floor(state.animFrame)) % 1000) / 1000) * (64 * TILE_SIZE);
+            }
+          }
+
+          if (viewW < 1000 && (r.x < camMinX - 20 || r.x > camMaxX + 20 || r.y < camMinY - 20 || r.y > camMaxY + 20)) return;
+
+          ctx.strokeStyle = `rgba(224, 242, 254, ${r.alpha.toFixed(2)})`;
+          ctx.beginPath();
+          ctx.moveTo(r.x, r.y);
+          ctx.lineTo(r.x + r.len * 0.35, r.y + r.len);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
 
       // ── Layer 4d: Floating Building Signposts & Hover Highlights ──
       BUILDING_HITBOXES.forEach((b) => {
