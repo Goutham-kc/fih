@@ -18,10 +18,10 @@ export default function AuroraBackground() {
     window.addEventListener('resize', resize);
 
     const orbs = [
-      { x: width * 0.2, y: height * 0.25, r: 260, color: 'rgba(79, 110, 247, 0.10)', vx: 0.18, vy: 0.10 },
-      { x: width * 0.8, y: height * 0.35, r: 280, color: 'rgba(14, 165, 233, 0.08)', vx: -0.15, vy: 0.15 },
-      { x: width * 0.5, y: height * 0.75, r: 300, color: 'rgba(16, 185, 129, 0.07)', vx: 0.10, vy: -0.12 },
-      { x: width * 0.85, y: height * 0.85, r: 240, color: 'rgba(244, 63, 94, 0.05)', vx: -0.10, vy: -0.08 },
+      { x: width * 0.2, y: height * 0.25, r: 240, color: 'rgba(99, 102, 241, 0.16)', vx: 0.2, vy: 0.12 },
+      { x: width * 0.8, y: height * 0.35, r: 260, color: 'rgba(168, 85, 247, 0.14)', vx: -0.18, vy: 0.18 },
+      { x: width * 0.5, y: height * 0.75, r: 280, color: 'rgba(16, 185, 129, 0.1)', vx: 0.12, vy: -0.15 },
+      { x: width * 0.85, y: height * 0.85, r: 220, color: 'rgba(244, 63, 94, 0.08)', vx: -0.12, vy: -0.1 },
     ];
 
     const drawFrame = (time) => {

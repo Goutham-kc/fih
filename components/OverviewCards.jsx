@@ -1,19 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  CheckSquare,
-  Clock,
-  Calendar,
-  Coins,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Scale,
-  Sparkles,
-  Sprout,
-  BellRing,
-  Pin,
-} from 'lucide-react';
-import WoodPanel from '@/components/ui/WoodPanel';
-import PixelBadge from '@/components/ui/PixelBadge';
+import { CheckSquare, Clock, Calendar, CreditCard } from 'lucide-react';
 
 export default function OverviewCards({ onNavigate, envMode }) {
   const [data, setData] = useState({
@@ -87,183 +73,225 @@ export default function OverviewCards({ onNavigate, envMode }) {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
         gap: 14,
-        marginBottom: 24,
+        marginBottom: 28,
       }}
     >
-      {/* 1. To-dos metric (Chapter 1: Farmstead) */}
-      <WoodPanel
-        variant="default"
+      {/* 1. To-dos metric */}
+      <div
         onClick={() => onNavigate('todos')}
+        className="fih-card-interactive"
         style={{
-          padding: '16px 18px',
+          padding: '18px 20px',
+          borderRadius: 16,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           cursor: 'pointer',
           position: 'relative',
-          transition: 'transform 0.15s ease',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'none';
-        }}
-        title="Walk to The Farmstead"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
-            Farmstead Quests
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Tasks & To-Dos</span>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(99, 102, 241, 0.1)',
+              color: 'var(--accent-indigo)',
+            }}
+          >
+            <CheckSquare size={16} />
           </span>
-          <Sprout size={16} color="#8fc45a" />
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
-              {data.loading ? '—' : data.todosCount}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+            {data.loading ? '—' : data.todosCount}
+          </span>
+          {data.urgentTodos > 0 && (
+            <span
+              className="tabular-nums"
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--badge-high-color)',
+                background: 'var(--badge-high-bg)',
+                border: '1px solid var(--badge-high-border)',
+                padding: '2px 7px',
+                borderRadius: 6,
+              }}
+            >
+              {data.urgentTodos} urgent
             </span>
-            {data.urgentTodos > 0 && (
-              <PixelBadge variant="danger" size="sm">
-                {data.urgentTodos} urgent
-              </PixelBadge>
-            )}
-          </div>
-          <span style={{ fontSize: 18 }}>🌱</span>
+          )}
         </div>
-        <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
-            ? 'Tending crop plots...'
+            ? 'Checking tasks...'
             : data.todosCount === 0
-            ? 'All fields cleared'
-            : `${data.todosCount} crop plot${data.todosCount === 1 ? '' : 's'} ripening`}
+            ? 'All caught up'
+            : `${data.todosCount} pending action item${data.todosCount === 1 ? '' : 's'}`}
         </div>
-      </WoodPanel>
+      </div>
 
-      {/* 2. Today's Reminders (Chapter 4: Bell Tower) */}
-      <WoodPanel
-        variant="default"
+      {/* 2. Today's Reminders */}
+      <div
         onClick={() => onNavigate('reminders')}
+        className="fih-card-interactive"
         style={{
-          padding: '16px 18px',
+          padding: '18px 20px',
+          borderRadius: 16,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           cursor: 'pointer',
           position: 'relative',
-          transition: 'transform 0.15s ease',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'none';
-        }}
-        title="Climb to The Bell Tower"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#e07a3f', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
-            Belfry Chimes Today
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Today's Reminders</span>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(245, 158, 11, 0.1)',
+              color: 'var(--accent-amber)',
+            }}
+          >
+            <Clock size={16} />
           </span>
-          <BellRing size={16} color="#e07a3f" />
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
             {data.loading ? '—' : data.remindersToday}
           </span>
-          <span style={{ fontSize: 18 }}>🔔</span>
         </div>
-        <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
-            ? 'Checking belfry bells...'
+            ? 'Checking schedule...'
             : data.remindersToday === 0
-            ? 'Quiet day in belfry'
-            : `${data.remindersToday} chime${data.remindersToday === 1 ? '' : 's'} queued today`}
+            ? 'No alerts today'
+            : `${data.remindersToday} alert${data.remindersToday === 1 ? '' : 's'} scheduled`}
         </div>
-      </WoodPanel>
+      </div>
 
-      {/* 3. Deadlines Soon (Chapter 3: Notice Board) */}
-      <WoodPanel
-        variant="default"
+      {/* 3. Deadlines Soon */}
+      <div
         onClick={() => onNavigate('deadlines')}
+        className="fih-card-interactive"
         style={{
-          padding: '16px 18px',
+          padding: '18px 20px',
+          borderRadius: 16,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           cursor: 'pointer',
           position: 'relative',
-          transition: 'transform 0.15s ease',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'none';
-        }}
-        title="Check Town Notice Board"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
-            Ripening in 48h
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Due in 48 Hours</span>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(244, 63, 94, 0.1)',
+              color: 'var(--accent-rose)',
+            }}
+          >
+            <Calendar size={16} />
           </span>
-          <Pin size={16} color="#f2c230" />
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span className="tabular-nums" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
             {data.loading ? '—' : data.deadlinesSoon}
           </span>
-          <span style={{ fontSize: 18 }}>📌</span>
         </div>
-        <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
-            ? 'Reading notice ribbons...'
+            ? 'Checking due dates...'
             : data.deadlinesSoon === 0
-            ? 'Clear bulletin ahead'
-            : `${data.deadlinesSoon} notice${data.deadlinesSoon === 1 ? '' : 's'} due soon`}
+            ? 'Clear schedule ahead'
+            : `${data.deadlinesSoon} deadline${data.deadlinesSoon === 1 ? '' : 's'} approaching`}
         </div>
-      </WoodPanel>
+      </div>
 
-      {/* 4. Net Debt Balance (Chapter 2: Ledger Hut) */}
-      <WoodPanel
-        variant="golden"
+      {/* 4. Net Debt Balance */}
+      <div
         onClick={() => onNavigate('debts')}
+        className="fih-card-interactive"
         style={{
-          padding: '16px 18px',
+          padding: '18px 20px',
+          borderRadius: 16,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           cursor: 'pointer',
           position: 'relative',
-          transition: 'transform 0.15s ease',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'none';
-        }}
-        title="Inspect Bram's Ledger Hut"
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-pixel, monospace)' }}>
-            Net Ledger Gold
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>Net Balance</span>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background:
+                data.netDebt > 0
+                  ? 'rgba(16, 185, 129, 0.1)'
+                  : data.netDebt < 0
+                  ? 'rgba(244, 63, 94, 0.1)'
+                  : 'rgba(107, 114, 128, 0.1)',
+              color:
+                data.netDebt > 0
+                  ? 'var(--accent-emerald)'
+                  : data.netDebt < 0
+                  ? 'var(--accent-rose)'
+                  : 'var(--text-muted)',
+            }}
+          >
+            <CreditCard size={16} />
           </span>
-          <Scale size={16} color="#f2c230" />
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span
             className="tabular-nums"
             style={{
-              fontSize: 26,
-              fontWeight: 800,
-              fontFamily: 'var(--font-pixel, monospace)',
-              color: data.netDebt >= 0 ? '#8fc45a' : '#e05338',
+              fontSize: 28,
+              fontWeight: 700,
+              letterSpacing: '-0.03em',
+              color:
+                data.netDebt > 0
+                  ? 'var(--accent-emerald)'
+                  : data.netDebt < 0
+                  ? 'var(--accent-rose)'
+                  : 'var(--text-primary)',
             }}
           >
-            {data.loading ? '—' : `${data.netDebt >= 0 ? '+' : ''}₹${Math.abs(data.netDebt).toLocaleString('en-IN')}`}
+            {data.loading ? '—' : `₹${Math.abs(data.netDebt).toLocaleString('en-IN')}`}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', color: data.netDebt >= 0 ? '#8fc45a' : '#e05338' }}>
-            {data.netDebt >= 0 ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
-          </div>
         </div>
-        <div style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
           {data.loading
-            ? 'Balancing scale...'
+            ? 'Calculating balances...'
             : data.netDebt > 0
-            ? 'Surplus in gold pouch'
+            ? 'Others owe you net'
             : data.netDebt < 0
-            ? 'Net favors owed'
-            : 'All tabs balanced'}
+            ? 'You owe net'
+            : 'All personal balances settled'}
         </div>
-      </WoodPanel>
+      </div>
     </div>
   );
 }

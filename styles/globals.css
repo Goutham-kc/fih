@@ -1,85 +1,60 @@
-/* ── Self-Hosted 16-Bit Pixel Fonts (OFL License) ────────────────────────── */
-@font-face {
-  font-family: 'Press Start 2P';
-  src: url('/fonts/PressStart2P-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Silkscreen';
-  src: url('/fonts/Silkscreen-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Silkscreen';
-  src: url('/fonts/Silkscreen-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 /* ── Precision Ledger Design Tokens ────────────────────────────────────────── */
 :root, [data-theme="dark"] {
   color-scheme: dark;
 
-  --font-pixel-display:      'Press Start 2P', monospace;
-  --font-pixel-body:         'Silkscreen', monospace;
   --font-display:            'Instrument Serif', Georgia, serif;
-  --font-sans:               'Silkscreen', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans:               'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Surfaces & Backgrounds - Deep Obsidian & Titanium */
-  --bg-dark:                 #090a0f;
-  --bg-surface:              #11131a;
-  --bg-card:                 rgba(17, 19, 27, 0.76);
-  --bg-card-heavy:           rgba(22, 25, 36, 0.92);
-  --bg-card-hover:           rgba(26, 30, 42, 0.92);
-  --bg-elevated:             #171924;
+  /* Surfaces & Backgrounds */
+  --bg-dark:                 #0d0e12;
+  --bg-surface:              #14151b;
+  --bg-card:                 rgba(20, 21, 28, 0.72);
+  --bg-card-heavy:           rgba(25, 27, 36, 0.85);
+  --bg-card-hover:           rgba(28, 30, 40, 0.85);
+  --bg-elevated:             #1a1b24;
   --bg-hover:                rgba(255, 255, 255, 0.05);
-  --bg-sunken:               rgba(7, 8, 12, 0.75);
-  --surface-sunken:          rgba(7, 8, 12, 0.75);
-  --bg-sidebar:              rgba(11, 13, 19, 0.94);
-  --bg-mobile-header:        rgba(11, 13, 19, 0.96);
+  --bg-sunken:               rgba(10, 11, 15, 0.65);
+  --surface-sunken:          rgba(10, 11, 15, 0.65);
+  --bg-sidebar:              rgba(13, 14, 18, 0.88);
+  --bg-mobile-header:        rgba(13, 14, 18, 0.94);
 
-  /* Accents - Linear / Emil Kowalski Precision Iris (Data & Action) */
-  --accent-primary:          #4f6ef7;
+  /* Accents - Strict 3% Budget */
+  --accent-primary:          #6366f1;
   --accent-primary-text:     #ffffff;
-  --accent-primary-glow:     rgba(79, 110, 247, 0.22);
-  --accent-indigo:           #4f6ef7;
-  --accent-violet:           #8b5cf6;
-  --accent-secondary:        #8b5cf6;
-  --accent-tertiary:         #0ea5e9;
+  --accent-primary-glow:     rgba(99, 102, 241, 0.22);
+  --accent-indigo:           #6366f1;
+  --accent-violet:           #a855f7;
+  --accent-secondary:        #a855f7;
+  --accent-tertiary:         #14b8a6;
   --accent-cyan:             #06b6d4;
   --accent-rose:             #f43f5e;
-  --accent-error:            #f43f5e;
+  --accent-error:            #f87171;
   --accent-amber:            #f59e0b;
   --accent-emerald:          #10b981;
 
-  --gradient-primary:        linear-gradient(135deg, #4f6ef7 0%, #3b52d9 100%);
-  --gradient-glow:           radial-gradient(circle, rgba(79, 110, 247, 0.07) 0%, rgba(9, 10, 15, 0) 70%);
+  --gradient-primary:        linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  --gradient-glow:           radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(13, 14, 18, 0) 70%);
 
-  /* Text Hierarchy - High Contrast, Anti-Slop */
-  --text-primary:            #f4f4f7;
-  --text-secondary:          #9da0b0;
-  --text-muted:              #686b7c;
+  /* Text Hierarchy */
+  --text-primary:            #f3f4f6;
+  --text-secondary:          #9ca3af;
+  --text-muted:              #6b7280;
 
   /* Hairline Borders */
-  --border-subtle:           rgba(255, 255, 255, 0.075);
+  --border-subtle:           rgba(255, 255, 255, 0.08);
   --border-hover:            rgba(255, 255, 255, 0.16);
-  --border-active:           #4f6ef7;
+  --border-active:           #6366f1;
 
   /* Shadows */
-  --shadow-card:             0 4px 20px -2px rgba(0, 0, 0, 0.45);
-  --shadow-hover:            0 12px 32px -4px rgba(0, 0, 0, 0.65);
+  --shadow-card:             0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  --shadow-hover:            0 12px 32px -4px rgba(0, 0, 0, 0.6);
 
   /* Inputs */
   --input-bg:                rgba(255, 255, 255, 0.04);
   --input-bg-focus:          rgba(255, 255, 255, 0.07);
-  --input-option-bg:         #13151f;
+  --input-option-bg:         #16171f;
 
   /* Buttons */
   --btn-secondary-bg:        rgba(255, 255, 255, 0.05);
@@ -103,17 +78,17 @@
   --badge-overdue-color:     #f87171;
   --badge-overdue-border:    rgba(244, 63, 94, 0.35);
 
-  --badge-academic-bg:       rgba(139, 92, 246, 0.12);
-  --badge-academic-color:    #c4b5fd;
+  --badge-academic-bg:       rgba(168, 85, 247, 0.12);
+  --badge-academic-color:    #c084fc;
 
   --badge-internship-bg:     rgba(245, 158, 11, 0.12);
   --badge-internship-color:  #fbbf24;
 
-  --badge-personal-bg:       rgba(14, 165, 233, 0.12);
-  --badge-personal-color:    #38bdf8;
+  --badge-personal-bg:       rgba(20, 184, 166, 0.12);
+  --badge-personal-color:    #2dd4bf;
 
-  --badge-planned-bg:        rgba(79, 110, 247, 0.12);
-  --badge-planned-color:     #93c5fd;
+  --badge-planned-bg:        rgba(99, 102, 241, 0.12);
+  --badge-planned-color:     #818cf8;
 
   /* ── Emil Kowalski Motion Tokens ────────────────────────────────────────── */
   --ease-out:                cubic-bezier(0.23, 1, 0.32, 1);    /* canonical strong ease-out for entering UI */
@@ -131,45 +106,45 @@
   --font-display:            'Instrument Serif', Georgia, serif;
   --font-sans:               'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Surfaces & Backgrounds - Clean Porcelain Canvas */
-  --bg-dark:                 #f6f8fb;
+  /* Surfaces & Backgrounds */
+  --bg-dark:                 #f8f9fc;
   --bg-surface:              #ffffff;
-  --bg-card:                 rgba(255, 255, 255, 0.96);
+  --bg-card:                 rgba(255, 255, 255, 0.94);
   --bg-card-heavy:           #ffffff;
   --bg-card-hover:           #ffffff;
   --bg-elevated:             #ffffff;
-  --bg-hover:                rgba(0, 0, 0, 0.04);
-  --bg-sunken:               #edf0f6;
-  --surface-sunken:          #edf0f6;
-  --bg-sidebar:              rgba(255, 255, 255, 0.96);
-  --bg-mobile-header:        rgba(255, 255, 255, 0.98);
+  --bg-hover:                rgba(0, 0, 0, 0.035);
+  --bg-sunken:               #f1f3f9;
+  --surface-sunken:          #f1f3f9;
+  --bg-sidebar:              rgba(255, 255, 255, 0.94);
+  --bg-mobile-header:        rgba(255, 255, 255, 0.96);
 
-  /* Primary Accent - Taste Rule: In light app screens, primary is authoritative near-black */
-  --accent-primary:          #111218;
+  /* Accents */
+  --accent-primary:          #4f46e5;
   --accent-primary-text:     #ffffff;
-  --accent-primary-glow:     rgba(17, 18, 24, 0.14);
-  --accent-indigo:           #3b5bf5;
+  --accent-primary-glow:     rgba(79, 70, 229, 0.18);
+  --accent-indigo:           #4f46e5;
   --accent-violet:           #7c3aed;
-  --accent-secondary:        #3b5bf5;
-  --accent-tertiary:         #0284c7;
+  --accent-secondary:        #7c3aed;
+  --accent-tertiary:         #0d9488;
   --accent-cyan:             #0284c7;
   --accent-rose:             #e11d48;
   --accent-error:            #dc2626;
   --accent-amber:            #d97706;
   --accent-emerald:          #059669;
 
-  --gradient-primary:        linear-gradient(135deg, #111218 0%, #2b2d38 100%);
-  --gradient-glow:           radial-gradient(circle, rgba(59, 91, 245, 0.04) 0%, rgba(246, 248, 251, 0) 70%);
+  --gradient-primary:        linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  --gradient-glow:           radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, rgba(248, 249, 252, 0) 70%);
 
-  /* Text Hierarchy - Solid 4.5:1 Contrast Floor */
-  --text-primary:            #0e1017;
-  --text-secondary:          #4b4e5d;
-  --text-muted:              #666a79;
+  /* Text Hierarchy */
+  --text-primary:            #111827;
+  --text-secondary:          #4b5563;
+  --text-muted:              #6b7280;
 
   /* Hairline Borders */
-  --border-subtle:           rgba(0, 0, 0, 0.065);
+  --border-subtle:           rgba(0, 0, 0, 0.07);
   --border-hover:            rgba(0, 0, 0, 0.14);
-  --border-active:           #111218;
+  --border-active:           #4f46e5;
 
   /* Shadows */
   --shadow-card:             0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 14px -1px rgba(0, 0, 0, 0.05);
@@ -187,26 +162,26 @@
 
   /* Semantic Data Badges */
   --badge-high-bg:           #fee2e2;
-  --badge-high-color:        #b91c1c;
+  --badge-high-color:        #dc2626;
   --badge-high-border:       #fca5a5;
 
   --badge-medium-bg:         #fef3c7;
-  --badge-medium-color:      #92400e;
+  --badge-medium-color:      #b45309;
   --badge-medium-border:     #fde68a;
 
   --badge-low-bg:            #d1fae5;
-  --badge-low-color:         #065f46;
+  --badge-low-color:         #047857;
   --badge-low-border:        #a7f3d0;
 
   --badge-overdue-bg:        #fee2e2;
-  --badge-overdue-color:     #991b1b;
+  --badge-overdue-color:     #b91c1c;
   --badge-overdue-border:    #f87171;
 
   --badge-academic-bg:       #ede9fe;
-  --badge-academic-color:    #5b21b6;
+  --badge-academic-color:    #6d28d9;
 
   --badge-internship-bg:     #fef3c7;
-  --badge-internship-color:  #92400e;
+  --badge-internship-color:  #b45309;
 
   --badge-personal-bg:       #ccfbf1;
   --badge-personal-color:    #0f766e;
@@ -323,34 +298,6 @@ html, body {
               box-shadow var(--duration-fast) ease,
               background-color var(--duration-fast) ease !important;
   will-change: transform;
-}
-
-/* ── Interactive Spotlight Surface ───────────────────────────────────────── */
-.fih-spotlight {
-  position: relative;
-  overflow: hidden;
-}
-
-.fih-spotlight::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    380px circle at var(--mouse-x, -200px) var(--mouse-y, -200px),
-    var(--accent-primary-glow),
-    transparent 70%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--duration-fast) ease;
-  z-index: 1;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .fih-spotlight:hover::before {
-    opacity: 1;
-  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -811,41 +758,6 @@ select.input option, select.fih-input option {
   gap: 16px;
 }
 
-/* ── Pixel Valley Storybook & Village Enhancements ───────────────────────── */
-.pv-hud-card, .pixel-hud-card {
-  position: relative;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
-}
-
-.pv-hud-card:hover, .pixel-hud-card:hover {
-  border-color: rgba(242, 194, 48, 0.4);
-  box-shadow: 0 8px 30px rgba(242, 194, 48, 0.12);
-}
-
-.pv-gold, .pixel-gold {
-  color: var(--pv-gold, #f2c230);
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pv-badge-quest, .pixel-badge-quest {
-  background: rgba(242, 194, 48, 0.12);
-  color: #f2c230;
-  border: 1px solid rgba(242, 194, 48, 0.25);
-  font-weight: 700;
-}
-
-.pv-badge-harvest, .pixel-badge-harvest {
-  background: rgba(143, 196, 90, 0.15);
-  color: #8fc45a;
-  border: 1px solid rgba(143, 196, 90, 0.3);
-  font-weight: 700;
-}
-
 .summary-card {
   background: var(--bg-card);
   border-radius: 14px;
@@ -1097,197 +1009,3 @@ select.input option, select.fih-input option {
     display: none !important;
   }
 }
-
-/* ── Pixel Valley Cozy Village Design System ────────────────────────────── */
-:root {
-  --pv-grass-light:     #8fc45a;
-  --pv-grass-dark:      #5e9440;
-  --pv-soil:            #7a4e2d;
-  --pv-wood-light:      #c98f55;
-  --pv-wood-dark:       #7b4a28;
-  --pv-parchment:       #f4e4bc;
-  --pv-parchment-light: #fbf3dd;
-  --pv-parchment-dark:  #e5cca0;
-  --pv-ink:             #3b2a1e;
-  --pv-ink-muted:       #6d5543;
-  --pv-sky-day:         #9fd8f0;
-  --pv-sky-dusk:        #f3a65f;
-  --pv-sky-night:       #1f2a4d;
-  --pv-water:           #4f9bd1;
-  --pv-gold:            #f2c230;
-  --pv-gold-dark:       #c49615;
-  --pv-berry:           #c2415a;
-  --pv-stone:           #8d8a86;
-  --pv-stone-dark:      #5c5956;
-}
-
-@keyframes pixelFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-@keyframes pixelHarvest {
-  0% {
-    transform: scale(0.92);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.08);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes pixelShimmer {
-  0% {
-    filter: drop-shadow(0 0 2px #f2c230);
-  }
-  50% {
-    filter: drop-shadow(0 0 6px #f2c230) brightness(1.15);
-  }
-  100% {
-    filter: drop-shadow(0 0 2px #f2c230);
-  }
-}
-
-/* ── 16-Bit RPG True Stepped Pixel Frames (Zero Border Radius) ─────────────── */
-.pixel-frame,
-.pixel-wood-card,
-.pixel-parchment-card,
-.fih-card,
-.rpg-panel {
-  border-radius: 0 !important;
-}
-
-.pixel-wood-card {
-  background: #2b1a11;
-  border: 4px solid #1a0f08;
-  outline: 2px solid #7b4a28;
-  box-shadow: inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #120b06, 0 4px 0 #0c0704;
-  color: #fdf6e2;
-}
-
-.pixel-parchment-card {
-  background: #fdf6e2;
-  border: 4px solid #452817;
-  outline: 2px solid #a66538;
-  box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #d4c29a, 0 4px 0 #2b1a11;
-  color: #2b1a11;
-}
-
-.pixel-btn,
-.btn-pixel {
-  border-radius: 0 !important;
-  font-family: var(--font-pixel-display);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 8px 14px;
-  cursor: pointer;
-  background: #7b4a28;
-  color: #fdf6e2;
-  border: 2px solid #1a0f08;
-  box-shadow: inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06;
-  transition: none;
-}
-
-.pixel-btn:hover,
-.btn-pixel:hover {
-  background: #8b532d;
-  box-shadow: inset 2px 2px 0 #b87c48, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06;
-  transform: none;
-}
-
-.pixel-btn:active,
-.btn-pixel:active {
-  box-shadow: inset 2px 2px 0 #120b06, inset -2px -2px 0 #a36c3a, 0 1px 0 #120b06;
-  transform: translateY(2px);
-}
-
-.pixel-btn.btn-gold,
-.btn-pixel.btn-gold {
-  background: #eab308;
-  color: #1a0f08;
-  border-color: #713f12;
-  box-shadow: inset 2px 2px 0 #fef08a, inset -2px -2px 0 #854d0e, 0 3px 0 #422006;
-}
-
-.pixel-btn.btn-gold:hover,
-.btn-pixel.btn-gold:hover {
-  background: #facc15;
-}
-
-/* 16-Bit RPG Toolbar / Hotbar */
-.rpg-hotbar {
-  position: fixed;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: #2b1a11;
-  border: 3px solid #1a0f08;
-  box-shadow: inset 2px 2px 0 #7b4a28, inset -2px -2px 0 #120b06, 0 6px 20px rgba(0,0,0,0.7);
-  z-index: 100;
-}
-
-.rpg-hotbar-slot {
-  width: 44px;
-  height: 44px;
-  background: #1a0f08;
-  border: 2px solid #452817;
-  box-shadow: inset 2px 2px 0 #0c0704, inset -2px -2px 0 #784323;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  border-radius: 0;
-}
-
-.rpg-hotbar-slot.active {
-  border-color: #facc15;
-  box-shadow: inset 2px 2px 0 #ca8a04, inset -2px -2px 0 #fde047, 0 0 8px rgba(250, 204, 21, 0.6);
-}
-
-.rpg-hotbar-slot.active::after {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid #facc15;
-}
-
-/* 16-Bit RPG Dialogue Box */
-.rpg-dialogue-box {
-  background: #2b1a11;
-  border: 4px solid #1a0f08;
-  outline: 2px solid #7b4a28;
-  box-shadow: inset 3px 3px 0 #a36c3a, inset -3px -3px 0 #120b06, 0 8px 30px rgba(0,0,0,0.8);
-  border-radius: 0 !important;
-  color: #fdf6e2;
-  font-family: var(--font-pixel-body);
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.pixel-cursor-hand {
-  cursor: url('/assets/ui/ui_atlas.png'), pointer;
-}
-
-
-

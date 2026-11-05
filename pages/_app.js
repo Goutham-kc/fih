@@ -14,8 +14,8 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <link rel="alternate icon" href="/logo.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f8fb" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#090a0f" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f9fc" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0e12" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="format-detection" content="telephone=no" />

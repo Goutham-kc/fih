@@ -1,27 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { fireSuccessBurst } from '@/lib/confetti';
-import {
-  Plus,
-  Trash2,
-  RefreshCw,
-  Star,
-  Film,
-  Sparkles,
-  Tv,
-  BookOpen,
-  Scroll,
-  Clapperboard,
-  Dices,
-  Play,
-} from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Star, Film, BookOpen } from 'lucide-react';
 import SkeletonLoader from '@/components/SkeletonLoader';
-import WoodPanel from '@/components/ui/WoodPanel';
-import PixelButton from '@/components/ui/PixelButton';
-import PixelBadge from '@/components/ui/PixelBadge';
-import CharacterSprite from '@/components/character/CharacterSprite';
-import { soundManager } from '@/lib/soundManager';
-import { eventBus, EVENTS } from '@/lib/eventBus';
 
 export default function Watchlist() {
   const [items, setItems] = useState([]);
@@ -31,7 +12,6 @@ export default function Watchlist() {
   const [adding, setAdding] = useState(false);
   const [ratingFor, setRatingFor] = useState(null);
   const [tempRating, setTempRating] = useState(8);
-  const [surpriseItem, setSurpriseItem] = useState(null);
 
   async function fetchItems() {
     const res = await fetch('/api/watchlist');
@@ -43,10 +23,7 @@ export default function Watchlist() {
   }
 
   useEffect(() => {
-    const loadTimer = setTimeout(() => {
-      fetchItems();
-    }, 0);
-    return () => clearTimeout(loadTimer);
+    fetchItems();
   }, []);
 
   async function addItem(e) {
@@ -60,11 +37,9 @@ export default function Watchlist() {
     });
 
     if (res.ok) {
-      soundManager.playSfx('wood');
-      eventBus.emit(EVENTS.WATCH_ADDED, { title: title.trim(), type });
       setTitle('');
       setType('show');
-      toast.success('Archived in Juniper’s Cinema Library 🎬');
+      toast.success('Added to watchlist');
       await fetchItems();
     } else {
       toast.error('Failed to add item');
@@ -75,12 +50,7 @@ export default function Watchlist() {
   async function updateStatus(id, status, rating) {
     try {
       if (status === 'done') {
-        soundManager.playSfx('harvest');
         fireSuccessBurst();
-        const target = items.find((i) => i._id === id);
-        eventBus.emit(EVENTS.WATCH_STATUS, { id, title: target?.title, status: 'done' });
-      } else {
-        soundManager.playSfx('click');
       }
       const res = await fetch(`/api/watchlist/${id}`, {
         method: 'PATCH',
@@ -88,7 +58,7 @@ export default function Watchlist() {
         body: JSON.stringify({ status, ...(rating != null ? { rating } : {}) }),
       });
       if (res.ok) {
-        toast.success(`Moved to ${status === 'in_progress' ? 'Now Projecting' : status === 'done' ? 'Watched Reel' : 'Now Showing'}`);
+        toast.success(`Moved to ${status === 'in_progress' ? 'In Progress' : status === 'done' ? 'Completed' : 'Planned'}`);
       } else {
         const errData = await res.json().catch(() => ({}));
         toast.error(`Error updating: ${errData.error?.message || res.statusText}`);
@@ -101,7 +71,7 @@ export default function Watchlist() {
 
   async function deleteItem(id, itemTitle) {
     await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
-    toast('Reel removed', { description: itemTitle || '' });
+    toast('Item removed', { description: itemTitle || '' });
     fetchItems();
   }
 
@@ -109,125 +79,48 @@ export default function Watchlist() {
   const inProgress = items.filter((i) => i.status === 'in_progress');
   const done = items.filter((i) => i.status === 'done');
 
-  // Spec feature: "Surprise me" random unwatched selector
-  function handleSurpriseMe() {
-    const pool = [...planned, ...inProgress];
-    if (pool.length === 0) {
-      toast.info('No unprojected reels in the queue! Hand Juniper a ticket first.');
-      return;
-    }
-    soundManager.playSfx('coin');
-    const pick = pool[Math.floor(Math.random() * pool.length)];
-    setSurpriseItem(pick);
-    toast.success(`Juniper loaded: "${pick.title}" onto the projector beam! 📽️`);
-  }
-
-  const getTypeIcon = (itemType) => {
-    switch (itemType) {
-      case 'movie':
-        return <Film size={12} />;
-      case 'show':
-        return <Tv size={12} />;
-      case 'anime':
-        return <Clapperboard size={12} />;
-      case 'book':
-        return <BookOpen size={12} />;
-      case 'paper':
-        return <Scroll size={12} />;
-      default:
-        return <Film size={12} />;
-    }
-  };
-
   function renderItem(item) {
-    const isChosen = surpriseItem && surpriseItem._id === item._id;
-
     return (
-      <WoodPanel
-        key={item._id}
-        variant={isChosen ? 'golden' : 'default'}
-        style={{
-          padding: '14px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          borderColor: isChosen ? '#f2c230' : undefined,
-          boxShadow: isChosen ? '0 0 14px rgba(242,194,48,0.3)' : undefined,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div key={item._id} className="item-card stagger-item">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
             <div
               style={{
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: 14,
-                color: '#fdf6e2',
+                color: 'var(--text-primary)',
                 marginBottom: 4,
                 wordBreak: 'break-word',
-                fontFamily: 'var(--font-pixel, monospace)',
               }}
             >
               {item.title}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: 3,
-                  background: '#241a15',
-                  border: '1px solid #4d3324',
-                  color: '#f2c230',
-                  textTransform: 'uppercase',
-                  fontFamily: 'var(--font-pixel, monospace)',
-                }}
-              >
-                {getTypeIcon(item.type)}
+              <span className="badge badge-planned" style={{ fontSize: 10, textTransform: 'uppercase' }}>
                 {item.type}
               </span>
-
               {item.status === 'done' && item.rating && (
                 <span
                   className="tabular-nums"
                   style={{
-                    color: '#f2c230',
-                    fontSize: 11,
+                    color: '#fbbf24',
+                    fontSize: 12,
                     fontWeight: 700,
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 3,
-                    fontFamily: 'var(--font-pixel, monospace)',
                   }}
                 >
-                  <Star size={11} fill="#f2c230" /> {item.rating}/10
+                  <Star size={11} fill="#fbbf24" /> {item.rating}/10
                 </span>
-              )}
-
-              {isChosen && (
-                <PixelBadge variant="warning" size="sm">
-                  ✨ FEATURED TONIGHT
-                </PixelBadge>
               )}
             </div>
           </div>
-
           <button
+            className="btn btn-ghost btn-icon"
             onClick={() => deleteItem(item._id, item.title)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#8c705f',
-              cursor: 'pointer',
-              padding: 4,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            title="Remove reel"
+            style={{ color: 'var(--text-muted)', padding: '4px', minHeight: 28 }}
+            title="Remove item"
             aria-label={`Remove ${item.title} from watchlist`}
           >
             <Trash2 size={13} />
@@ -235,219 +128,139 @@ export default function Watchlist() {
         </div>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {item.status !== 'in_progress' && (
-            <PixelButton
-              variant="wood"
-              size="sm"
-              style={{ fontSize: 11, padding: '4px 10px' }}
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
               onClick={() => updateStatus(item._id, 'in_progress')}
             >
-              <Play size={10} />
-              <span>Project</span>
-            </PixelButton>
+              Start
+            </button>
           )}
-
           {item.status !== 'planned' && (
-            <PixelButton
-              variant="wood"
-              size="sm"
-              style={{ fontSize: 11, padding: '4px 10px' }}
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
               onClick={() => updateStatus(item._id, 'planned')}
             >
-              <span>Hold</span>
-            </PixelButton>
+              Plan
+            </button>
           )}
-
           {item.status !== 'done' && (
-            <PixelButton
-              variant="golden"
-              size="sm"
-              style={{ fontSize: 11, padding: '4px 10px' }}
+            <button
+              className="btn btn-primary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
               onClick={() => {
                 setRatingFor(item._id);
                 setTempRating(8);
               }}
             >
-              <Star size={11} />
-              <span>Watched</span>
-            </PixelButton>
+              Complete
+            </button>
           )}
         </div>
 
         {/* Rating Prompt Drawer */}
         {ratingFor === item._id && (
           <div
+            className="dropdown-enter"
             style={{
-              marginTop: 8,
-              padding: 10,
-              background: '#19110c',
-              borderRadius: 6,
-              border: '1px solid #4d3324',
+              marginTop: 12,
+              padding: 12,
+              background: 'var(--bg-sunken)',
+              borderRadius: 10,
+              border: '1px solid var(--border-subtle)',
             }}
           >
-            <div style={{ fontSize: 11, color: '#c4b5a5', marginBottom: 6, fontWeight: 700, fontFamily: 'var(--font-pixel, monospace)' }}>
-              Rate this reel (1-10):
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>
+              Rate this item (1-10):
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <input
                 type="range"
                 min="1"
                 max="10"
                 value={tempRating}
                 onChange={(e) => setTempRating(Number(e.target.value))}
-                style={{ flex: 1, accentColor: '#f2c230' }}
+                style={{ flex: 1, accentColor: 'var(--accent-indigo)' }}
               />
               <span
                 className="tabular-nums"
                 style={{
-                  color: '#f2c230',
+                  color: '#fbbf24',
                   fontWeight: 700,
                   minWidth: 42,
-                  fontSize: 12,
+                  fontSize: 13,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 3,
-                  fontFamily: 'var(--font-pixel, monospace)',
                 }}
               >
-                <Star size={12} fill="#f2c230" /> {tempRating}
+                <Star size={12} fill="#fbbf24" /> {tempRating}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <PixelButton
-                variant="golden"
-                size="sm"
-                style={{ flex: 1, padding: '4px' }}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="btn btn-primary"
+                style={{ flex: 1, fontSize: 11, padding: '5px', minHeight: 30 }}
                 onClick={() => {
                   updateStatus(item._id, 'done', tempRating);
                   setRatingFor(null);
                 }}
               >
                 Save
-              </PixelButton>
-              <PixelButton
-                variant="wood"
-                size="sm"
-                style={{ padding: '4px 8px' }}
+              </button>
+              <button
+                className="btn btn-ghost"
+                style={{ fontSize: 11, padding: '5px 10px', minHeight: 30 }}
                 onClick={() => {
                   updateStatus(item._id, 'done');
                   setRatingFor(null);
                 }}
               >
                 Skip
-              </PixelButton>
+              </button>
             </div>
           </div>
         )}
-      </WoodPanel>
+      </div>
     );
   }
 
   if (loading) {
     return (
       <div className="animate-fade">
-        <WoodPanel variant="default" style={{ marginBottom: 20, height: 100, padding: 16 }}>
-          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 6 }} />
-        </WoodPanel>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-          <SkeletonLoader count={2} height={90} />
-          <SkeletonLoader count={2} height={90} />
-          <SkeletonLoader count={2} height={90} />
+        <div className="fih-card" style={{ marginBottom: 24, height: 110 }}>
+          <div className="skeleton-loading" style={{ height: 40, width: '100%', borderRadius: 10, marginBottom: 12 }} />
+        </div>
+        <div className="kanban">
+          <div className="kanban-col"><SkeletonLoader count={2} height={80} /></div>
+          <div className="kanban-col"><SkeletonLoader count={2} height={80} /></div>
+          <div className="kanban-col"><SkeletonLoader count={2} height={80} /></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* 1. Moonlight Cinema Header & Projector Controls */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-          gap: 12,
-        }}
-      >
-        <WoodPanel variant="golden" style={{ padding: '16px 18px', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#f2c230', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Reels in Queue
-            </span>
-            <Film size={16} color="#f2c230" />
-          </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#fdf6e2', fontFamily: 'var(--font-pixel, monospace)' }}>
-            {planned.length}
-          </div>
-          <div style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4 }}>
-            Waiting for projector slot
-          </div>
-        </WoodPanel>
-
-        <WoodPanel variant="default" style={{ padding: '16px 18px', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#8fc45a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Now Projecting
-            </span>
-            <Play size={16} color="#8fc45a" />
-          </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#8fc45a', fontFamily: 'var(--font-pixel, monospace)' }}>
-            {inProgress.length}
-          </div>
-          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
-            Active on screen beam
-          </div>
-        </WoodPanel>
-
-        <WoodPanel variant="dark" style={{ padding: '16px 18px', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5a5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Watched Archive
-            </span>
-            <Star size={16} color="#f2c230" />
-          </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: '#c4b5a5', fontFamily: 'var(--font-pixel, monospace)' }}>
-            {done.length}
-          </div>
-          <div style={{ fontSize: 11, color: '#a38d7b', marginTop: 4 }}>
-            Archived cinema classics
-          </div>
-        </WoodPanel>
-      </div>
-
-      {/* 2. Hand Juniper a Ticket Form */}
-      <WoodPanel variant="default" style={{ padding: '18px 20px', position: 'relative' }}>
+    <div className="animate-fade">
+      {/* Create Form Card */}
+      <div className="fih-card" style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Clapperboard size={16} color="#f2c230" />
-            <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#fdf6e2', margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
-              Hand Juniper a New Ticket Stub
-            </h3>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            <PixelButton
-              variant="golden"
-              size="sm"
-              onClick={handleSurpriseMe}
-              title="Pick a random unwatched reel"
-            >
-              <Dices size={14} />
-              <span>Surprise Me</span>
-            </PixelButton>
-
-            <PixelButton
-              variant="wood"
-              size="sm"
-              onClick={fetchItems}
-              title="Refresh cinema library"
-            >
-              <RefreshCw size={12} />
-              <span>Refresh</span>
-            </PixelButton>
-          </div>
+          <h3 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em' }}>
+            Add to Watch / Read Chronicle
+          </h3>
+          <button
+            className="btn btn-secondary"
+            onClick={fetchItems}
+            style={{ fontSize: 12, padding: '4px 10px', minHeight: 32 }}
+            title="Refresh watchlist"
+          >
+            <RefreshCw size={13} />
+            <span>Refresh</span>
+          </button>
         </div>
-
         <form onSubmit={addItem}>
           <div
             style={{
@@ -461,14 +274,14 @@ export default function Watchlist() {
               <label
                 style={{
                   fontSize: 11,
-                  color: '#c4b5a5',
-                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
                   display: 'block',
                   marginBottom: 6,
                   letterSpacing: '0.04em',
                 }}
               >
-                TITLE OR CHRONICLE
+                TITLE
               </label>
               <input
                 className="fih-input"
@@ -476,11 +289,6 @@ export default function Watchlist() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Severance, Dune, Cyberpunk"
                 required
-                style={{
-                  background: '#241a15',
-                  borderColor: '#4d3324',
-                  color: '#fdf6e2',
-                }}
               />
             </div>
 
@@ -488,145 +296,80 @@ export default function Watchlist() {
               <label
                 style={{
                   fontSize: 11,
-                  color: '#c4b5a5',
-                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                  fontWeight: 600,
                   display: 'block',
                   marginBottom: 6,
                   letterSpacing: '0.04em',
                 }}
               >
-                MEDIUM TYPE
+                TYPE
               </label>
               <select
                 className="fih-input"
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                style={{
-                  background: '#241a15',
-                  borderColor: '#4d3324',
-                  color: '#fdf6e2',
-                }}
               >
-                <option value="movie">🎬 Movie Reel</option>
-                <option value="show">📺 TV Chronicle</option>
-                <option value="anime">⛩️ Anime Scroll</option>
-                <option value="book">📖 Literary Volume</option>
-                <option value="paper">📜 Research Paper</option>
+                <option value="movie">Movie</option>
+                <option value="show">TV Show</option>
+                <option value="anime">Anime</option>
+                <option value="book">Book</option>
+                <option value="paper">Paper / Article</option>
               </select>
             </div>
 
-            <PixelButton
+            <button
               type="submit"
-              variant="golden"
+              className="btn btn-primary"
               disabled={adding}
-              style={{ minHeight: 42, padding: '0 18px', width: '100%' }}
+              style={{ minHeight: 42, padding: '0 20px' }}
             >
               <Plus size={16} />
-              <span>{adding ? 'Loading...' : 'Load onto Projector'}</span>
-            </PixelButton>
+              <span>{adding ? 'Adding...' : 'Add Item'}</span>
+            </button>
           </div>
         </form>
-      </WoodPanel>
+      </div>
 
-      {/* 3. Three-Column Cinema Kanban Shelves */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 16,
-        }}
-      >
-        {/* Shelf 1: Now Showing / Planned */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 12px',
-              background: '#241a15',
-              border: '2px solid #4d3324',
-              borderRadius: 6,
-            }}
-          >
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fdf6e2', margin: 0, textTransform: 'uppercase', fontFamily: 'var(--font-pixel, monospace)' }}>
-              Now Showing ({planned.length})
-            </h3>
-            <PixelBadge variant="default" size="sm">
-              TICKETS
-            </PixelBadge>
+      {/* Kanban Board */}
+      <div className="kanban">
+        <div className="kanban-col">
+          <div className="kanban-header">
+            <h3>Planned</h3>
+            <span className="tab-count tabular-nums">{planned.length}</span>
           </div>
-
           {planned.length === 0 ? (
-            <WoodPanel variant="default" style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <p style={{ color: '#a38d7b', fontSize: 12, margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
-                No planned reels in the queue.
-              </p>
-            </WoodPanel>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+              Nothing planned
+            </p>
           ) : (
             planned.map(renderItem)
           )}
         </div>
 
-        {/* Shelf 2: In Projection */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 12px',
-              background: '#241a15',
-              border: '2px solid #4d3324',
-              borderRadius: 6,
-            }}
-          >
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#8fc45a', margin: 0, textTransform: 'uppercase', fontFamily: 'var(--font-pixel, monospace)' }}>
-              In Projection ({inProgress.length})
-            </h3>
-            <PixelBadge variant="success" size="sm">
-              PROJECTING
-            </PixelBadge>
+        <div className="kanban-col">
+          <div className="kanban-header">
+            <h3>In Progress</h3>
+            <span className="tab-count tabular-nums">{inProgress.length}</span>
           </div>
-
           {inProgress.length === 0 ? (
-            <WoodPanel variant="default" style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <p style={{ color: '#a38d7b', fontSize: 12, margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
-                Screen beam is idling.
-              </p>
-            </WoodPanel>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+              Nothing active
+            </p>
           ) : (
             inProgress.map(renderItem)
           )}
         </div>
 
-        {/* Shelf 3: Watched Shelf */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 12px',
-              background: '#241a15',
-              border: '2px solid #4d3324',
-              borderRadius: 6,
-            }}
-          >
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#f2c230', margin: 0, textTransform: 'uppercase', fontFamily: 'var(--font-pixel, monospace)' }}>
-              Watched Archive ({done.length})
-            </h3>
-            <PixelBadge variant="warning" size="sm">
-              ARCHIVED
-            </PixelBadge>
+        <div className="kanban-col">
+          <div className="kanban-header">
+            <h3>Completed</h3>
+            <span className="tab-count tabular-nums">{done.length}</span>
           </div>
-
           {done.length === 0 ? (
-            <WoodPanel variant="default" style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <p style={{ color: '#a38d7b', fontSize: 12, margin: 0, fontFamily: 'var(--font-pixel, monospace)' }}>
-                No completed chronicles yet.
-              </p>
-            </WoodPanel>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+              Nothing finished yet
+            </p>
           ) : (
             done.map(renderItem)
           )}

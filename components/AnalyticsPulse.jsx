@@ -65,14 +65,6 @@ export default function AnalyticsPulse({ onNavigate, envMode }) {
       ? Math.round((stats.todosDone / stats.todosTotal) * 100)
       : 100;
 
-  const handleCardMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
-    e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
-  };
-
   return (
     <div
       style={{
@@ -85,8 +77,7 @@ export default function AnalyticsPulse({ onNavigate, envMode }) {
       {/* 1. Life Completion Radial Card */}
       <div
         onClick={() => onNavigate('todos')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
+        className="fih-card-interactive"
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-subtle)',
@@ -169,8 +160,7 @@ export default function AnalyticsPulse({ onNavigate, envMode }) {
       {/* 2. Visual Cash Flow Bar Card */}
       <div
         onClick={() => onNavigate('debts')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
+        className="fih-card-interactive"
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-subtle)',
@@ -247,8 +237,7 @@ export default function AnalyticsPulse({ onNavigate, envMode }) {
       {/* 3. Academic & Deadline Radar */}
       <div
         onClick={() => onNavigate('deadlines')}
-        onMouseMove={handleCardMouseMove}
-        className="fih-card-interactive fih-spotlight"
+        className="fih-card-interactive"
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-subtle)',
