@@ -89,6 +89,22 @@ function findTileLayers(layers) {
 
 const flatTileLayers = findTileLayers(tmj.layers);
 
+// Recursively find interactive object layers (MapHubs, Meta, TrellisPoints)
+function findObjectLayers(layers) {
+  let flat = [];
+  for (const l of layers) {
+    if (l.type === 'objectgroup') {
+      if (l.name === 'MapHubs' || l.name === 'Meta' || l.name === 'TrellisPoints') {
+        flat.push(l);
+      }
+    } else if (l.layers) {
+      flat = flat.concat(findObjectLayers(l.layers));
+    }
+  }
+  return flat;
+}
+const interactiveObjectLayers = findObjectLayers(tmj.layers);
+
 // Merge all specialized building / stall collision layers into the main Tiles_Collision layer!
 const mainCol = flatTileLayers.find(l => l.name === 'Tiles_Collision');
 if (mainCol && mainCol.data) {
@@ -111,7 +127,7 @@ if (mainCol && mainCol.data) {
   console.log(`Merged ${merged} solid building/stall tiles into Tiles_Collision.`);
 }
 
-tmj.layers = flatTileLayers;
+tmj.layers = [...flatTileLayers, ...interactiveObjectLayers];
 
 fs.writeFileSync('public/village_assets/tiled_map/rm_town.json', JSON.stringify(tmj), 'utf8');
 fs.writeFileSync('village_assets/tiled_map/rm_town.json', JSON.stringify(tmj), 'utf8');

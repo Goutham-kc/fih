@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { parseMapHubsAndWarps, InteractiveDoor, WarpPoint, InteractivePoint } from '../mapHubs';
 
 export class VillageScene extends Phaser.Scene {
   public player!: Phaser.Physics.Arcade.Sprite;
@@ -10,7 +11,20 @@ export class VillageScene extends Phaser.Scene {
     left: Phaser.Input.Keyboard.Key;
     right: Phaser.Input.Keyboard.Key;
   };
+  private interactKey!: Phaser.Input.Keyboard.Key;
+  private spaceKey!: Phaser.Input.Keyboard.Key;
   private lastDirection: 'up' | 'down' | 'left' | 'right' = 'down';
+
+  // Dynamic MapHubs & Meta Interactive Objects
+  public interactiveDoors: InteractiveDoor[] = [];
+  public warpPoints: WarpPoint[] = [];
+  public interactivePoints: InteractivePoint[] = [];
+  public activeInteractable: { name: string; prompt: string; action: () => void } | null = null;
+
+  // Prompt Banner HUD
+  private promptBg!: Phaser.GameObjects.Rectangle;
+  private promptText!: Phaser.GameObjects.Text;
+  private promptContainer!: Phaser.GameObjects.Container;
 
   constructor() {
     super({ key: 'VillageScene' });
@@ -105,12 +119,93 @@ export class VillageScene extends Phaser.Scene {
       this.physics.add.collider(this.player, this.collisionLayer);
     }
 
-    // 5. Camera Setup: bounds, follow and retro pixel zoom
+    // 5. Parse and instantiate dynamic MapHubs, Doors, and Warp Points directly from Tiled
+    const { hubs, doors, warpPoints, interactivePoints } = parseMapHubsAndWarps(map);
+    this.interactiveDoors = doors;
+    this.warpPoints = warpPoints;
+    this.interactivePoints = interactivePoints;
+
+    console.log(`Loaded ${doors.length} doors, ${warpPoints.length} warps, and ${hubs.length} map hubs from Tiled.`);
+
+    // Set up Arcade Physics overlap zones for all Doors
+    doors.forEach((door) => {
+      const zone = this.add.zone(door.x + door.width / 2, door.y + door.height / 2, door.width + 16, door.height + 20);
+      this.physics.add.existing(zone, true);
+      this.physics.add.overlap(this.player, zone, () => {
+        this.activeInteractable = {
+          name: door.name,
+          prompt: door.prompt,
+          action: () => {
+            console.log(`[Interaction] Entering ${door.name} (${door.destinationId})`);
+            this.events.emit('door-enter', door);
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('village-door-enter', { detail: door }));
+            }
+          },
+        };
+      });
+    });
+
+    // Set up Arcade Physics overlap zones for all Warps (edge of map)
+    warpPoints.forEach((warp) => {
+      const zone = this.add.zone(warp.x + warp.width / 2, warp.y + warp.height / 2, warp.width + 16, warp.height + 16);
+      this.physics.add.existing(zone, true);
+      this.physics.add.overlap(this.player, zone, () => {
+        this.activeInteractable = {
+          name: warp.name,
+          prompt: `[E] ${warp.name}`,
+          action: () => {
+            console.log(`[Interaction] Warping via ${warp.name} (${warp.destinationId})`);
+            this.events.emit('warp-transition', warp);
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('village-warp', { detail: warp }));
+            }
+          },
+        };
+      });
+    });
+
+    // Set up Arcade Physics overlap zones for TrellisPoints (e.g. Notice Board)
+    interactivePoints.forEach((pt) => {
+      const zone = this.add.zone(pt.x, pt.y, 32, 32);
+      this.physics.add.existing(zone, true);
+      this.physics.add.overlap(this.player, zone, () => {
+        this.activeInteractable = {
+          name: pt.name,
+          prompt: pt.prompt,
+          action: () => {
+            console.log(`[Interaction] Activated ${pt.name}`);
+            this.events.emit('interactive-point', pt);
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('village-interactive', { detail: pt }));
+            }
+          },
+        };
+      });
+    });
+
+    // 6. Interactive Prompt Floating HUD
+    this.promptText = this.add.text(0, 0, '', {
+      fontFamily: 'monospace',
+      fontSize: '8px',
+      color: '#fef08a',
+      backgroundColor: 'transparent',
+      align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    this.promptBg = this.add.rectangle(0, 0, 100, 14, 0x1b140f, 0.85);
+    this.promptBg.setStrokeStyle(1, 0xa3724c);
+
+    this.promptContainer = this.add.container(spawnX, spawnY - 26, [this.promptBg, this.promptText]);
+    this.promptContainer.setDepth(1000);
+    this.promptContainer.setVisible(false);
+
+    // 7. Camera Setup: bounds, follow and retro pixel zoom
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
     this.cameras.main.setZoom(2.5);
 
-    // 6. Input Controls (Arrow Keys + WASD)
+    // 8. Input Controls (Arrow Keys + WASD + E / Space)
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.wasd = this.input.keyboard!.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -118,6 +213,9 @@ export class VillageScene extends Phaser.Scene {
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
     }) as any;
+
+    this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    this.spaceKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   }
 
   update(): void {
@@ -178,6 +276,24 @@ export class VillageScene extends Phaser.Scene {
         this.player.setFlipX(false);
         this.player.setTexture('player_walk_south', 0);
       }
+    }
+
+    // Handle Active Interactable Prompt and E / Space Trigger
+    if (this.activeInteractable) {
+      this.promptContainer.setPosition(this.player.x, this.player.y - 28);
+      this.promptText.setText(this.activeInteractable.prompt);
+      const textW = this.promptText.width;
+      this.promptBg.setSize(textW + 12, 14);
+      this.promptContainer.setVisible(true);
+
+      if (Phaser.Input.Keyboard.JustDown(this.interactKey) || Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+        this.activeInteractable.action();
+      }
+
+      // Reset for next frame; if player remains in overlap zone, it will be re-set
+      this.activeInteractable = null;
+    } else {
+      this.promptContainer.setVisible(false);
     }
   }
 }
