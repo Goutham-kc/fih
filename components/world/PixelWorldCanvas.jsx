@@ -814,6 +814,7 @@ export default function PixelWorldCanvas({
       { key: 'festival_grounds', src: '/assets/buildings/festival_grounds.png' },
       { key: 'moonlight_cinema', src: '/assets/buildings/moonlight_cinema.png' },
       { key: 'archive_cellar', src: '/assets/buildings/archive_cellar.png' },
+      { key: 'toolshed', src: '/assets/buildings/toolshed.png' },
       { key: 'tree_oak', src: '/assets/trees/oak_large.png' },
       { key: 'tree_pine', src: '/assets/trees/pine_large.png' },
       { key: 'tree_blossom', src: '/assets/trees/blossom_large.png' },
@@ -1626,17 +1627,14 @@ export default function PixelWorldCanvas({
       renderables.push({
         y: TOOLSHED.y * TILE_SIZE,
         render: () => {
-          // Workshop building: the Archive Cellar sprite mirrored horizontally
-          const shedImg = state.images.archive_cellar;
+          // Workshop building: The Toolshed Timber Barn
+          const shedImg = state.images.toolshed || state.images.archive_cellar;
           if (shedImg) {
             const bW = 76;
             const bH = 90;
+            const bX = TOOLSHED.x * TILE_SIZE - bW / 2;
             const bY = (TOOLSHED.y + 1) * TILE_SIZE - bH - 4;
-            ctx.save();
-            ctx.translate(TOOLSHED.x * TILE_SIZE, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(shedImg, -bW / 2, bY, bW, bH);
-            ctx.restore();
+            ctx.drawImage(shedImg, bX, bY, bW, bH);
           }
           // Iron anvil and split firewood beside the door
           ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x + 2) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
