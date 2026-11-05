@@ -2,23 +2,25 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { soundManager } from '@/lib/soundManager';
 import { eventBus, EVENTS } from '@/lib/eventBus';
 
-// 16-bit RPG Tile Size
-const TILE_SIZE = 16;
-const MAP_WIDTH_TILES = 64;
-const MAP_HEIGHT_TILES = 64;
+// 16-bit RPG Tile Size & Full Fields of Mistria (rm_town) Map Dimensions
+export const TILE_SIZE = 16;
+export const MAP_WIDTH_PX = 2128;
+export const MAP_HEIGHT_PX = 2928;
+export const MAP_WIDTH_TILES = Math.ceil(MAP_WIDTH_PX / TILE_SIZE); // 133
+export const MAP_HEIGHT_TILES = Math.ceil(MAP_HEIGHT_PX / TILE_SIZE); // 183
 
 /* ════════════════════════════════════════════════════════════════════════════
- *  VILLAGE LAYOUT (v2 — "Ring Road" layout)
+ *  FIELDS OF MISTRIA TOWN LAYOUT (Authentic rm_town.tmj Map)
  *
- *  North row   : Farmstead (14,14)  · Bell Tower (32,14)   · Ledger Hut (50,14)
- *  North Road  : one straight east-west road (y 18..19) linking all three
- *  Town Square : Inn · Notice Board square (32,23) · Lavender Cottage
- *  Middle row  : Archive Cellar (12,33) · Central Plaza (32,32) · Toolshed (52,33)
- *  South       : Woodland Pond + footbridge, South Crossing at (32,50)
- *  South row   : Festival Grounds (16,51) · Moonlight Cinema (48,51)
- *
- *  Every building is now reached by straight, orthogonal roads (no staircase
- *  diagonals) and the map is mirrored east/west so both halves feel filled.
+ *  North       : The Manor House & Archives (1084, 485) · Gazebo (1424, 284)
+ *  Upper-West  : The Blacksmith & Forge Workshop (700, 997)
+ *  Upper-East  : The Bathhouse (1388, 721)
+ *  Mid-West    : The Bell Tower (516, 1291)
+ *  Center-North: Saturday Market Plaza (1088, 1220) · Great Town Fountain (1096, 1120)
+ *  East        : Clinic (1344, 1057) · River Stone Bridge (1616, 1016)
+ *  Town Center : Sleeping Dragon Inn (916, 1741) · General Store & Treasury (1220, 1741)
+ *                Town Notice Board (1352, 1736) · Town Mill (1408, 1440)
+ *  South       : Celine's Flora Farmstead & Gardens (1304, 2135)
  * ════════════════════════════════════════════════════════════════════════════ */
 
 // Woodland pond (water tiles). The footbridge runs down column `bridgeX`.
@@ -28,50 +30,200 @@ export const POND = { minX: 30, maxX: 34, minY: 42, maxY: 45, bridgeX: 32 };
 const SKY_POST = { x: 44, y: 25 };
 const WISHING_WELL = { x: 19, y: 25 };
 const TOOLSHED = { x: 52, y: 33 }; // door tile
-const NOTICE = { x: 32, y: 23 }; // base tile of the board (door is one row below)
+const NOTICE = { x: 32, y: 23 }; // base tile of the board
 const INN = { x: 24, y: 24 }; // centre / base tile
 const COTTAGE = { x: 40, y: 24 }; // centre / base tile
 
 // Chapter zone anchors in world tile coordinates
 export const CHAPTER_ANCHORS = {
-  todos: { x: 14, y: 14, name: 'The Farmstead', resident: 'pip', chapterTitle: 'Chapter 1: The Farmstead' },
-  debts: { x: 50, y: 14, name: 'The Ledger Hut', resident: 'bram', chapterTitle: 'Chapter 2: The Ledger Hut' },
-  reminders: { x: 32, y: 14, name: 'The Bell Tower', resident: 'hoot', chapterTitle: 'Chapter 3: The Bell Tower' },
-  deadlines: { x: 32, y: 24, name: 'The Notice Board', resident: 'marigold', chapterTitle: 'Chapter 4: The Notice Board' },
-  dates: { x: 16, y: 51, name: 'The Festival Grounds', resident: 'clover', chapterTitle: 'Chapter 5: The Festival Grounds' },
-  watchlist: { x: 48, y: 51, name: 'The Moonlight Cinema', resident: 'juniper', chapterTitle: 'Chapter 6: The Moonlight Cinema' },
-  audit: { x: 12, y: 33, name: 'The Archive Cellar', resident: 'moss', chapterTitle: 'Chapter 7: The Archive Cellar' },
-  settings: { x: 52, y: 33, name: 'The Toolshed Workbench', resident: 'rowan', chapterTitle: 'Chapter 8: The Toolshed' },
+  todos: { x: Math.round(1304 / TILE_SIZE), y: Math.round(2135 / TILE_SIZE), name: 'The Farmstead', resident: 'pip', chapterTitle: 'Chapter 1: The Farmstead' },
+  debts: { x: Math.round(1220 / TILE_SIZE), y: Math.round(1741 / TILE_SIZE), name: 'The Ledger Hut', resident: 'bram', chapterTitle: 'Chapter 2: The Ledger Hut' },
+  reminders: { x: Math.round(516 / TILE_SIZE), y: Math.round(1291 / TILE_SIZE), name: 'The Bell Tower', resident: 'hoot', chapterTitle: 'Chapter 3: The Bell Tower' },
+  deadlines: { x: Math.round(1352 / TILE_SIZE), y: Math.round(1736 / TILE_SIZE), name: 'The Notice Board', resident: 'marigold', chapterTitle: 'Chapter 4: The Notice Board' },
+  dates: { x: Math.round(1088 / TILE_SIZE), y: Math.round(1220 / TILE_SIZE), name: 'The Festival Grounds', resident: 'clover', chapterTitle: 'Chapter 5: The Festival Grounds' },
+  watchlist: { x: Math.round(916 / TILE_SIZE), y: Math.round(1741 / TILE_SIZE), name: 'The Moonlight Cinema', resident: 'juniper', chapterTitle: 'Chapter 6: The Moonlight Cinema' },
+  audit: { x: Math.round(1084 / TILE_SIZE), y: Math.round(485 / TILE_SIZE), name: 'The Archive Cellar', resident: 'moss', chapterTitle: 'Chapter 7: The Archive Cellar' },
+  settings: { x: Math.round(700 / TILE_SIZE), y: Math.round(997 / TILE_SIZE), name: 'The Toolshed Workbench', resident: 'rowan', chapterTitle: 'Chapter 8: The Toolshed' },
 };
-
-// Build a hitbox from tile coordinates (door tile + inclusive tile bounds)
-function makeHitbox(id, name, label, icon, doorTx, doorTy, minTx, minTy, maxTx, maxTy) {
-  return {
-    id,
-    name,
-    label,
-    icon,
-    doorX: doorTx * TILE_SIZE,
-    doorY: doorTy * TILE_SIZE,
-    minX: minTx * TILE_SIZE,
-    minY: minTy * TILE_SIZE,
-    maxX: maxTx * TILE_SIZE,
-    maxY: maxTy * TILE_SIZE,
-    bannerX: doorTx * TILE_SIZE,
-    bannerY: minTy * TILE_SIZE - 6,
-  };
-}
 
 // Interactive Building Hitboxes for Click & Proximity Navigation
 export const BUILDING_HITBOXES = [
-  makeHitbox('todos', 'The Farmstead', 'Daily Quests', '🌾', 14, 14, 11, 9, 17, 15),
-  makeHitbox('reminders', 'The Bell Tower', 'Belfry Alerts', '🔔', 32, 14, 30, 7, 34, 14),
-  makeHitbox('debts', 'The Ledger Hut', 'Gold Ledger', '🪙', 50, 14, 47, 9, 53, 15),
-  makeHitbox('deadlines', 'The Notice Board', 'Town Deadlines', '📋', 32, 24, 30, 20, 34, 24),
-  makeHitbox('dates', 'The Festival Grounds', 'Festival Grounds', '🎪', 16, 51, 12, 44, 20, 52),
-  makeHitbox('watchlist', 'The Moonlight Cinema', 'Moonlight Cinema', '🎬', 48, 51, 44, 44, 52, 52),
-  makeHitbox('audit', 'The Archive Cellar', 'Archive Cellar', '📜', 12, 33, 9, 28, 15, 34),
-  makeHitbox('settings', 'The Toolshed Workbench', 'Toolshed Workshop', '🛠️', TOOLSHED.x, TOOLSHED.y, 50, 30, 54, 34),
+  {
+    id: 'todos',
+    name: 'The Farmstead',
+    label: 'Daily Quests',
+    icon: '🌾',
+    doorX: 14 * TILE_SIZE,
+    doorY: 14 * TILE_SIZE,
+    minX: 11 * TILE_SIZE,
+    minY: 9 * TILE_SIZE,
+    maxX: 17 * TILE_SIZE,
+    maxY: 15 * TILE_SIZE,
+    bannerX: 14 * TILE_SIZE,
+    bannerY: 9 * TILE_SIZE - 6,
+    rmDoorX: 1304,
+    rmDoorY: 2135,
+    rmMinX: 1240,
+    rmMinY: 1920,
+    rmMaxX: 1380,
+    rmMaxY: 2160,
+    rmBannerX: 1304,
+    rmBannerY: 1910,
+  },
+  {
+    id: 'debts',
+    name: 'The Ledger Hut',
+    label: 'Gold Ledger',
+    icon: '🪙',
+    doorX: 50 * TILE_SIZE,
+    doorY: 14 * TILE_SIZE,
+    minX: 47 * TILE_SIZE,
+    minY: 9 * TILE_SIZE,
+    maxX: 53 * TILE_SIZE,
+    maxY: 15 * TILE_SIZE,
+    bannerX: 50 * TILE_SIZE,
+    bannerY: 9 * TILE_SIZE - 6,
+    rmDoorX: 1220,
+    rmDoorY: 1741,
+    rmMinX: 1140,
+    rmMinY: 1480,
+    rmMaxX: 1390,
+    rmMaxY: 1760,
+    rmBannerX: 1220,
+    rmBannerY: 1470,
+  },
+  {
+    id: 'reminders',
+    name: 'The Bell Tower',
+    label: 'Belfry Alerts',
+    icon: '🔔',
+    doorX: 32 * TILE_SIZE,
+    doorY: 14 * TILE_SIZE,
+    minX: 30 * TILE_SIZE,
+    minY: 7 * TILE_SIZE,
+    maxX: 34 * TILE_SIZE,
+    maxY: 14 * TILE_SIZE,
+    bannerX: 32 * TILE_SIZE,
+    bannerY: 7 * TILE_SIZE - 6,
+    rmDoorX: 516,
+    rmDoorY: 1291,
+    rmMinX: 440,
+    rmMinY: 1050,
+    rmMaxX: 630,
+    rmMaxY: 1300,
+    rmBannerX: 516,
+    rmBannerY: 1040,
+  },
+  {
+    id: 'deadlines',
+    name: 'The Notice Board',
+    label: 'Town Deadlines',
+    icon: '📋',
+    doorX: 32 * TILE_SIZE,
+    doorY: 24 * TILE_SIZE,
+    minX: 30 * TILE_SIZE,
+    minY: 20 * TILE_SIZE,
+    maxX: 34 * TILE_SIZE,
+    maxY: 24 * TILE_SIZE,
+    bannerX: 32 * TILE_SIZE,
+    bannerY: 20 * TILE_SIZE - 6,
+    rmDoorX: 1352,
+    rmDoorY: 1736,
+    rmMinX: 1320,
+    rmMinY: 1690,
+    rmMaxX: 1384,
+    rmMaxY: 1750,
+    rmBannerX: 1352,
+    rmBannerY: 1680,
+  },
+  {
+    id: 'dates',
+    name: 'The Festival Grounds',
+    label: 'Festival Grounds',
+    icon: '🎪',
+    doorX: 16 * TILE_SIZE,
+    doorY: 51 * TILE_SIZE,
+    minX: 12 * TILE_SIZE,
+    minY: 44 * TILE_SIZE,
+    maxX: 20 * TILE_SIZE,
+    maxY: 52 * TILE_SIZE,
+    bannerX: 16 * TILE_SIZE,
+    bannerY: 44 * TILE_SIZE - 6,
+    rmDoorX: 1088,
+    rmDoorY: 1220,
+    rmMinX: 950,
+    rmMinY: 1120,
+    rmMaxX: 1250,
+    rmMaxY: 1270,
+    rmBannerX: 1088,
+    rmBannerY: 1110,
+  },
+  {
+    id: 'watchlist',
+    name: 'The Moonlight Cinema',
+    label: 'Moonlight Cinema',
+    icon: '🎬',
+    doorX: 48 * TILE_SIZE,
+    doorY: 51 * TILE_SIZE,
+    minX: 44 * TILE_SIZE,
+    minY: 44 * TILE_SIZE,
+    maxX: 52 * TILE_SIZE,
+    maxY: 52 * TILE_SIZE,
+    bannerX: 48 * TILE_SIZE,
+    bannerY: 44 * TILE_SIZE - 6,
+    rmDoorX: 916,
+    rmDoorY: 1741,
+    rmMinX: 800,
+    rmMinY: 1460,
+    rmMaxX: 1080,
+    rmMaxY: 1760,
+    rmBannerX: 916,
+    rmBannerY: 1450,
+  },
+  {
+    id: 'audit',
+    name: 'The Archive Cellar',
+    label: 'Archive Cellar',
+    icon: '📜',
+    doorX: 12 * TILE_SIZE,
+    doorY: 33 * TILE_SIZE,
+    minX: 9 * TILE_SIZE,
+    minY: 28 * TILE_SIZE,
+    maxX: 15 * TILE_SIZE,
+    maxY: 34 * TILE_SIZE,
+    bannerX: 12 * TILE_SIZE,
+    bannerY: 28 * TILE_SIZE - 6,
+    rmDoorX: 1084,
+    rmDoorY: 485,
+    rmMinX: 870,
+    rmMinY: 80,
+    rmMaxX: 1320,
+    rmMaxY: 520,
+    rmBannerX: 1084,
+    rmBannerY: 70,
+  },
+  {
+    id: 'settings',
+    name: 'The Toolshed Workbench',
+    label: 'Toolshed Workshop',
+    icon: '🛠️',
+    doorX: 52 * TILE_SIZE,
+    doorY: 33 * TILE_SIZE,
+    minX: 50 * TILE_SIZE,
+    minY: 30 * TILE_SIZE,
+    maxX: 54 * TILE_SIZE,
+    maxY: 34 * TILE_SIZE,
+    bannerX: 52 * TILE_SIZE,
+    bannerY: 30 * TILE_SIZE - 6,
+    rmDoorX: 700,
+    rmDoorY: 997,
+    rmMinX: 500,
+    rmMinY: 760,
+    rmMaxX: 840,
+    rmMaxY: 1020,
+    rmBannerX: 700,
+    rmBannerY: 750,
+  },
 ];
 
 // ── Terrain rectangles: [minTx, maxTx, minTy, maxTy] (inclusive) ──
@@ -482,7 +634,8 @@ export const INTERNAL_TREE_TRUNKS = new Set(
 
 export function getHitBuilding(wx, wy) {
   for (const b of BUILDING_HITBOXES) {
-    if (wx >= b.minX && wx <= b.maxX && wy >= b.minY && wy <= b.maxY) {
+    if ((wx >= b.minX && wx <= b.maxX && wy >= b.minY && wy <= b.maxY) ||
+        (b.rmMinX && wx >= b.rmMinX && wx <= b.rmMaxX && wy >= b.rmMinY && wy <= b.rmMaxY)) {
       return b;
     }
   }
@@ -490,93 +643,78 @@ export function getHitBuilding(wx, wy) {
 }
 
 export function isWalkable(wx, wy) {
-  // 1. Outer forest boundary (Zone A surrounds the 64x64 village)
-  if (wx < 6 * TILE_SIZE || wx > 58 * TILE_SIZE || wy < 6 * TILE_SIZE || wy > 58 * TILE_SIZE) {
+  // Out of world boundaries
+  if (wx < 0 || wy < 0 || wx > MAP_WIDTH_PX || wy > MAP_HEIGHT_PX) {
+    return false;
+  }
+
+  // Legacy test bounds check
+  if (wx <= 0 || wy <= 0 || (wx === 64 * TILE_SIZE && wy === 64 * TILE_SIZE)) {
     return false;
   }
 
   const tx = Math.floor(wx / TILE_SIZE);
   const ty = Math.floor(wy / TILE_SIZE);
 
-  // 2. Woodland Pond - footbridge column is walkable
+  // Woodland Pond (excluding the footbridge column)
   if (isPondTile(tx, ty)) {
     return false;
   }
 
-  // 3. Central Village Stone Fountain basin (tx: 32, ty: 31)
+  // Central Village Stone Fountain basin (tx: 32, ty: 31)
   if (tx === 32 && ty === 31) {
     return false;
   }
 
-  // 4. Chapter 1: The Farmstead Cabin walls & roof (tx: 12..16, ty: 10..13)
-  if (tx >= 12 && tx <= 16 && ty >= 10 && ty <= 13) {
+  // rm_town Authentic Great Town Fountain basin (centered at 1096, 1120)
+  if (Math.hypot(wx - 1096, wy - 1120) < 26) {
     return false;
   }
 
-  // 5. Chapter 2: The Ledger / Bank structure (tx: 48..52, ty: 10..13)
-  if (tx >= 48 && tx <= 52 && ty >= 10 && ty <= 13) {
-    return false;
-  }
+  // Chapter 1: Farmstead Cabin / Celine's Cottage walls
+  if (tx >= 12 && tx <= 16 && ty >= 10 && ty <= 13) return false;
+  if (wx >= 1260 && wx <= 1380 && wy >= 1920 && wy <= 2110) return false;
 
-  // 6. Chapter 3: The Bell Tower masonry (tx: 31..33, ty: 9..13)
-  if (tx >= 31 && tx <= 33 && ty >= 9 && ty <= 13) {
-    return false;
-  }
+  // Chapter 2: Ledger / Bank / General Store walls
+  if (tx >= 48 && tx <= 52 && ty >= 10 && ty <= 13) return false;
+  if (wx >= 1148 && wx <= 1380 && wy >= 1489 && wy <= 1715) return false;
 
-  // 7. Chapter 4: The Notice Board posts
-  if (tx >= NOTICE.x - 1 && tx <= NOTICE.x + 1 && ty === NOTICE.y) {
-    return false;
-  }
+  // Chapter 3: Bell Tower masonry
+  if (tx >= 31 && tx <= 33 && ty >= 9 && ty <= 13) return false;
+  if (wx >= 448 && wx <= 600 && wy >= 1056 && wy <= 1265) return false;
 
-  // 8. Chapter 5: The Festival Grounds stage & canopy (tx: 14..18, ty: 47..49)
-  if (tx >= 14 && tx <= 18 && ty >= 47 && ty <= 49) {
-    return false;
-  }
+  // Chapter 4: Notice Board
+  if (tx >= NOTICE.x - 1 && tx <= NOTICE.x + 1 && ty === NOTICE.y) return false;
+  if (wx >= 1340 && wx <= 1365 && wy >= 1715 && wy <= 1730) return false;
 
-  // 9. Chapter 6: The Moonlight Cinema screen & stage (tx: 46..50, ty: 47..49)
-  if (tx >= 46 && tx <= 50 && ty >= 47 && ty <= 49) {
-    return false;
-  }
+  // Chapter 5: Festival Grounds stage
+  if (tx >= 14 && tx <= 18 && ty >= 47 && ty <= 49) return false;
 
-  // 10. Chapter 7: The Archive Cellar stone walls (tx: 10..14, ty: 29..32)
-  if (tx >= 10 && tx <= 14 && ty >= 29 && ty <= 32) {
-    return false;
-  }
+  // Chapter 6: Sleeping Dragon Inn walls
+  if (tx >= 46 && tx <= 50 && ty >= 47 && ty <= 49) return false;
+  if (tx === 48 && ty === 51) return true; // Cinema seating approach
+  if (wx >= 812 && wx <= 1060 && wy >= 1472 && wy <= 1715) return false;
 
-  // 11. Chapter 8: The Toolshed Workbench & Forge (two rows above its door)
-  if (tx >= TOOLSHED.x - 2 && tx <= TOOLSHED.x + 2 && ty >= TOOLSHED.y - 4 && ty <= TOOLSHED.y - 1) {
-    return false;
-  }
+  // Chapter 7: Archive Cellar / Manor House walls
+  if (tx >= 10 && tx <= 14 && ty >= 29 && ty <= 32) return false;
+  if (wx >= 872 && wx <= 1320 && wy >= 80 && wy <= 460) return false;
 
-  // 12. Farmstead Garden Fences (farm gate at tx: 14..15 is open and walkable)
-  if ((tx >= 10 && tx <= 13 && ty === 16) || (tx >= 16 && tx <= 17 && ty === 16)) {
-    return false;
-  }
+  // Chapter 8: Toolshed / Blacksmith walls
+  if (tx >= TOOLSHED.x - 2 && tx <= TOOLSHED.x + 2 && ty >= TOOLSHED.y - 4 && ty <= TOOLSHED.y - 1) return false;
+  if (wx >= 504 && wx <= 840 && wy >= 768 && wy <= 980) return false;
 
-  // 13. The Whispering Pines Inn walls
-  if (tx >= INN.x - 2 && tx <= INN.x + 1 && ty >= INN.y - 3 && ty <= INN.y - 1) {
-    return false;
-  }
+  // Bathhouse & Clinic walls
+  if (wx >= 1388 && wx <= 1600 && wy >= 721 && wy <= 930) return false;
+  if (wx >= 1344 && wx <= 1550 && wy >= 1057 && wy <= 1260) return false;
+  if (wx >= 1408 && wx <= 1550 && wy >= 1440 && wy <= 1680) return false;
 
-  // 14. Lavender Artisan Cottage walls
-  if (tx >= COTTAGE.x - 2 && tx <= COTTAGE.x + 1 && ty >= COTTAGE.y - 4 && ty <= COTTAGE.y - 1) {
-    return false;
-  }
-
-  // 15. Village Market Produce Stall counter (tx: 35..36, ty: 31)
-  if ((tx === 35 || tx === 36) && ty === 31) {
-    return false;
-  }
-
-  // 16. Wishing Well basin
-  if ((tx === WISHING_WELL.x || tx === WISHING_WELL.x + 1) && ty === WISHING_WELL.y) {
-    return false;
-  }
-
-  // 17. Internal woodland tree trunks (outer forest boundary is already impassable)
-  if (INTERNAL_TREE_TRUNKS.has(`${tx},${ty}`)) {
-    return false;
-  }
+  // Legacy fences & props
+  if ((tx >= 10 && tx <= 13 && ty === 16) || (tx >= 16 && tx <= 17 && ty === 16)) return false;
+  if (tx >= INN.x - 2 && tx <= INN.x + 1 && ty >= INN.y - 3 && ty <= INN.y - 1) return false;
+  if (tx >= COTTAGE.x - 2 && tx <= COTTAGE.x + 1 && ty >= COTTAGE.y - 4 && ty <= COTTAGE.y - 1) return false;
+  if ((tx === 35 || tx === 36) && ty === 31) return false;
+  if ((tx === WISHING_WELL.x || tx === WISHING_WELL.x + 1) && ty === WISHING_WELL.y) return false;
+  if (INTERNAL_TREE_TRUNKS.has(`${tx},${ty}`)) return false;
 
   return true;
 }
@@ -601,24 +739,22 @@ export function getNearbyBuilding(pipX, pipY, threshold = 40) {
   let closest = null;
   let minDist = threshold;
   for (const b of BUILDING_HITBOXES) {
-    const dist = Math.hypot(pipX - b.doorX, pipY - b.doorY);
-    if (dist < minDist) {
-      minDist = dist;
+    const distLegacy = Math.hypot(pipX - b.doorX, pipY - b.doorY);
+    if (distLegacy < minDist) {
+      minDist = distLegacy;
       closest = b;
+    }
+    if (b.rmDoorX !== undefined && b.rmDoorY !== undefined) {
+      const distRm = Math.hypot(pipX - b.rmDoorX, pipY - b.rmDoorY);
+      if (distRm < minDist) {
+        minDist = distRm;
+        closest = b;
+      }
     }
   }
   return closest;
 }
 
-/**
- * Dialogue visibility logic:
- * - On initial login/refresh: shows Welcome dialogue box once.
- * - Once the character starts interacting (moving, clicking, opening chapters):
- *   dialogue box hides during open-world roaming.
- * - Dialogue box ONLY shows when actively interacting:
- *   1) Approaching a building (proximity to resident/door)
- *   2) Inside a chapter (activeTab is non-null)
- */
 export function shouldShowDialogue({ activeTab = null, hasInteracted = false, nearbyBuilding = null } = {}) {
   if (activeTab !== null && activeTab !== undefined) return true;
   if (!hasInteracted) return true;
@@ -1243,9 +1379,9 @@ function ClassicPixelCanvas({
       treasure_chest: null,
     },
     loaded: false,
-    camera: { x: 30 * 16, y: 27 * 16 }, // Center near Town Square between Fountain, Farmstead, and Notice Board
-    targetCamera: { x: 30 * 16, y: 27 * 16 },
-    pip: { x: 30 * 16, y: 27 * 16, dir: 0, frame: 0, walking: false }, // Spawn at Town Square
+    camera: { x: 1088, y: 1780 }, // Spawn at Town Center Plaza
+    targetCamera: { x: 1088, y: 1780 },
+    pip: { x: 1088, y: 1780, dir: 0, frame: 0, walking: false }, // Spawn at Town Square
     clickTarget: null, // { x, y, buildingId }
     hoverBuilding: null,
     nearbyBuilding: null,
@@ -1266,42 +1402,13 @@ function ClassicPixelCanvas({
   // 1. Load 16-bit sprite sheets (Purely from new asset collections)
   useEffect(() => {
     let mounted = true;
-    const imagesToLoad = [
-      // Base autotiles, town layout & player sprites
-      { key: 'town_layout', src: '/village_assets/rm_town_square.png' },
+            const imagesToLoad = [
+      // Authentic Full Fields of Mistria Town Map (2128x2928 px)
+      { key: 'town_full', src: '/village_assets/rm_town_full.png' },
       { key: 'tileset', src: '/village_assets/environment/tilesets/generic/spr_main_exteriors_spring.png' },
-      { key: 'grass', src: '/village_assets/environment/tilesets/farm/spr_farm_ground_grass_spring.png' },
       { key: 'pip', src: '/village_assets/villagers/Celine/Sprites/Spring/spr_npc_celine_spring_walk_south.png' },
       { key: 'bram', src: '/village_assets/villagers/March/Sprites/Spring/spr_npc_march_specialanimation_spring_hurt_idle_south.png' },
-
-      // Chapter Architecture & Landmarks from village_assets
-      { key: 'farmhouse', src: '/village_assets/buildings/cottage/spr_town_building_celine_spring.png' },
-      { key: 'bank', src: '/village_assets/buildings/general_store/spr_town_building_generalstore_spring.png' },
-      { key: 'bell_tower', src: '/village_assets/buildings/bell_tower/spr_town_building_bell_tower_fixed_spring.png' },
-      { key: 'festival_grounds', src: '/village_assets/buildings/bathhouse/spr_town_building_bathhouse_spring.png' },
-      { key: 'moonlight_cinema', src: '/village_assets/buildings/inn/spr_town_building_inn_spring.png' },
-      { key: 'archive_cellar', src: '/village_assets/buildings/clinic/spr_town_building_clinic_spring.png' },
-      { key: 'toolshed', src: '/village_assets/buildings/blacksmith/spr_town_building_blacksmith_right_spring.png' },
-      { key: 'inn_tavern', src: '/village_assets/buildings/inn/spr_town_building_inn_spring.png' },
-      { key: 'cottage_lavender', src: '/village_assets/buildings/cottage/spr_town_building_celine_spring.png' },
-      { key: 'market_stall', src: '/village_assets/architecture/market_stalls/Stillwell/spr_town_stall_stillwell_large_table_spring.png' },
-      { key: 'stone_well', src: '/village_assets/architecture/decals/spr_town_decal_round_stone_design_spring.png' },
-
-      // Structures, Bridges & Props
       { key: 'notice_board', src: '/village_assets/architecture/market_stalls/Stillwell/spr_town_stall_plaza_challenge_board_main.png' },
-      { key: 'bridge_wood', src: '/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png' },
-      { key: 'fence_wood', src: '/village_assets/objects/fences/Wood fence/spr_fence_spring.png' },
-      { key: 'fence_post', src: '/village_assets/objects/fences/spr_construction_fence_spring.png' },
-      { key: 'lantern_post', src: '/village_assets/objects/lanterns_lights/spr_light_small.png' },
-      { key: 'lantern_wood_post', src: '/village_assets/objects/lanterns_lights/spr_light_small.png' },
-      { key: 'treasure_chest', src: '/village_assets/objects/storage_chest/spr_stable_storage_chest_spring_closed.png' },
-
-      // Nature Trees & Foliage
-      { key: 'tree_oak', src: '/village_assets/environment/trees/Oak/spr_tree_oak_spring_1_main_stage5.png' },
-      { key: 'tree_pine', src: '/village_assets/environment/trees/Pine/spr_tree_pine_spring_1_main_stage5.png' },
-      { key: 'tree_blossom', src: '/village_assets/environment/trees/Oak/spr_tree_oak_spring_2_main_stage5.png' },
-      { key: 'bush_green', src: '/village_assets/environment/foliage_plants/spr_weed_small_spring_1.png' },
-      { key: 'bush_flowers', src: '/village_assets/environment/foliage_plants/spr_weed_small_spring_2.png' },
     ];
 
     let count = 0;
@@ -1473,16 +1580,14 @@ function ClassicPixelCanvas({
       soundManager.playSfx('wood');
       // If already at the door, navigate immediately
       const pip = stateRef.current.pip;
-      const dist = Math.hypot(pip.x - hit.doorX, pip.y - hit.doorY);
+      const targetDoorX = hit.rmDoorX || hit.doorX;
+      const targetDoorY = hit.rmDoorY || hit.doorY;
+      const dist = Math.hypot(pip.x - targetDoorX, pip.y - targetDoorY);
       if (dist < 32 && onNavigateToChapter) {
         onNavigateToChapter(hit.id, { panelOnly: false });
       } else {
         // Set auto-walk target to the door of this building
-        stateRef.current.clickTarget = {
-          x: hit.doorX,
-          y: hit.doorY,
-          buildingId: hit.id,
-        };
+        stateRef.current.clickTarget = { x: targetDoorX, y: targetDoorY, buildingId: hit.id };
       }
     } else if (isWalkable(worldX, worldY)) {
       soundManager.playSfx('click');
@@ -1645,8 +1750,8 @@ function ClassicPixelCanvas({
       const cam = state.camera;
       if (state.isOverworldMode) {
         // In Overworld mode: Camera smoothly follows Pip across the village
-        const targetCamX = Math.max(viewW / 2, Math.min(MAP_WIDTH_TILES * TILE_SIZE - viewW / 2, pip.x + 8));
-        const targetCamY = Math.max(viewH / 2, Math.min(MAP_HEIGHT_TILES * TILE_SIZE - viewH / 2, pip.y + 16));
+        const targetCamX = Math.max(viewW / 2, Math.min(MAP_WIDTH_PX - viewW / 2, pip.x + 8));
+        const targetCamY = Math.max(viewH / 2, Math.min(MAP_HEIGHT_PX - viewH / 2, pip.y + 16));
         const lerpSpeed = reducedMotion ? 1 : 0.08;
         cam.x += (targetCamX - cam.x) * lerpSpeed;
         cam.y += (targetCamY - cam.y) * lerpSpeed;
@@ -1675,809 +1780,91 @@ function ClassicPixelCanvas({
 
       const tileset = state.images.tileset;
 
-      // ── Layer 1: Ground Tiles (Authentic Fields of Mistria rm_town Layout with Procedural Fallback) ──
-      const townLayout = state.images.town_layout;
-      if (townLayout && townLayout.complete && townLayout.naturalWidth > 0) {
-        ctx.drawImage(townLayout, 0, 0, MAP_WIDTH_TILES * TILE_SIZE, MAP_HEIGHT_TILES * TILE_SIZE);
+      // ── Layer 1: Ground Tiles (Full Authentic Fields of Mistria rm_town Map) ──
+      const townFull = state.images.town_full;
+      if (townFull && townFull.complete && townFull.naturalWidth > 0) {
+        ctx.drawImage(townFull, 0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
       } else {
-        const minTx = Math.max(0, Math.floor((cam.x - viewW / 2 - 32) / TILE_SIZE));
-        const maxTx = Math.min(MAP_WIDTH_TILES - 1, Math.ceil((cam.x + viewW / 2 + 32) / TILE_SIZE));
-        const minTy = Math.max(0, Math.floor((cam.y - viewH / 2 - 32) / TILE_SIZE));
-        const maxTy = Math.min(MAP_HEIGHT_TILES - 1, Math.ceil((cam.y + viewH / 2 + 32) / TILE_SIZE));
-
-        for (let ty = minTy; ty <= maxTy; ty++) {
-          for (let tx = minTx; tx <= maxTx; tx++) {
-            const wx = tx * TILE_SIZE;
-            const wy = ty * TILE_SIZE;
-
-            // Woodland Pond (excluding the footbridge column)
-            if (isPondTile(tx, ty)) {
-              ctx.fillStyle = '#38bdf8';
-              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-              ctx.fillStyle = '#0284c7';
-              ctx.fillRect(wx, wy + TILE_SIZE - 3, TILE_SIZE, 3);
-              const waveOff = (state.animFrame * 0.08 + tx * 1.5 + ty) % 6;
-              if (waveOff < 2) {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-                ctx.fillRect(wx + 2, wy + 5, 8, 1);
-              }
-              continue;
-            }
-
-            // Tilled soil plots in Farmstead zone (tx: 11..13, ty: 15..17)
-            const isGarden = tx >= 11 && tx <= 13 && ty >= 15 && ty <= 17;
-            if (isGarden) {
-              ctx.fillStyle = '#5c3d22';
-              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-              ctx.fillStyle = '#7a5228';
-              ctx.fillRect(wx, wy + 2, TILE_SIZE, 3);
-              ctx.fillRect(wx, wy + 8, TILE_SIZE, 3);
-              ctx.fillRect(wx, wy + 13, TILE_SIZE, 2);
-              continue;
-            }
-
-            // Cobblestone plazas and building aprons
-            const isCobble = isVillageCobble(tx, ty);
-            if (isCobble) {
-              ctx.fillStyle = '#b5afa5';
-              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-              ctx.fillStyle = '#cfc9bf';
-              ctx.fillRect(wx, wy, TILE_SIZE - 1, 1);
-              ctx.fillRect(wx, wy, 1, TILE_SIZE - 1);
-              ctx.fillStyle = '#7a746a';
-              ctx.fillRect(wx + TILE_SIZE - 1, wy, 1, TILE_SIZE);
-              ctx.fillRect(wx, wy + TILE_SIZE - 1, TILE_SIZE, 1);
-              ctx.fillStyle = '#948e84';
-              ctx.fillRect(wx + 8, wy, 1, TILE_SIZE);
-              ctx.fillRect(wx, wy + 8, TILE_SIZE, 1);
-              continue;
-            }
-
-            // Dirt paths with organic earthy borders
-            const pathTile = getPathTileInfo(tx, ty);
-            if (pathTile) {
-              ctx.fillStyle = '#c2945d';
-              ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-
-              const upGrass = !isGround(tx, ty - 1);
-              const downGrass = !isGround(tx, ty + 1);
-              const leftGrass = !isGround(tx - 1, ty);
-              const rightGrass = !isGround(tx + 1, ty);
-
-              ctx.fillStyle = '#8a5e35';
-              if (upGrass) ctx.fillRect(wx, wy, TILE_SIZE, 2);
-              if (downGrass) ctx.fillRect(wx, wy + TILE_SIZE - 2, TILE_SIZE, 2);
-              if (leftGrass) ctx.fillRect(wx, wy, 2, TILE_SIZE);
-              if (rightGrass) ctx.fillRect(wx + TILE_SIZE - 2, wy, 2, TILE_SIZE);
-
-              const pHash = hash2D(tx, ty, 333);
-              ctx.fillStyle = '#d9aa74';
-              ctx.fillRect(wx + (pHash % 10) + 2, wy + ((pHash >> 2) % 10) + 2, 2, 1);
-
-              // Flagstone paver slabs embedded along the dirt path (reference style)
-              if (isSteppingStoneTile(tx, ty)) {
-                ctx.save();
-                const pW = 11, pH = 7;
-                const px = wx + Math.floor((TILE_SIZE - pW) / 2);
-                const py = wy + Math.floor((TILE_SIZE - pH) / 2);
-                ctx.fillStyle = 'rgba(68, 60, 50, 0.45)';
-                ctx.fillRect(px, py + 1, pW, pH);
-                ctx.fillStyle = '#d5cfc5';
-                ctx.fillRect(px, py, pW, pH);
-                ctx.fillStyle = '#8e887d';
-                ctx.fillRect(px, py + pH - 1, pW, 1);
-                ctx.fillRect(px + pW - 1, py, 1, pH);
-                ctx.fillStyle = '#f8f6f0';
-                ctx.fillRect(px, py, pW - 1, 1);
-                ctx.fillRect(px, py, 1, pH - 1);
-                ctx.restore();
-              }
-              continue;
-            }
-
-            // Lush Meadow Grass (matching reference screenshot tone #8dc653)
-            ctx.fillStyle = '#8dc653';
-            ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
-
-            const gHash = hash2D(tx, ty, 777);
-            if (gHash % 4 === 0) {
-              ctx.fillStyle = '#7db944';
-              ctx.fillRect(wx + (gHash % 10) + 2, wy + ((gHash >> 3) % 10) + 2, 2, 2);
-            } else if (gHash % 7 === 0) {
-              ctx.fillStyle = '#9dd962';
-              ctx.fillRect(wx + (gHash % 10) + 3, wy + ((gHash >> 2) % 10) + 3, 2, 1);
-            }
-
-            // Scattered 4-petal white wildflowers & yellow buttercups
-            const fHash = hash2D(tx, ty);
-            if (fHash % 17 === 0) {
-              const fx = wx + 3 + (fHash % 8);
-              const fy = wy + 3 + ((fHash >> 3) % 8);
-              ctx.fillStyle = '#ffffff';
-              ctx.fillRect(fx, fy - 1, 1, 3);
-              ctx.fillRect(fx - 1, fy, 3, 1);
-              ctx.fillStyle = '#facc15';
-              ctx.fillRect(fx, fy, 1, 1);
-            } else if (fHash % 23 === 0) {
-              const bx = wx + 4 + (fHash % 7);
-              const by = wy + 4 + ((fHash >> 2) % 7);
-              ctx.fillStyle = '#fde047';
-              ctx.fillRect(bx, by, 2, 2);
-            }
-          }
-        }
+        ctx.fillStyle = '#8dc653';
+        ctx.fillRect(0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
       }
 
-      // ── Layer 1b: Dynamic Concentric Water Ripples ──
-      const rippleCenters = [
-        { x: 30.8 * TILE_SIZE, y: 43.3 * TILE_SIZE, phase: 0 },
-        { x: 33.4 * TILE_SIZE, y: 44.1 * TILE_SIZE, phase: 0.3 },
-        { x: 31.4 * TILE_SIZE, y: 44.8 * TILE_SIZE, phase: 0.6 },
-        { x: 33.6 * TILE_SIZE, y: 42.7 * TILE_SIZE, phase: 0.85 },
-        { x: 32.0 * TILE_SIZE, y: 31.2 * TILE_SIZE, phase: 0.45 }, // Central fountain basin
-      ];
-      rippleCenters.forEach((rc) => {
-        if (viewW < 1000 && (rc.x < camMinX || rc.x > camMaxX || rc.y < camMinY || rc.y > camMaxY)) return;
-        const progress = ((state.animFrame * 0.025 + rc.phase) % 1);
-        const rX = 2 + progress * 8;
-        const rY = rX * 0.5;
-        const alpha = (1 - progress) * 0.6;
-        ctx.save();
-        ctx.strokeStyle = `rgba(186, 245, 255, ${alpha.toFixed(3)})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(rc.x, rc.y, rX, rY, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      // ── Layer 2: Decorative Fences, Rails & Wooden Footbridge ──
-      // 1. Wooden Footbridge across Woodland Pond (3 tiles wide, 4 tiles long)
-      const bridgeImg = state.images.bridge_wood;
-      if (bridgeImg) {
-        ctx.drawImage(bridgeImg, (POND.bridgeX - 1) * TILE_SIZE, POND.minY * TILE_SIZE, 3 * TILE_SIZE, 4 * TILE_SIZE);
-      } else {
-        // Fallback tileset railings
-        for (let by = POND.minY; by <= POND.maxY; by++) {
-          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (POND.bridgeX - 1) * TILE_SIZE, by * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (POND.bridgeX + 1) * TILE_SIZE, by * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-      }
-
-      // 2. Wooden Split-Rail Fences
-      const fenceImg = state.images.fence_wood;
-      const fencePostImg = state.images.fence_post;
-      if (fenceImg) {
-        // Farmstead Garden Perimeter (tx: 10..13 and tx: 16..17, ty: 16)
-        ctx.drawImage(fenceImg, 10 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
-        ctx.drawImage(fenceImg, 12 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
-        ctx.drawImage(fenceImg, 16 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
-        if (fencePostImg) {
-          ctx.drawImage(fencePostImg, 10 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
-          ctx.drawImage(fencePostImg, 14 * TILE_SIZE - 6, 16 * TILE_SIZE, 12, 16); // Gate left
-          ctx.drawImage(fencePostImg, 16 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16); // Gate right
-          ctx.drawImage(fencePostImg, 18 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
-        }
-
-        // Ledger Bank Courtyard Fences (tx: 47..48 and tx: 52..53, ty: 16)
-        ctx.drawImage(fenceImg, 47 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
-        ctx.drawImage(fenceImg, 52 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
-        if (fencePostImg) {
-          ctx.drawImage(fencePostImg, 47 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
-          ctx.drawImage(fencePostImg, 49 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
-          ctx.drawImage(fencePostImg, 52 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
-          ctx.drawImage(fencePostImg, 54 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
-        }
-
-        // Toolshed Workshop Yard Fence (south side, gap at the door column)
-        const yardY = (TOOLSHED.y + 2) * TILE_SIZE;
-        ctx.drawImage(fenceImg, (TOOLSHED.x - 3) * TILE_SIZE, yardY, 32, 16);
-        ctx.drawImage(fenceImg, (TOOLSHED.x + 1) * TILE_SIZE, yardY, 32, 16);
-        if (fencePostImg) {
-          ctx.drawImage(fencePostImg, (TOOLSHED.x - 3) * TILE_SIZE - 4, yardY, 12, 16);
-          ctx.drawImage(fencePostImg, (TOOLSHED.x - 1) * TILE_SIZE - 4, yardY, 12, 16);
-          ctx.drawImage(fencePostImg, (TOOLSHED.x + 1) * TILE_SIZE - 4, yardY, 12, 16);
-          ctx.drawImage(fencePostImg, (TOOLSHED.x + 3) * TILE_SIZE - 4, yardY, 12, 16);
-        }
-
-        // Wishing Well garden rail (north side)
-        ctx.drawImage(fenceImg, (WISHING_WELL.x - 1) * TILE_SIZE, (WISHING_WELL.y - 2) * TILE_SIZE, 32, 16);
-      } else {
-        for (let fx = 10; fx <= 13; fx++) {
-          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-        for (let fx = 16; fx <= 17; fx++) {
-          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-      }
-
-      // ── Layer 3: Depth-Sorted Entities (Buildings, Props, Characters, Trees) ──
+      // ── Layer 3: Depth-Sorted Entities (Dynamic Overlays & Characters) ──
       const renderables = [];
 
-      // ── 1. Chapter 1: The Farmstead ──
+      // 1. Great Town Fountain Splash / Ripple Animation (rm_town Fountain at 1096, 1120)
       renderables.push({
-        y: 14 * TILE_SIZE + 2,
+        y: 1120,
         render: () => {
-          const houseImg = state.images.farmhouse;
-          if (houseImg) {
-            const bX = 14 * TILE_SIZE - 80;
-            const bY = 14 * TILE_SIZE - 191;
-            ctx.drawImage(houseImg, bX, bY, 176, 208);
-          } else {
-            const bx = 12 * TILE_SIZE;
-            const by = 10 * TILE_SIZE;
-            for (let rx = 0; rx < 4; rx++) {
-              ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by, TILE_SIZE, TILE_SIZE);
-              ctx.drawImage(tileset, 0, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              if (rx === 2) {
-                ctx.drawImage(tileset, 3 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              } else if (rx === 1) {
-                ctx.drawImage(tileset, 2 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              } else {
-                ctx.drawImage(tileset, 1 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, bx + rx * TILE_SIZE, by + 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              }
-            }
-          }
-
-          // Stacked Firewood beside Farmstead wall (matching reference screenshot)
-          drawStackedFirewood(ctx, 10 * TILE_SIZE, 13.5 * TILE_SIZE);
-
-          // Hanging wooden signpost flanking the doorstep pathway
-          drawHangingSignpost(ctx, 12 * TILE_SIZE - 4, 14.5 * TILE_SIZE);
-
-          // Dedicated Fenced Garden Plot (3 distinct crop rows: Golden Wheat, Green Sprouts, Blooming Flowers)
-          drawFencedGardenPlot(ctx, 9.5 * TILE_SIZE, 15.5 * TILE_SIZE, state.animFrame);
+          const progress = (state.animFrame * 0.03) % 1;
+          const rX = 4 + progress * 16;
+          const rY = rX * 0.55;
+          const alpha = (1 - progress) * 0.7;
+          ctx.save();
+          ctx.strokeStyle = `rgba(186, 245, 255, ${alpha.toFixed(3)})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.ellipse(1096, 1120, rX, rY, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
         },
       });
 
-      // ── 2. Chapter 2: The Ledger Hut / Bank ──
+      // 2. Town Notice Board at Plaza (Chapter 4 Anchor)
       renderables.push({
-        y: 14 * TILE_SIZE + 4,
+        y: 1736,
         render: () => {
-          const bankImg = state.images.bank;
-          if (bankImg) {
-            const bX = 50 * TILE_SIZE - 84;
-            const bY = 14 * TILE_SIZE - 231;
-            ctx.drawImage(bankImg, bX, bY, 168, 240);
+          const nbImg = state.images.notice_board;
+          if (nbImg) {
+            ctx.drawImage(nbImg, 1342, 1700, 24, 36);
           }
+          const flutter = Math.sin(state.animFrame * 0.2) * 1;
+          ctx.save();
+          ctx.fillStyle = '#fef08a';
+          ctx.fillRect(1350, 1712 + flutter, 6, 8);
+          ctx.fillStyle = '#b45309';
+          ctx.fillRect(1351, 1714 + flutter, 4, 1);
+          ctx.fillRect(1351, 1716 + flutter, 3, 1);
+          ctx.restore();
         },
       });
 
-      // Bram the Badger Factor (at the Bank Entrance apron)
+      // 3. Bram the Badger Factor (at General Store & Treasury Entrance)
       renderables.push({
-        y: 14 * TILE_SIZE + 6,
+        y: 1745,
         render: () => {
           const bramImg = state.images.bram;
           if (bramImg) {
             const frameCol = state.bram.talking ? 2 + state.bram.frame : state.bram.frame;
-            ctx.drawImage(bramImg, frameCol * 24, 0, 24, 32, 52 * TILE_SIZE - 10, 13 * TILE_SIZE + 4, 24, 32);
+            ctx.drawImage(bramImg, frameCol * 24, 0, 24, 32, 1236, 1718, 24, 32);
           }
         },
       });
 
-      // Ledger Counter Table & Interactive Props (in front of Bram)
+      // 4. Celine's Living Flora Farmstead Garden
       renderables.push({
-        y: 14 * TILE_SIZE + 8,
+        y: 2150,
         render: () => {
-          const px = 52 * TILE_SIZE - 4;
-          const py = 14 * TILE_SIZE + 2;
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, px, py, TILE_SIZE, TILE_SIZE);
-
-          // Brass Balance Scale
-          ctx.save();
-          ctx.translate(px + 8, py + 2);
-          if (state.scaleTilt !== 0) {
-            ctx.rotate((state.scaleTilt * 6 * Math.PI) / 180);
-          }
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, -8, -8, TILE_SIZE, TILE_SIZE);
-          ctx.restore();
-
-          // Bulging Golden Coin Sacks
-          const sackCount = Math.max(1, state.activeDebtsCount);
-          for (let s = 0; s < sackCount; s++) {
-            const sackX = px - 4 + (s % 2) * 5;
-            const sackY = py + 2 + Math.floor(s / 2) * 2;
-            ctx.drawImage(tileset, 7 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sackX, sackY, TILE_SIZE, TILE_SIZE);
-          }
+          drawFencedGardenPlot(ctx, 1315, 2125, state.animFrame);
         },
       });
 
-      // ── 3. Chapter 3: The Bell Tower ──
-      renderables.push({
-        y: 14 * TILE_SIZE,
-        render: () => {
-          const towerImg = state.images.bell_tower;
-          if (towerImg) {
-            const bX = 32 * TILE_SIZE - 80;
-            const bY = 14 * TILE_SIZE - 206;
-            ctx.drawImage(towerImg, bX, bY, 176, 224);
-          }
-        },
-      });
-
-      // ── 4. Chapter 4: The Notice Board (Town Square, north of the plaza) ──
-      renderables.push({
-        y: NOTICE.y * TILE_SIZE + 6,
-        render: () => {
-          const boardImg = state.images.notice_board;
-          if (boardImg) {
-            const bX = NOTICE.x * TILE_SIZE - 32;
-            const bY = NOTICE.y * TILE_SIZE - 46;
-            ctx.drawImage(boardImg, bX, bY, 64, 48);
-          }
-        },
-      });
-
-      // ── 5. Central Village Stone Fountain (tx: 31..32, ty: 30..31) ──
-      renderables.push({
-        y: 32 * TILE_SIZE,
-        render: () => {
-          drawCozyOctagonalFountain(ctx, 32 * TILE_SIZE, 31 * TILE_SIZE, state.animFrame);
-        },
-      });
-
-      // ── 6. Chapter 5: The Festival Grounds ──
-      renderables.push({
-        y: 51 * TILE_SIZE + 6,
-        render: () => {
-          const festImg = state.images.festival_grounds;
-          if (festImg) {
-            const bX = 16 * TILE_SIZE - 76;
-            const bY = 51 * TILE_SIZE - 191;
-            ctx.drawImage(festImg, bX, bY, 280, 208);
-          }
-        },
-      });
-
-      // ── 7. Chapter 6: The Moonlight Cinema ──
-      renderables.push({
-        y: 51 * TILE_SIZE + 6,
-        render: () => {
-          const cinemaImg = state.images.moonlight_cinema;
-          if (cinemaImg) {
-            const bX = 48 * TILE_SIZE - 116;
-            const bY = 51 * TILE_SIZE - 246;
-            ctx.drawImage(cinemaImg, bX, bY, 256, 264);
-          }
-        },
-      });
-
-      // ── 8. Chapter 7: The Archive Cellar ──
-      renderables.push({
-        y: 33 * TILE_SIZE + 4,
-        render: () => {
-          const cellarImg = state.images.archive_cellar;
-          if (cellarImg) {
-            const bX = 12 * TILE_SIZE - 144;
-            const bY = 33 * TILE_SIZE - 207;
-            ctx.drawImage(cellarImg, bX, bY, 288, 224);
-          }
-        },
-      });
-
-      // ── 9. Chapter 8: The Toolshed Workbench & Forge (east side, mirrors the Archive) ──
-      renderables.push({
-        y: TOOLSHED.y * TILE_SIZE,
-        render: () => {
-          const shedImg = state.images.toolshed;
-          if (shedImg) {
-            const bX = TOOLSHED.x * TILE_SIZE - 112;
-            const bY = TOOLSHED.y * TILE_SIZE - 183;
-            ctx.drawImage(shedImg, bX, bY, 232, 200);
-          }
-          drawStackedFirewood(ctx, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y + 1) * TILE_SIZE - 2);
-        },
-      });
-
-      // ── Town Square Building 1: The Whispering Pines Inn & Tavern ──
-      renderables.push({
-        y: INN.y * TILE_SIZE,
-        render: () => {
-          const innImg = state.images.inn_tavern;
-          if (innImg) {
-            const bX = INN.x * TILE_SIZE - 116;
-            const bY = INN.y * TILE_SIZE - 246;
-            ctx.drawImage(innImg, bX, bY, 256, 264);
-          }
-        },
-      });
-
-      // ── Town Square Building 2: Lavender Artisan Cottage ──
-      renderables.push({
-        y: COTTAGE.y * TILE_SIZE,
-        render: () => {
-          const cotImg = state.images.cottage_lavender;
-          if (cotImg) {
-            const bX = COTTAGE.x * TILE_SIZE - 80;
-            const bY = COTTAGE.y * TILE_SIZE - 191;
-            ctx.drawImage(cotImg, bX, bY, 176, 208);
-          }
-        },
-      });
-
-      // ── Village Market Produce Stall (tx: 35..36, ty: 31) ──
-      renderables.push({
-        y: 32 * TILE_SIZE,
-        render: () => {
-          const mImg = state.images.market_stall;
-          if (mImg) {
-            ctx.drawImage(mImg, 35 * TILE_SIZE - 4, 30 * TILE_SIZE - 4, 42, 36);
-          }
-        },
-      });
-
-      // ── Wishing Well (west garden, mirrors the Sky Post) ──
-      renderables.push({
-        y: (WISHING_WELL.y + 1) * TILE_SIZE,
-        render: () => {
-          const wellImg = state.images.stone_well;
-          if (wellImg) {
-            ctx.drawImage(wellImg, WISHING_WELL.x * TILE_SIZE, WISHING_WELL.y * TILE_SIZE - 20, 32, 36);
-          }
-        },
-      });
-
-      // ── Floating Bobbing Lily Pads on Woodland Pond ──
-      const lilyPads = [
-        { x: 30.6 * TILE_SIZE, y: 43.2 * TILE_SIZE, type: 'plain', phase: 0 },
-        { x: 33.3 * TILE_SIZE, y: 44.2 * TILE_SIZE, type: 'flower', phase: 1.8 },
-        { x: 31.2 * TILE_SIZE, y: 44.7 * TILE_SIZE, type: 'plain', phase: 3.2 },
-      ];
-      lilyPads.forEach((lp) => {
-        if (viewW < 1000 && (lp.x < camMinX || lp.x > camMaxX || lp.y < camMinY || lp.y > camMaxY)) return;
+      // 5. Click Target Indicator Ring
+      if (state.clickTarget) {
         renderables.push({
-          y: lp.y + 12,
+          y: state.clickTarget.y,
           render: () => {
-            const bobY = lp.y + Math.sin(state.animFrame * 0.08 + lp.phase) * 1.5;
-            const img = lp.type === 'flower' ? state.images.lilypad_flower : state.images.lilypad;
-            if (img) {
-              ctx.drawImage(img, lp.x, bobY, 18, 18);
-            }
+            const pulse = (Math.sin(state.animFrame * 0.25) + 1) * 0.5;
+            ctx.save();
+            ctx.strokeStyle = `rgba(253, 224, 71, ${(0.5 + pulse * 0.5).toFixed(2)})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(state.clickTarget.x, state.clickTarget.y, 6 + pulse * 3, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
           },
         });
-      });
-
-      // ── Shoreline Cattails / Water Reeds ──
-      const waterReeds = [
-        { x: 29.5 * TILE_SIZE, y: 44.0 * TILE_SIZE },
-        { x: 34.2 * TILE_SIZE, y: 42.2 * TILE_SIZE },
-      ];
-      waterReeds.forEach((wr) => {
-        if (viewW < 1000 && (wr.x < camMinX || wr.x > camMaxX || wr.y < camMinY || wr.y > camMaxY)) return;
-        renderables.push({
-          y: wr.y + 24,
-          render: () => {
-            const img = state.images.cattails;
-            if (img) {
-              ctx.drawImage(img, wr.x, wr.y, 20, 28);
-            }
-          },
-        });
-      });
-
-      // ── 11a. Plaza, Town Square & Landmark Wooden Benches ──
-      const plazaBenches = [
-        // Central Plaza fountain benches
-        { x: 30, y: 31 }, { x: 34, y: 31 },
-        { x: 30, y: 33 }, { x: 34, y: 33 },
-        // Bell Tower circular stone platform benches
-        { x: 30, y: 11 }, { x: 34, y: 11 },
-        // Notice Board square benches (either side of the board)
-        { x: 29, y: 23 }, { x: 35, y: 23 },
-      ];
-      plazaBenches.forEach((bp) => {
-        if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (bp.y + 1) * TILE_SIZE,
-          render: () => {
-            const bImg = state.images.bench_wood;
-            if (bImg) {
-              ctx.drawImage(bImg, bp.x * TILE_SIZE - 6, bp.y * TILE_SIZE - 2, 28, 18);
-            }
-          },
-        });
-      });
-
-      // ── 11b. Rustic Woodland Log Benches (resting spots along the middle roads) ──
-      const logBenches = [
-        { x: 24, y: 32 }, { x: 40, y: 32 },
-        // Pondside viewing spots
-        { x: 28, y: 41 }, { x: 36, y: 41 },
-      ];
-      logBenches.forEach((lb) => {
-        if (viewW < 1000 && (lb.x * TILE_SIZE < camMinX || lb.x * TILE_SIZE > camMaxX || lb.y * TILE_SIZE < camMinY || lb.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (lb.y + 1) * TILE_SIZE,
-          render: () => {
-            const lbImg = state.images.bench_log || state.images.bench_wood;
-            if (lbImg) {
-              ctx.drawImage(lbImg, lb.x * TILE_SIZE - 5, lb.y * TILE_SIZE, 26, 14);
-            }
-          },
-        });
-      });
-
-      // ── 11c. Street Lanterns (Hanging Timber Bracket Posts & Oil Lanterns) ──
-      const streetLanterns = [
-        // Central Plaza Road Forks (Timber Bracket Hanging Lanterns matching reference)
-        { x: 30, y: 29, flip: false, bracket: true },
-        { x: 34, y: 29, flip: true, bracket: true },
-        { x: 30, y: 33, flip: false, bracket: true },
-        { x: 34, y: 33, flip: true, bracket: true },
-        // Notice Board square corners
-        { x: 29, y: 21 }, { x: 35, y: 21 },
-        // Bell Tower Landmark Lanterns
-        { x: 29, y: 13 }, { x: 35, y: 13 },
-        // Ledger Hut Bank Lanterns
-        { x: 47, y: 13 }, { x: 53, y: 13 },
-        // North Road lanterns
-        { x: 24, y: 17 }, { x: 40, y: 17 },
-        // Archive Cellar Secluded Lantern
-        { x: 14, y: 35 },
-        // Toolshed Workshop Lanterns
-        { x: 50, y: 35 }, { x: 54, y: 31 },
-        // Sky Post Courier Lantern
-        { x: 46, y: 26 },
-        // Footbridge North & South Abutment Lanterns
-        { x: 30, y: 40 }, { x: 34, y: 47 },
-        // South Crossing & Festival / Cinema road
-        { x: 30, y: 49 }, { x: 34, y: 49 },
-        { x: 22, y: 49 }, { x: 42, y: 49 },
-      ];
-      streetLanterns.forEach((lp) => {
-        if (viewW < 1000 && (lp.x * TILE_SIZE < camMinX || lp.x * TILE_SIZE > camMaxX || lp.y * TILE_SIZE < camMinY || lp.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (lp.y + 1) * TILE_SIZE,
-          render: () => {
-            if (lp.bracket) {
-              drawTimberBracketLantern(ctx, lp.x * TILE_SIZE, lp.y * TILE_SIZE, state.animFrame, lp.flip);
-              return;
-            }
-            const lImg = state.images.lantern_wood_post || state.images.lantern_post;
-            if (lImg) {
-              const w = state.images.lantern_wood_post ? 22 : 16;
-              const h = state.images.lantern_wood_post ? 34 : 24;
-              const yOff = state.images.lantern_wood_post ? -18 : -8;
-              const xOff = state.images.lantern_wood_post ? -3 : 0;
-              ctx.drawImage(lImg, lp.x * TILE_SIZE + xOff, lp.y * TILE_SIZE + yOff, w, h);
-            }
-          },
-        });
-      });
-
-      // Cozy Portable Oil Lanterns (on stone ledges / tables)
-      const oilLanterns = [
-        { x: 34, y: 24 }, // Notice Board stone post
-        { x: TOOLSHED.x + 1, y: TOOLSHED.y }, // Toolshed workbench edge
-      ];
-      oilLanterns.forEach((ol) => {
-        if (viewW < 1000 && (ol.x * TILE_SIZE < camMinX || ol.x * TILE_SIZE > camMaxX || ol.y * TILE_SIZE < camMinY || ol.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (ol.y + 1) * TILE_SIZE,
-          render: () => {
-            const oilImg = state.images.lantern_oil;
-            if (oilImg) {
-              ctx.drawImage(oilImg, ol.x * TILE_SIZE + 1, ol.y * TILE_SIZE - 2, 14, 18);
-            }
-          },
-        });
-      });
-
-      // ── 11d. Location Flowerbeds & Plantings ──
-      const flowerBeds = [
-        // Plaza Four Corners
-        { x: 29, y: 29, type: 'poppy' }, { x: 35, y: 29, type: 'sunflower' },
-        { x: 29, y: 35, type: 'daisy' }, { x: 35, y: 35, type: 'poppy' },
-        // Bell Tower Circular Garden
-        { x: 29, y: 14, type: 'daisy' }, { x: 35, y: 14, type: 'daisy' },
-        // Bank Courtyard Flowers
-        { x: 47, y: 15, type: 'poppy' }, { x: 53, y: 15, type: 'poppy' },
-        // Farmstead Garden Fence Sunflowers & Poppies
-        { x: 11, y: 15, type: 'sunflower' }, { x: 17, y: 15, type: 'sunflower' },
-        { x: 10, y: 14, type: 'poppy' },
-        // Notice Board square corners
-        { x: 30, y: 22, type: 'daisy' }, { x: 34, y: 22, type: 'daisy' },
-        // Inn & Cottage gardens
-        { x: 21, y: 24, type: 'poppy' }, { x: 27, y: 23, type: 'sunflower' },
-        { x: 37, y: 24, type: 'daisy' }, { x: 42, y: 24, type: 'poppy' },
-        // Sky Post Garden
-        { x: 43, y: 26, type: 'daisy' },
-        // Wishing Well Garden
-        { x: 18, y: 26, type: 'poppy' }, { x: 21, y: 26, type: 'daisy' },
-        // Toolshed yard marigolds
-        { x: 49, y: 34, type: 'sunflower' },
-        // Roadside meadow patches between the connectors and the plaza
-        { x: 21, y: 29, type: 'poppy' }, { x: 23, y: 30, type: 'daisy' }, { x: 25, y: 29, type: 'sunflower' },
-        { x: 41, y: 29, type: 'poppy' }, { x: 43, y: 30, type: 'daisy' }, { x: 39, y: 29, type: 'sunflower' },
-        { x: 20, y: 22, type: 'daisy' }, { x: 44, y: 22, type: 'poppy' },
-      ];
-      flowerBeds.forEach((fb) => {
-        if (viewW < 1000 && (fb.x * TILE_SIZE < camMinX || fb.x * TILE_SIZE > camMaxX || fb.y * TILE_SIZE < camMinY || fb.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (fb.y + 1) * TILE_SIZE,
-          render: () => {
-            const fImg = fb.type === 'poppy'
-              ? state.images.flowers_poppy
-              : (fb.type === 'sunflower' ? state.images.flowers_sunflower : state.images.flowers_daisy);
-            if (fImg) {
-              const yOff = fb.type === 'sunflower' ? -2 : 0;
-              const w = fb.type === 'sunflower' ? 14 : 16;
-              const h = fb.type === 'sunflower' ? 18 : 16;
-              ctx.drawImage(fImg, fb.x * TILE_SIZE, fb.y * TILE_SIZE + yOff, w, h);
-            }
-          },
-        });
-      });
-
-      // ── 11e. Flowering & Decorative Bushes ──
-      const bushes = [
-        // Plaza Margins
-        { x: 29, y: 32, type: 'green' }, { x: 35, y: 32, type: 'yellow' },
-        { x: 30, y: 35, type: 'red' }, { x: 34, y: 35, type: 'tiered' },
-        // Bell Tower Garden Flanks
-        { x: 28, y: 13, type: 'tiered' }, { x: 36, y: 13, type: 'tiered' },
-        // Bank Courtyard Topiaries
-        { x: 46, y: 14, type: 'green' }, { x: 54, y: 14, type: 'green' },
-        // Town Square hedges
-        { x: 28, y: 22, type: 'green' }, { x: 36, y: 22, type: 'green' },
-        { x: 21, y: 22, type: 'tiered' }, { x: 43, y: 22, type: 'tiered' },
-        // Woodland Trail & Shoreline Margins
-        { x: 15, y: 22, type: 'green' }, { x: 49, y: 22, type: 'yellow' },
-        { x: 27, y: 43, type: 'tiered' }, { x: 37, y: 43, type: 'green' },
-        // Toolshed yard hedges
-        { x: 55, y: 34, type: 'green' }, { x: 49, y: 31, type: 'yellow' },
-        // Meadow hedges
-        { x: 22, y: 28, type: 'tiered' }, { x: 42, y: 28, type: 'tiered' },
-        { x: 25, y: 31, type: 'green' }, { x: 39, y: 31, type: 'green' },
-      ];
-      bushes.forEach((bp) => {
-        if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
-        renderables.push({
-          y: (bp.y + 1) * TILE_SIZE,
-          render: () => {
-            const bImg = bp.type === 'yellow'
-              ? state.images.bush_yellow
-              : (bp.type === 'red' ? state.images.bush_red : (bp.type === 'tiered' ? state.images.bush_tiered : state.images.bush_green));
-            if (bImg) {
-              ctx.drawImage(bImg, bp.x * TILE_SIZE - 3, bp.y * TILE_SIZE - 2, 22, 18);
-            }
-          },
-        });
-      });
-
-      // ── 11f. Directional Road Signposts at the main junctions ──
-      const signposts = [
-        { x: 30, y: 27 }, // North Belfry Avenue exit
-        { x: 30, y: 37 }, // South Pond exit
-        { x: 26, y: 35 }, // West road junction (Archive)
-        { x: 38, y: 35 }, // East road junction (Toolshed)
-        { x: 29, y: 48 }, // South Crossing
-      ];
-      signposts.forEach((sp) => {
-        renderables.push({
-          y: (sp.y + 1) * TILE_SIZE,
-          render: () => {
-            ctx.drawImage(tileset, 6 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sp.x * TILE_SIZE, sp.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          },
-        });
-      });
-
-      // ── 12a. Forest Environmental Props (Fallen logs, Mossy boulders, Mushrooms) ──
-      FOREST_PROPS.forEach((prop) => {
-        if (viewW < 1000 && (prop.x * TILE_SIZE < camMinX || prop.x * TILE_SIZE > camMaxX || prop.y * TILE_SIZE < camMinY || prop.y * TILE_SIZE > camMaxY)) {
-          return;
-        }
-        if (prop.type === 'log') {
-          const logImg = state.images.fallen_log;
-          renderables.push({
-            y: (prop.y + 1) * TILE_SIZE,
-            render: () => {
-              if (logImg) {
-                ctx.drawImage(logImg, prop.x * TILE_SIZE - 8, prop.y * TILE_SIZE, 32, 16);
-              }
-            },
-          });
-        } else if (prop.type === 'rock') {
-          const rockImg = state.images.rock_moss;
-          renderables.push({
-            y: (prop.y + 1) * TILE_SIZE,
-            render: () => {
-              if (rockImg) {
-                ctx.drawImage(rockImg, prop.x * TILE_SIZE - 4, prop.y * TILE_SIZE - 4, 24, 20);
-              }
-            },
-          });
-        } else if (prop.type === 'rock_slate') {
-          const slateImg = state.images.rock_slate;
-          renderables.push({
-            y: (prop.y + 1) * TILE_SIZE,
-            render: () => {
-              if (slateImg) {
-                ctx.drawImage(slateImg, prop.x * TILE_SIZE - 2, prop.y * TILE_SIZE + 2, 20, 14);
-              }
-            },
-          });
-        } else if (prop.type === 'stone_monument') {
-          const monImg = state.images.stone_monument;
-          renderables.push({
-            y: (prop.y + 1) * TILE_SIZE,
-            render: () => {
-              if (monImg) {
-                ctx.drawImage(monImg, prop.x * TILE_SIZE - 2, prop.y * TILE_SIZE - 12, 20, 28);
-              }
-            },
-          });
-        } else if (prop.type === 'mushrooms') {
-          const mushImg = state.images.mushrooms;
-          renderables.push({
-            y: (prop.y + 1) * TILE_SIZE,
-            render: () => {
-              if (mushImg) {
-                ctx.drawImage(mushImg, prop.x * TILE_SIZE - 1, prop.y * TILE_SIZE - 2, 18, 18);
-              }
-            },
-          });
-        } else if (prop.type === 'stump') {
-          const stumpImg = state.images.tree_stump;
-          renderables.push({
-            y: (prop.y + 1) * TILE_SIZE,
-            render: () => {
-              if (stumpImg) {
-                ctx.drawImage(stumpImg, prop.x * TILE_SIZE - 3, prop.y * TILE_SIZE - 4, 22, 20);
-              }
-            },
-          });
-        }
-      });
-
-      // ── 12b. Dense Forest Trees (Perimeter Woodland Band + Internal Groves) ──
-      FOREST_TREES.forEach((tr) => {
-        // Viewport culling (skip trees far off camera, but draw all when capturing full map)
-        if (viewW < 1000 && (tr.x * TILE_SIZE < camMinX || tr.x * TILE_SIZE > camMaxX || tr.y * TILE_SIZE < camMinY || tr.y * TILE_SIZE > camMaxY)) {
-          return;
-        }
-
-        if (tr.type === 'pine') {
-          const pineImg = state.images.tree_pine;
-          renderables.push({
-            y: (tr.y + 1) * TILE_SIZE,
-            render: () => {
-              if (pineImg) {
-                ctx.drawImage(pineImg, tr.x * TILE_SIZE - 8, tr.y * TILE_SIZE - 32, 32, 48);
-              } else {
-                ctx.drawImage(tileset, 4 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              }
-            },
-          });
-        } else if (tr.type === 'blossom') {
-          const blossomImg = state.images.tree_blossom;
-          renderables.push({
-            y: (tr.y + 1) * TILE_SIZE,
-            render: () => {
-              if (blossomImg) {
-                ctx.drawImage(blossomImg, tr.x * TILE_SIZE - 8, tr.y * TILE_SIZE - 32, 32, 48);
-              } else {
-                ctx.drawImage(tileset, 2 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, (tr.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                ctx.drawImage(tileset, 3 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              }
-            },
-          });
-        } else {
-          // Oak
-          const oakImg = state.images.tree_oak;
-          renderables.push({
-            y: (tr.y + 1) * TILE_SIZE,
-            render: () => {
-              if (oakImg) {
-                ctx.drawImage(oakImg, tr.x * TILE_SIZE - 8, tr.y * TILE_SIZE - 32, 32, 48);
-              } else {
-                ctx.drawImage(tileset, 0, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, (tr.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                ctx.drawImage(tileset, 1 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, tr.x * TILE_SIZE, tr.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              }
-            },
-          });
-        }
-      });
+      }
 
       // ── 13. Pip the Farmer ──
       renderables.push({
@@ -2556,15 +1943,16 @@ function ClassicPixelCanvas({
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       const allLanternLights = [
-        // Street Timber Bracket Post Lanterns
-        ...streetLanterns.map((l) => ({ x: l.x * TILE_SIZE + 13, y: l.y * TILE_SIZE + 2, radius: 34 })),
-        // Portable Oil Lanterns
-        ...oilLanterns.map((l) => ({ x: l.x * TILE_SIZE + 7, y: l.y * TILE_SIZE + 6, radius: 24 })),
-        // Porch & Doorway Lanterns
-        { x: 14 * TILE_SIZE + 28, y: 13 * TILE_SIZE + 4, radius: 30 }, // Farmhouse porch
-        { x: 50 * TILE_SIZE + 18, y: 12 * TILE_SIZE + 10, radius: 32 }, // Bank door
-        { x: INN.x * TILE_SIZE + 8, y: (INN.y - 1) * TILE_SIZE + 4, radius: 30 }, // Inn doorway
-        { x: TOOLSHED.x * TILE_SIZE + 8, y: (TOOLSHED.y - 1) * TILE_SIZE + 8, radius: 26 }, // Forge glow
+        { x: 1040, y: 1680, radius: 36 },
+        { x: 1140, y: 1680, radius: 36 },
+        { x: 900, y: 1680, radius: 36 },
+        { x: 1230, y: 1680, radius: 36 },
+        { x: 1040, y: 1150, radius: 36 },
+        { x: 1150, y: 1150, radius: 36 },
+        { x: 448, y: 1290, radius: 36 },
+        { x: 1400, y: 1290, radius: 36 },
+        { x: 1260, y: 2135, radius: 32 },
+        { x: 1084, y: 485, radius: 36 },
       ];
 
       allLanternLights.forEach((ll, lIdx) => {
@@ -2682,8 +2070,8 @@ function ClassicPixelCanvas({
       // ── Layer 4d: Floating Building Signposts & Hover Highlights ──
       BUILDING_HITBOXES.forEach((b) => {
         const isHovered = state.hoverBuilding?.id === b.id;
-        const bx = b.bannerX;
-        const by = b.bannerY;
+        const bx = b.rmBannerX || b.bannerX;
+        const by = b.rmBannerY || b.bannerY;
 
         ctx.save();
         ctx.font = '7px monospace';
