@@ -11,6 +11,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".agents/**",
+    "village_assets/**",
+    "public/village_assets/**",
   ]),
 ]);
 
