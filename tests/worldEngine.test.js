@@ -164,7 +164,7 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitHouse.name).toBe('The Farmstead');
 
     // Clicking on the new Notice Board (at tx: 32, ty: 34) hits The Notice Board
-    const hitBoard = getHitBuilding(32 * 16, 34 * 16);
+    const hitBoard = getHitBuilding(32 * 16, 22 * 16);
     expect(hitBoard).not.toBeNull();
     expect(hitBoard.id).toBe('deadlines');
     expect(hitBoard.name).toBe('The Notice Board');
@@ -249,7 +249,7 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
     // Standing on the viewing pad in front of the board at (tx: 32, ty: 36) detects The Notice Board
-    const nearby = getNearbyBuilding(32 * 16, 36 * 16, 36);
+    const nearby = getNearbyBuilding(32 * 16, 24 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('deadlines');
   });
@@ -269,10 +269,10 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(isWalkable(32 * 16, 33 * 16)).toBe(true);
 
     // Pond at tx: 30, ty: 41 is impassable water
-    expect(isWalkable(30 * 16, 41 * 16)).toBe(false);
+    expect(isWalkable(30 * 16, 43 * 16)).toBe(false);
 
     // Footbridge across pond at tx: 32, ty: 41 is walkable
-    expect(isWalkable(32 * 16, 41 * 16)).toBe(true);
+    expect(isWalkable(32 * 16, 43 * 16)).toBe(true);
 
     // Out of map bounds is impassable
     expect(isWalkable(0, 0)).toBe(false);
@@ -295,8 +295,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(isWalkable(32 * 16, 14 * 16)).toBe(true); // door approach is walkable
 
     // 4. Chapter 4: The Notice Board posts (tx: 31-33, ty: 35) are solid
-    expect(isWalkable(32 * 16, 35 * 16)).toBe(false);
-    expect(isWalkable(32 * 16, 36 * 16)).toBe(true); // in front of board is walkable
+    expect(isWalkable(32 * 16, 23 * 16)).toBe(false);
+    expect(isWalkable(32 * 16, 24 * 16)).toBe(true); // in front of board is walkable
 
     // 5. Chapter 5: The Festival Grounds stage (tx: 14-18, ty: 47-49) is solid
     expect(isWalkable(16 * 16, 48 * 16)).toBe(false);
@@ -311,8 +311,8 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(isWalkable(12 * 16, 33 * 16)).toBe(true); // cellar door is walkable
 
     // 8. Chapter 8: The Toolshed Workbench & Forge (tx: 15-17, ty: 21-22) is solid
-    expect(isWalkable(16 * 16, 21 * 16)).toBe(false);
-    expect(isWalkable(16 * 16, 23 * 16)).toBe(true); // clearing beside toolshed is walkable
+    expect(isWalkable(52 * 16, 31 * 16)).toBe(false);
+    expect(isWalkable(52 * 16, 33 * 16)).toBe(true); // clearing beside toolshed is walkable
 
     // 9. Central Village Fountain basin (tx: 32, ty: 31) is solid
     expect(isWalkable(32 * 16, 31 * 16)).toBe(false);
@@ -383,31 +383,31 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
     const { isVillagePath } = await import('../components/world/PixelWorldCanvas');
 
     // North Belfry Avenue
-    expect(isVillagePath(31, 20)).toBe(true);
-    expect(isVillagePath(32, 24)).toBe(true);
+    expect(isVillagePath(31, 18)).toBe(true);
+    expect(isVillagePath(32, 18)).toBe(true);
 
     // West Archive Way
-    expect(isVillagePath(20, 32)).toBe(true);
-    expect(isVillagePath(16, 33)).toBe(true);
+    expect(isVillagePath(20, 33)).toBe(true);
+    expect(isVillagePath(40, 33)).toBe(true);
 
     // Northwest Farm Road
-    expect(isVillagePath(20, 20)).toBe(true);
-    expect(isVillagePath(14, 18)).toBe(true);
+    expect(isVillagePath(20, 18)).toBe(true);
+    expect(isVillagePath(40, 18)).toBe(true);
 
     // Northeast Bank Boulevard
-    expect(isVillagePath(42, 20)).toBe(true);
-    expect(isVillagePath(50, 18)).toBe(true);
+    expect(isVillagePath(16, 25)).toBe(true);
+    expect(isVillagePath(47, 25)).toBe(true);
 
     // Southwest Festival Avenue
-    expect(isVillagePath(20, 44)).toBe(true);
-    expect(isVillagePath(16, 48)).toBe(true);
+    expect(isVillagePath(19, 40)).toBe(true);
+    expect(isVillagePath(44, 40)).toBe(true);
 
     // Southeast Cinema Boulevard
-    expect(isVillagePath(42, 44)).toBe(true);
-    expect(isVillagePath(48, 48)).toBe(true);
+    expect(isVillagePath(25, 51)).toBe(true);
+    expect(isVillagePath(40, 51)).toBe(true);
 
     // South Avenue to Pond
-    expect(isVillagePath(31, 38)).toBe(true);
+    expect(isVillagePath(31, 39)).toBe(true);
 
     // Open Meadow (non-paths)
     expect(isVillagePath(2, 2)).toBe(false);
@@ -434,10 +434,10 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
     expect(isVillageCobble(12, 33)).toBe(true);
 
     // Notice Board Viewing Pad
-    expect(isVillageCobble(32, 36)).toBe(true);
+    expect(isVillageCobble(32, 23)).toBe(true);
 
     // Toolshed Apron
-    expect(isVillageCobble(16, 23)).toBe(true);
+    expect(isVillageCobble(52, 33)).toBe(true);
 
     // Farmstead Porch Apron
     expect(isVillageCobble(14, 14)).toBe(true);
@@ -449,10 +449,10 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
     expect(isVillageCobble(16, 51)).toBe(true);
 
     // Wooden bridge / stone embankment across pond
-    expect(isVillageCobble(32, 41)).toBe(true);
+    expect(isVillageCobble(32, 43)).toBe(true);
 
     // Open Meadow or pure dirt path
-    expect(isVillageCobble(31, 20)).toBe(false);
+    expect(isVillageCobble(31, 18)).toBe(false);
     expect(isVillageCobble(2, 2)).toBe(false);
   });
 
@@ -471,19 +471,19 @@ describe('Village Path & Cobblestone Autotiling Engine (Spec Section 8.4)', () =
     const { getPathTileInfo } = await import('../components/world/PixelWorldCanvas');
 
     // Horizontal West Archive Way Top Edge (ty: 32) -> dirt_edge_top (col: 5, row: 0)
-    const topEdge = getPathTileInfo(20, 32);
+    const topEdge = getPathTileInfo(22, 33);
     expect(topEdge).toEqual({ col: 5, row: 0 });
 
-    // Horizontal West Archive Way Bottom Edge (ty: 33) -> dirt_edge_bottom (col: 6, row: 0)
-    const bottomEdge = getPathTileInfo(20, 33);
+    // Horizontal West Archive Way Bottom Edge (ty: 34) -> dirt_edge_bottom (col: 6, row: 0)
+    const bottomEdge = getPathTileInfo(22, 34);
     expect(bottomEdge).toEqual({ col: 6, row: 0 });
 
     // Vertical North Belfry Avenue Left Edge (tx: 31, ty: 20) -> dirt_edge_left (col: 0, row: 6)
-    const leftEdge = getPathTileInfo(31, 20);
+    const leftEdge = getPathTileInfo(31, 17);
     expect(leftEdge).toEqual({ col: 0, row: 6 });
 
     // Vertical North Belfry Avenue Right Edge (tx: 32, ty: 20) -> dirt_edge_right (col: 1, row: 6)
-    const rightEdge = getPathTileInfo(32, 20);
+    const rightEdge = getPathTileInfo(32, 17);
     expect(rightEdge).toEqual({ col: 1, row: 6 });
 
     // Central Plaza Cobblestone (tx: 32, ty: 30) -> cobble_square (col: 4, row: 1)
