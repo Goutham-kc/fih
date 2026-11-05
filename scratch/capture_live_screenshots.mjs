@@ -48,26 +48,26 @@ async function main() {
   await saveBoth(page, 'overworld-welcome-desktop.png');
   await saveBoth(page, 'overworld-map-desktop.png');
 
-  // 3. The Notice Board (Central Plaza, Stone Fountain, Notice Board, Cedar Benches)
+  // 3. The Notice Board (Central Plaza, Stone Fountain, Notice Board, Upgraded Benches & Lanterns)
   console.log('3. Capturing Central Plaza & Notice Board...');
   await page.goto('http://localhost:3000/?tab=deadlines', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1500);
   await saveBoth(page, 'overworld-notice-board-custom-desktop.png');
 
-  // 4. The Farmstead (Pip's Cabin, Garden, Fence, Sunflowers)
-  console.log('4. Capturing The Farmstead...');
+  // 4. The Farmstead (Pip's Cabin, Well, Cart, Haystack, Split-Rail Fence, Sunflowers)
+  console.log('4. Capturing The Farmstead with Well, Cart, Haystack & Fences...');
   await page.goto('http://localhost:3000/?tab=todos', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1500);
   await saveBoth(page, 'overworld-farmstead-custom-house-desktop.png');
 
-  // 5. The Ledger Bank (Bram, Courtyard, Topiary Planters)
+  // 5. The Ledger Bank (Bram, Courtyard Fences, Topiary Planters)
   console.log('5. Capturing The Ledger Bank...');
   await page.goto('http://localhost:3000/?tab=debts', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1500);
   await saveBoth(page, 'overworld-bank-custom-desktop.png');
   await saveBoth(page, 'overworld-entered-ledger-desktop.png');
 
-  // 6. The Bell Tower (Hoot, Spire, Weather Vane, Circular Garden)
+  // 6. The Bell Tower (Hoot, Spire, Weather Vane, Circular Garden Benches, Stone Monument)
   console.log('6. Capturing The Bell Tower...');
   await page.goto('http://localhost:3000/?tab=reminders', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1500);
@@ -85,14 +85,26 @@ async function main() {
   await sleep(1500);
   await saveBoth(page, 'overworld-cinema-custom-desktop.png');
 
-  // 9. The Archive Cellar (Moss, Stone Steps, Mossy Rocks, Mushrooms)
+  // 9. The Archive Cellar (Moss, Stone Steps, Mossy Boulders, Amanita & Chanterelle Mushrooms, Monolith)
   console.log('9. Capturing The Archive Cellar...');
   await page.goto('http://localhost:3000/?tab=audit', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1500);
   await saveBoth(page, 'overworld-archive-cellar-custom-desktop.png');
 
-  // 10. Desktop Panel Only Mode
-  console.log('10. Capturing Desktop Panel Only Mode...');
+  // 10. Woodland Pond & Wooden Footbridge (Walking onto the bridge deck)
+  console.log('10. Capturing Woodland Pond & Wooden Footbridge...');
+  await page.setViewport({ width: 1280, height: 800 });
+  await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded', timeout: 15000 });
+  await sleep(1200);
+  // Walk around notice board to bridge
+  for (let i = 0; i < 2; i++) { await page.keyboard.press('KeyD'); await sleep(150); }
+  for (let i = 0; i < 8; i++) { await page.keyboard.press('KeyS'); await sleep(150); }
+  for (let i = 0; i < 2; i++) { await page.keyboard.press('KeyA'); await sleep(150); }
+  await sleep(600);
+  await saveBoth(page, 'overworld-pond-bridge-desktop.png');
+
+  // 11. Desktop Panel Only Mode
+  console.log('11. Capturing Desktop Panel Only Mode...');
   await page.goto('http://localhost:3000/?tab=todos', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1000);
   const hudButtons = await page.$$('button');
@@ -106,15 +118,15 @@ async function main() {
   }
   await saveBoth(page, 'overworld-panel-only-desktop.png');
 
-  // 11. Mobile Viewport (Panel Only Mode)
-  console.log('11. Capturing Mobile Viewport...');
+  // 12. Mobile Viewport (Panel Only Mode)
+  console.log('12. Capturing Mobile Viewport...');
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1500);
   await saveBoth(page, 'overworld-map-mobile.png');
 
-  // 12. Walking Proximity Capture
-  console.log('12. Capturing Walking Proximity...');
+  // 13. Walking Proximity Capture
+  console.log('13. Capturing Walking Proximity...');
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded', timeout: 15000 });
   await sleep(1200);

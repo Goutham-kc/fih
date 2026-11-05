@@ -215,3 +215,21 @@ Dedicated 16-bit RPG woodland vegetation and environmental clutter sprites desig
 | **Mossy River Boulder** | `rock_moss.png` | 20×16 px | `x, y` | Rounded ancient river stone with slate blue contours, specular highlights, and lush moss cap on upper crest. |
 | **Amanita Mushrooms** | `mushrooms.png` | 16×16 px (1×1 tile) | `x, y` | Cluster of three woodland amanita mushrooms with vibrant red domed caps, white spots, cream stalks, and ground shadow. |
 
+### Props & Decorations Registry (Extracted from 16-bit RPG Sheet):
+| Asset | File | Dimensions | Placement | Description |
+|:---|:---|:---|:---|:---|
+| **Wooden Footbridge** | `bridge_wood.png` | 48×64 px (3×4 tiles) | `tx: 31..33, ty: 40..43` | Weathered oak deck planks with iron nail pegs, side timber railings with round post finials, hand-cut stone abutments at north/south shorelines, and soft water drop shadows. Spans across the Woodland Pond. |
+| **Split-Rail Wooden Fence** | `fence_wood.png` | 32×16 px (2×1 tiles) | `tx: 10..18, ty: 16` / `47..53, ty: 16` | Horizontal 2-rail timber fence with carved crossbars, notched posts, and ground drop shadow. Encloses Farmstead garden plots, Ledger Bank courtyard, and Toolshed yard. |
+| **Fence Post** | `fence_post.png` | 12×16 px | Fence junctions & gate ends | Upright notched timber post terminating split-rail fence runs and gates. |
+| **Hanging Bracket Lamppost** | `lantern_wood_post.png` | 22×34 px | Crossroads & Plaza borders | Timber post with angled wooden support bracket, hanging iron carriage lantern, and warm glowing amber light. |
+| **Cozy Oil Lantern** | `lantern_oil.png` | 14×18 px | Ledges & tables | Portable brass/iron oil lantern with top wire carrying loop and warm flickering flame. |
+| **Cedar Park Bench** | `bench_wood.png` | 28×18 px | Central Plaza & Bell Tower | Upgraded high-back cedar garden bench with slatted wooden backrest, armrests, and cast-iron feet. |
+| **Rustic Log Bench** | `bench_log.png` | 26×14 px | Woodland Pond Overlook | Backless rustic timber plank bench overlooking the water crossing and along forest trails. |
+| **Stepped Mossy Boulder** | `rock_moss.png` | 24×20 px | Pond banks & Archive verge | Rounded granite river stones with vibrant emerald moss mantle draping upper crests. |
+| **River Slate Stepping Stones**| `rock_slate.png` | 20×14 px | Water crossings & trail verges | Flat smooth river stones serving as natural transitions between grass, path, and shoreline. |
+| **Ancient Stone Monolith** | `stone_monument.png` | 20×28 px | Bell Tower grove & Archive Cellar | Weathered moss-covered standing stone shrine dotted with climbing wild pink blossoms. |
+| **Amanita & Chanterelle Cluster** | `mushrooms.png` | 18×18 px | Archive Cellar & forest verge | Cluster of scarlet domed Amanita mushrooms with white flecks and golden forest chanterelles with moss shoots. |
+| **Stone Village Well** | `stone_well.png` | 32×36 px (2×2.25 tiles) | Farmstead yard (`10.5, 12`) | Round stone brick well with scalloped wooden shingle gabled canopy roof, crossbeam, and hanging water bucket. |
+| **Wooden Farm Cart** | `farm_cart.png` | 36×26 px | Farmstead field (`17, 12.5`) | Two-wheeled wooden farm cart with side slat panels, timber spoke wheels, and front pull handles. |
+| **Golden Haystack** | `haystack.png` | 20×22 px | Farmstead crops (`10, 15`) | Domed golden straw hay bale with rustic pitchfork accent. |
+| **Ancient Oak Tree Stump** | `tree_stump.png` | 22×20 px | Woodland clearings | Weathered tree stump with prominent annular growth rings, bark ridges, and root flares. |

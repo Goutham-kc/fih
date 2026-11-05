@@ -490,6 +490,16 @@ export const FOREST_PROPS = [
   { x: 35, y: 40, type: 'rock' },
   { x: 28, y: 43, type: 'rock' },
   { x: 36, y: 43, type: 'rock' },
+  { x: 29, y: 44, type: 'rock' },
+  { x: 35, y: 44, type: 'rock' },
+  // River slate stepping stones
+  { x: 30, y: 39, type: 'rock_slate' },
+  { x: 34, y: 39, type: 'rock_slate' },
+  { x: 30, y: 44, type: 'rock_slate' },
+  { x: 34, y: 44, type: 'rock_slate' },
+  // Ancient stone monuments & shrines
+  { x: 36, y: 9, type: 'stone_monument' },  // Bell Tower meditative garden
+  { x: 9, y: 30, type: 'stone_monument' },   // Archive Cellar ancient verge
   // Mossy boulders near Archive Cellar
   { x: 9, y: 31, type: 'rock' },
   { x: 15, y: 31, type: 'rock' },
@@ -503,8 +513,12 @@ export const FOREST_PROPS = [
   { x: 57, y: 46, type: 'log' },
   { x: 26, y: 46, type: 'log' },
   { x: 38, y: 46, type: 'log' },
-  // Amanita mushroom clusters under the forest canopies
+  // Amanita & golden mushroom clusters under the forest canopies & Archive Cellar
   { x: 8, y: 34, type: 'mushrooms' },
+  { x: 10, y: 33, type: 'mushrooms' },
+  { x: 11, y: 31, type: 'mushrooms' },
+  { x: 14, y: 35, type: 'mushrooms' },
+  { x: 15, y: 30, type: 'mushrooms' },
   { x: 16, y: 34, type: 'mushrooms' },
   { x: 22, y: 15, type: 'mushrooms' },
   { x: 42, y: 15, type: 'mushrooms' },
@@ -513,11 +527,14 @@ export const FOREST_PROPS = [
   { x: 53, y: 27, type: 'mushrooms' },
   { x: 23, y: 50, type: 'mushrooms' },
   { x: 41, y: 50, type: 'mushrooms' },
+  { x: 30, y: 8, type: 'mushrooms' },
+  { x: 34, y: 8, type: 'mushrooms' },
   // Decorative weathered tree stumps
   { x: 9, y: 34, type: 'stump' },  // Archive Cellar ancient grove
   { x: 18, y: 23, type: 'stump' }, // Toolshed chopping block
   { x: 24, y: 12, type: 'stump' }, // Forest path stump
   { x: 40, y: 12, type: 'stump' }, // Forest path stump
+  { x: 46, y: 21, type: 'stump' }, // Sky Post forest path stump
 ];
 
 export const INTERNAL_TREE_TRUNKS = new Set(
@@ -751,6 +768,17 @@ export default function PixelWorldCanvas({
       market_stall: null,
       barrel_stack: null,
       citrus_tree: null,
+      fence_wood: null,
+      fence_post: null,
+      lantern_wood_post: null,
+      lantern_oil: null,
+      bench_log: null,
+      rock_slate: null,
+      stone_monument: null,
+      bridge_wood: null,
+      stone_well: null,
+      farm_cart: null,
+      haystack: null,
     },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
@@ -807,6 +835,17 @@ export default function PixelWorldCanvas({
       { key: 'market_stall', src: '/assets/props/market_stall.png' },
       { key: 'barrel_stack', src: '/assets/props/barrel_stack.png' },
       { key: 'citrus_tree', src: '/assets/props/citrus_tree.png' },
+      { key: 'fence_wood', src: '/assets/props/fence_wood.png' },
+      { key: 'fence_post', src: '/assets/props/fence_post.png' },
+      { key: 'lantern_wood_post', src: '/assets/props/lantern_wood_post.png' },
+      { key: 'lantern_oil', src: '/assets/props/lantern_oil.png' },
+      { key: 'bench_log', src: '/assets/props/bench_log.png' },
+      { key: 'rock_slate', src: '/assets/props/rock_slate.png' },
+      { key: 'stone_monument', src: '/assets/props/stone_monument.png' },
+      { key: 'bridge_wood', src: '/assets/props/bridge_wood.png' },
+      { key: 'stone_well', src: '/assets/props/stone_well.png' },
+      { key: 'farm_cart', src: '/assets/props/farm_cart.png' },
+      { key: 'haystack', src: '/assets/props/haystack.png' },
     ];
 
     let count = 0;
@@ -1206,19 +1245,55 @@ export default function PixelWorldCanvas({
         }
       }
 
-      // ── Layer 2: Decorative Fences & Rails ──
-      // Farmstead boundary fence (ty: 16, tx: 10..13 and tx: 16..17) leaving tx: 14..15 open for path
-      for (let fx = 10; fx <= 13; fx++) {
-        ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-      }
-      for (let fx = 16; fx <= 17; fx++) {
-        ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      // ── Layer 2: Decorative Fences, Rails & Wooden Footbridge ──
+      // 1. Upgraded Wooden Footbridge across Woodland Pond (tx: 31..33, ty: 40..43)
+      const bridgeImg = state.images.bridge_wood;
+      if (bridgeImg) {
+        // 48x64 px wooden deck with side timber railings and stone abutments
+        ctx.drawImage(bridgeImg, 31 * TILE_SIZE, 40 * TILE_SIZE, 3 * TILE_SIZE, 4 * TILE_SIZE);
+      } else {
+        // Fallback tileset railings
+        for (let by = 40; by <= 43; by++) {
+          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 31 * TILE_SIZE, by * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 33 * TILE_SIZE, by * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
       }
 
-      // Wooden Footbridge Railings across Woodland Pond (tx: 31 and tx: 33, ty: 40..43)
-      for (let by = 40; by <= 43; by++) {
-        ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 31 * TILE_SIZE, by * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 33 * TILE_SIZE, by * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      // 2. Upgraded Wooden Split-Rail Fences
+      const fenceImg = state.images.fence_wood;
+      const fencePostImg = state.images.fence_post;
+      if (fenceImg) {
+        // Farmstead Garden Perimeter (tx: 10..13 and tx: 16..17, ty: 16)
+        ctx.drawImage(fenceImg, 10 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
+        ctx.drawImage(fenceImg, 12 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
+        ctx.drawImage(fenceImg, 16 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
+        if (fencePostImg) {
+          ctx.drawImage(fencePostImg, 10 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
+          ctx.drawImage(fencePostImg, 14 * TILE_SIZE - 6, 16 * TILE_SIZE, 12, 16); // Gate left
+          ctx.drawImage(fencePostImg, 16 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16); // Gate right
+          ctx.drawImage(fencePostImg, 18 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
+        }
+
+        // Ledger Bank Courtyard Fences (tx: 47..48 and tx: 52..53, ty: 16)
+        ctx.drawImage(fenceImg, 47 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
+        ctx.drawImage(fenceImg, 52 * TILE_SIZE, 16 * TILE_SIZE, 32, 16);
+        if (fencePostImg) {
+          ctx.drawImage(fencePostImg, 47 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
+          ctx.drawImage(fencePostImg, 49 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
+          ctx.drawImage(fencePostImg, 52 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
+          ctx.drawImage(fencePostImg, 54 * TILE_SIZE - 4, 16 * TILE_SIZE, 12, 16);
+        }
+
+        // Toolshed Workshop Yard Fence (tx: 14..15 and tx: 17..18, ty: 25)
+        ctx.drawImage(fenceImg, 14 * TILE_SIZE, 25 * TILE_SIZE, 32, 16);
+        ctx.drawImage(fenceImg, 17 * TILE_SIZE, 25 * TILE_SIZE, 32, 16);
+      } else {
+        for (let fx = 10; fx <= 13; fx++) {
+          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+        for (let fx = 16; fx <= 17; fx++) {
+          ctx.drawImage(tileset, 2 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, fx * TILE_SIZE, 16 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
       }
 
       // ── Layer 3: Depth-Sorted Entities (Buildings, Props, Characters, Trees) ──
@@ -1264,6 +1339,24 @@ export default function PixelWorldCanvas({
 
           // Courier Bird Wren on mailbox post (x: 15, y: 14)
           ctx.drawImage(tileset, 7 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE, TILE_SIZE, 15 * TILE_SIZE, 14 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+          // Farmstead Stone Well with Roof & Bucket (tx: 10.5, ty: 12)
+          const wellImg = state.images.stone_well;
+          if (wellImg) {
+            ctx.drawImage(wellImg, 10.5 * TILE_SIZE, 12 * TILE_SIZE - 4, 32, 36);
+          }
+
+          // Farmstead Wooden Cart (tx: 17, ty: 12.5)
+          const cartImg = state.images.farm_cart;
+          if (cartImg) {
+            ctx.drawImage(cartImg, 17 * TILE_SIZE, 12.5 * TILE_SIZE, 36, 26);
+          }
+
+          // Farmstead Golden Haystack (tx: 10, ty: 15)
+          const hayImg = state.images.haystack;
+          if (hayImg) {
+            ctx.drawImage(hayImg, 10 * TILE_SIZE - 2, 15 * TILE_SIZE - 6, 20, 22);
+          }
         },
       });
 
@@ -1532,10 +1625,15 @@ export default function PixelWorldCanvas({
         },
       });
 
-      // ── 11a. Central Plaza Wooden Benches ──
+      // ── 11a. Central Plaza & Landmark Wooden Benches ──
       const plazaBenches = [
+        // Central Plaza fountain benches
         { x: 30, y: 31 }, { x: 34, y: 31 },
         { x: 30, y: 33 }, { x: 34, y: 33 },
+        // Bell Tower circular stone platform benches
+        { x: 30, y: 11 }, { x: 34, y: 11 },
+        // Notice Board resting bench
+        { x: 34, y: 35 },
       ];
       plazaBenches.forEach((bp) => {
         if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
@@ -1544,13 +1642,33 @@ export default function PixelWorldCanvas({
           render: () => {
             const bImg = state.images.bench_wood;
             if (bImg) {
-              ctx.drawImage(bImg, bp.x * TILE_SIZE - 4, bp.y * TILE_SIZE + 2, 24, 14);
+              ctx.drawImage(bImg, bp.x * TILE_SIZE - 6, bp.y * TILE_SIZE - 2, 28, 18);
             }
           },
         });
       });
 
-      // ── 11b. Street Lanterns (Wrought Iron Lamp Posts) ──
+      // ── 11b. Rustic Woodland Log Benches ──
+      const logBenches = [
+        // Scenic Woodland Pond Overlook
+        { x: 29, y: 41 }, { x: 35, y: 41 },
+        // Northern Forest Trail Rest
+        { x: 24, y: 20 }, { x: 40, y: 20 },
+      ];
+      logBenches.forEach((lb) => {
+        if (viewW < 1000 && (lb.x * TILE_SIZE < camMinX || lb.x * TILE_SIZE > camMaxX || lb.y * TILE_SIZE < camMinY || lb.y * TILE_SIZE > camMaxY)) return;
+        renderables.push({
+          y: (lb.y + 1) * TILE_SIZE,
+          render: () => {
+            const lbImg = state.images.bench_log || state.images.bench_wood;
+            if (lbImg) {
+              ctx.drawImage(lbImg, lb.x * TILE_SIZE - 5, lb.y * TILE_SIZE, 26, 14);
+            }
+          },
+        });
+      });
+
+      // ── 11c. Street Lanterns (Hanging Timber Bracket Posts & Oil Lanterns) ──
       const streetLanterns = [
         // Plaza Four Corners
         { x: 28, y: 28 }, { x: 36, y: 28 },
@@ -1565,15 +1683,41 @@ export default function PixelWorldCanvas({
         { x: 14, y: 23 },
         // Sky Post Courier Lantern
         { x: 50, y: 24 },
+        // Wooden Footbridge North & South Abutment Lanterns
+        { x: 30, y: 39 }, { x: 34, y: 44 },
+        // Crossroads to Festival & Cinema
+        { x: 20, y: 44 }, { x: 44, y: 44 },
       ];
       streetLanterns.forEach((lp) => {
         if (viewW < 1000 && (lp.x * TILE_SIZE < camMinX || lp.x * TILE_SIZE > camMaxX || lp.y * TILE_SIZE < camMinY || lp.y * TILE_SIZE > camMaxY)) return;
         renderables.push({
           y: (lp.y + 1) * TILE_SIZE,
           render: () => {
-            const lImg = state.images.lantern_post;
+            const lImg = state.images.lantern_wood_post || state.images.lantern_post;
             if (lImg) {
-              ctx.drawImage(lImg, lp.x * TILE_SIZE, lp.y * TILE_SIZE - 8, 16, 24);
+              const w = state.images.lantern_wood_post ? 22 : 16;
+              const h = state.images.lantern_wood_post ? 34 : 24;
+              const yOff = state.images.lantern_wood_post ? -18 : -8;
+              const xOff = state.images.lantern_wood_post ? -3 : 0;
+              ctx.drawImage(lImg, lp.x * TILE_SIZE + xOff, lp.y * TILE_SIZE + yOff, w, h);
+            }
+          },
+        });
+      });
+
+      // Cozy Portable Oil Lanterns (on stone ledges / tables)
+      const oilLanterns = [
+        { x: 33, y: 34 }, // Notice Board stone post
+        { x: 17, y: 23 }, // Toolshed workbench edge
+      ];
+      oilLanterns.forEach((ol) => {
+        if (viewW < 1000 && (ol.x * TILE_SIZE < camMinX || ol.x * TILE_SIZE > camMaxX || ol.y * TILE_SIZE < camMinY || ol.y * TILE_SIZE > camMaxY)) return;
+        renderables.push({
+          y: (ol.y + 1) * TILE_SIZE,
+          render: () => {
+            const oilImg = state.images.lantern_oil;
+            if (oilImg) {
+              ctx.drawImage(oilImg, ol.x * TILE_SIZE + 1, ol.y * TILE_SIZE - 2, 14, 18);
             }
           },
         });
@@ -1675,7 +1819,27 @@ export default function PixelWorldCanvas({
             y: (prop.y + 1) * TILE_SIZE,
             render: () => {
               if (rockImg) {
-                ctx.drawImage(rockImg, prop.x * TILE_SIZE, prop.y * TILE_SIZE, 16, 16);
+                ctx.drawImage(rockImg, prop.x * TILE_SIZE - 4, prop.y * TILE_SIZE - 4, 24, 20);
+              }
+            },
+          });
+        } else if (prop.type === 'rock_slate') {
+          const slateImg = state.images.rock_slate;
+          renderables.push({
+            y: (prop.y + 1) * TILE_SIZE,
+            render: () => {
+              if (slateImg) {
+                ctx.drawImage(slateImg, prop.x * TILE_SIZE - 2, prop.y * TILE_SIZE + 2, 20, 14);
+              }
+            },
+          });
+        } else if (prop.type === 'stone_monument') {
+          const monImg = state.images.stone_monument;
+          renderables.push({
+            y: (prop.y + 1) * TILE_SIZE,
+            render: () => {
+              if (monImg) {
+                ctx.drawImage(monImg, prop.x * TILE_SIZE - 2, prop.y * TILE_SIZE - 12, 20, 28);
               }
             },
           });
@@ -1685,7 +1849,7 @@ export default function PixelWorldCanvas({
             y: (prop.y + 1) * TILE_SIZE,
             render: () => {
               if (mushImg) {
-                ctx.drawImage(mushImg, prop.x * TILE_SIZE, prop.y * TILE_SIZE, 16, 16);
+                ctx.drawImage(mushImg, prop.x * TILE_SIZE - 1, prop.y * TILE_SIZE - 2, 18, 18);
               }
             },
           });
@@ -1695,7 +1859,7 @@ export default function PixelWorldCanvas({
             y: (prop.y + 1) * TILE_SIZE,
             render: () => {
               if (stumpImg) {
-                ctx.drawImage(stumpImg, prop.x * TILE_SIZE - 1, prop.y * TILE_SIZE - 2, 18, 18);
+                ctx.drawImage(stumpImg, prop.x * TILE_SIZE - 3, prop.y * TILE_SIZE - 4, 22, 20);
               }
             },
           });
