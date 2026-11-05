@@ -84,7 +84,7 @@ for (let ty = 0; ty < MAP_HEIGHT; ty++) {
   for (let tx = 0; tx < MAP_WIDTH; tx++) {
     // 1. Ground Layer
     if (isPondTile(tx, ty)) {
-      groundData.push(toGid(6, 0)); // water tile
+      groundData.push(toGid(0, 1)); // sky blue water tile
     } else {
       const h = hash2D(tx, ty);
       let gCol = 0, gRow = 0;
@@ -98,21 +98,16 @@ for (let ty = 0; ty < MAP_HEIGHT; ty++) {
     if (isGardenTile(tx, ty)) {
       pathsData.push(toGid(7, 0)); // furrow soil
     } else if (isSteppingStoneTile(tx, ty)) {
-      pathsData.push(toGid(5, 1)); // stone slab paver
+      pathsData.push(toGid(4, 1)); // grey cobblestone slab paver
     } else if (isPathTile(tx, ty)) {
-      const pDetail = hash2D(tx, ty, 888) % 10;
-      if (pDetail === 0) {
-        pathsData.push(toGid(4, 1)); // embedded cobblestone
-      } else {
-        pathsData.push(toGid(4, 0)); // smooth packed dirt
-      }
+      pathsData.push(toGid(4, 0)); // smooth packed dirt
     } else {
       pathsData.push(0); // empty
     }
 
     // 3. Collision Layer
     if (isSolidTile(tx, ty)) {
-      collisionData.push(toGid(1, 1)); // solid collision block
+      collisionData.push(toGid(3, 1)); // solid collision block
     } else {
       collisionData.push(0);
     }

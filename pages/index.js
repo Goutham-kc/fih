@@ -10,11 +10,11 @@ import Watchlist from '@/components/Watchlist';
 import ReminderBoard from '@/components/ReminderBoard';
 import SettingsView from '@/components/SettingsView';
 import AuditLogView from '@/components/AuditLogView';
-import VillageAtlas, {
+import PixelWorldCanvas, {
   CHAPTER_ANCHORS,
   shouldShowDialogue,
   getHudControlsGuide,
-} from '@/components/world/VillageAtlas';
+} from '@/components/world/PixelWorldCanvas';
 import RPGHotbar from '@/components/ui/RPGHotbar';
 import RPGDialogueBox from '@/components/ui/RPGDialogueBox';
 import DevModeIndicator from '@/components/ui/DevModeIndicator';
@@ -529,8 +529,9 @@ export default function Dashboard() {
         {/* Interactive village world */}
         {showCanvas && (
           <div className="world-canvas-wrapper">
-            <VillageAtlas
+            <PixelWorldCanvas
               activeTab={activeTab}
+              debtsData={debts}
               reducedMotion={reducedMotion}
               onNavigateToChapter={handleTabChange}
               onCloseChapter={handleCloseChapter}
