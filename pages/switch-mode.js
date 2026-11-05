@@ -16,6 +16,7 @@ export default function SwitchMode() {
   useEffect(() => {
     if (router.isReady) {
       if (!token || !mode) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStatus('error');
         setErrorMessage('Invalid link. Missing token or mode.');
       } else if (!['live', 'development'].includes(mode)) {

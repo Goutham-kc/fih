@@ -644,6 +644,54 @@ export function getHudControlsGuide({ activeTab = null, hasInteracted = false, n
   return null;
 }
 
+function createInitialFireflies() {
+  return Array.from({ length: 24 }, (_, i) => {
+    let bx = 32 * 16, by = 44 * 16;
+    const r1 = ((hash2D(i, 11) % 1000) / 1000 - 0.5) * 16;
+    const r2 = ((hash2D(i, 22) % 1000) / 1000 - 0.5) * 16;
+    if (i < 8) {
+      bx = (9 + (i % 4) * 2) * 16 + r1;
+      by = (30 + Math.floor(i / 4) * 3) * 16 + r2;
+    } else if (i < 16) {
+      bx = (29 + (i % 4) * 2) * 16 + r1;
+      by = (42 + Math.floor((i - 8) / 4) * 2) * 16 + r2;
+    } else if (i < 20) {
+      bx = (29 + (i - 16) * 2) * 16 + r1;
+      by = (9 + ((i - 16) % 2) * 3) * 16 + r2;
+    } else {
+      bx = (45 + (i - 20) * 2) * 16 + r1;
+      by = (46 + ((i - 20) % 2) * 3) * 16 + r2;
+    }
+    return {
+      x: bx,
+      y: by,
+      baseX: bx,
+      baseY: by,
+      phase: ((hash2D(i, 33) % 1000) / 1000) * Math.PI * 2,
+      pulsePhase: ((hash2D(i, 44) % 1000) / 1000) * Math.PI * 2,
+    };
+  });
+}
+
+function createInitialPetals() {
+  const colors = ['#fbcfe8', '#f472b6', '#fda4af', '#f9a8d4', '#fef08a'];
+  return Array.from({ length: 32 }, (_, i) => {
+    return {
+      x: ((hash2D(i, 55) % 1000) / 1000) * (64 * 16),
+      y: ((hash2D(i, 66) % 1000) / 1000) * (64 * 16),
+      speedX: ((hash2D(i, 77) % 1000) / 1000) * 0.5 + 0.5,
+      speedY: ((hash2D(i, 88) % 1000) / 1000) * 0.6 + 0.6,
+      swayPhase: ((hash2D(i, 99) % 1000) / 1000) * Math.PI * 2,
+      angle: ((hash2D(i, 111) % 1000) / 1000) * Math.PI * 2,
+      rotSpeed: (((hash2D(i, 122) % 1000) / 1000) - 0.5) * 0.06,
+      color: colors[i % colors.length],
+      rx: ((hash2D(i, 133) % 1000) / 1000) * 1.5 + 3.2,
+      ry: ((hash2D(i, 144) % 1000) / 1000) * 1 + 1.8,
+      alpha: ((hash2D(i, 155) % 1000) / 1000) * 0.25 + 0.65,
+    };
+  });
+}
+
 export default function PixelWorldCanvas({
   activeTab = null, // null or 'map' = Full Overworld Exploration Mode
   debtsData = [],
@@ -748,50 +796,8 @@ export default function PixelWorldCanvas({
     bellSwing: 0,
     fountainFrame: 0,
     isOverworldMode: !activeTab || activeTab === 'map',
-    fireflies: Array.from({ length: 24 }, (_, i) => {
-      let bx = 32 * 16, by = 44 * 16;
-      if (i < 8) {
-        // Archive Cellar ancient grove (tx: 8..16, ty: 29..36)
-        bx = (9 + (i % 4) * 2) * 16 + (Math.random() - 0.5) * 16;
-        by = (30 + Math.floor(i / 4) * 3) * 16 + (Math.random() - 0.5) * 16;
-      } else if (i < 16) {
-        // Woodland Pond & Reeds (tx: 28..36, ty: 41..47)
-        bx = (29 + (i % 4) * 2) * 16 + (Math.random() - 0.5) * 16;
-        by = (42 + Math.floor((i - 8) / 4) * 2) * 16 + (Math.random() - 0.5) * 16;
-      } else if (i < 20) {
-        // Bell Tower grove (tx: 29..35, ty: 8..14)
-        bx = (29 + (i - 16) * 2) * 16 + (Math.random() - 0.5) * 16;
-        by = (9 + ((i - 16) % 2) * 3) * 16 + (Math.random() - 0.5) * 16;
-      } else {
-        // Cinema Forest (tx: 44..52, ty: 45..52)
-        bx = (45 + (i - 20) * 2) * 16 + (Math.random() - 0.5) * 16;
-        by = (46 + ((i - 20) % 2) * 3) * 16 + (Math.random() - 0.5) * 16;
-      }
-      return {
-        x: bx,
-        y: by,
-        baseX: bx,
-        baseY: by,
-        phase: Math.random() * Math.PI * 2,
-        pulsePhase: Math.random() * Math.PI * 2,
-      };
-    }),
-    petals: Array.from({ length: 32 }, (_, i) => {
-      const colors = ['#fbcfe8', '#f472b6', '#fda4af', '#f9a8d4', '#fef08a'];
-      return {
-        x: Math.random() * (64 * 16),
-        y: Math.random() * (64 * 16),
-        speedX: Math.random() * 0.5 + 0.5,
-        speedY: Math.random() * 0.6 + 0.6,
-        swayPhase: Math.random() * Math.PI * 2,
-        angle: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.06,
-        color: colors[i % colors.length],
-        rx: Math.random() * 1.5 + 3.2,
-        ry: Math.random() * 1 + 1.8,
-        alpha: Math.random() * 0.25 + 0.65,
-      };
-    }),
+    fireflies: createInitialFireflies(),
+    petals: createInitialPetals(),
   });
 
   // 1. Load 16-bit sprite sheets
