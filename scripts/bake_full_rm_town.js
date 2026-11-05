@@ -103,11 +103,13 @@ async function main() {
   while ((m = tileRegex.exec(gmXml)) !== null) {
     const tileId = parseInt(m[1], 10);
     const body = m[4];
-    const imgMatch = body.match(/<image\s+source="([^"]+)"/);
+    const imgMatch = body.match(/<image\s+(?:width="(\d+)"\s+height="(\d+)"\s+)?source="([^"]+)"/);
     if (imgMatch) {
-      const baseName = path.basename(imgMatch[1]).toLowerCase();
+      const tileW = m[2] ? parseInt(m[2], 10) : (imgMatch[1] ? parseInt(imgMatch[1], 10) : null);
+      const tileH = m[3] ? parseInt(m[3], 10) : (imgMatch[2] ? parseInt(imgMatch[2], 10) : null);
+      const baseName = path.basename(imgMatch[3]).toLowerCase();
       const resolved = allImages.get(baseName);
-      if (resolved) gmTiles.set(tileId, { file: resolved, baseName });
+      if (resolved) gmTiles.set(tileId, { file: resolved, baseName, tileW, tileH });
     }
   }
 
@@ -125,11 +127,14 @@ async function main() {
     }
   }
 
-  function blitImage(img, destX, destY) {
-    for (let py = 0; py < img.h; py++) {
+  function blitImage(img, destX, destY, frameW, frameH) {
+    const renderW = Math.min(img.w, frameW || img.w);
+    const renderH = Math.min(img.h, frameH || img.h);
+
+    for (let py = 0; py < renderH; py++) {
       const ty = destY + py;
       if (ty < 0 || ty >= pixelH) continue;
-      for (let px = 0; px < img.w; px++) {
+      for (let px = 0; px < renderW; px++) {
         const tx = destX + px;
         if (tx < 0 || tx >= pixelW) continue;
         const sIdx = (py * img.w + px) * 4;
@@ -188,7 +193,11 @@ async function main() {
           const info = gmTiles.get(cleanGid - 1);
           if (info) {
             const img = await getDecodedObj(info.file);
-            if (img) blitImage(img, Math.round(obj.x), Math.round(obj.y - img.h));
+            if (img) {
+              const frameW = obj.width || info.tileW || img.w;
+              const frameH = obj.height || info.tileH || img.h;
+              blitImage(img, Math.round(obj.x), Math.round(obj.y - frameH), frameW, frameH);
+            }
           }
         }
       }
@@ -226,16 +235,18 @@ async function main() {
     // General Store
     { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_spring.png', x: 1148, y: 1729, isBottomOrigin: true },
     { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_side_spring.png', x: 1284, y: 1727, isBottomOrigin: true },
-    // Mill
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_base_on.png', x: 1408, y: 1728, isBottomOrigin: true },
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_tower_on.png', x: 1408, y: 1728, isBottomOrigin: true },
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_blades_on.png', x: 1408, y: 1728, isBottomOrigin: true },
+    // Mill (Only 1 single authentic Mill tower & blades, frame 0 clipped to 192x288)
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_base_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_doorway_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_door_spring_closed.png', x: 1480, y: 1727, isBottomOrigin: true, frameW: 48, frameH: 64 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_tower_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_blades_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
     // Celine's Cottage
-    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_spring.png', x: 1260, y: 2135, isBottomOrigin: true },
-    // Stone Bridge
-    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png', x: 1616, y: 1128, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_spring.png', x: 1260, y: 2135, isBottomOrigin: true, frameW: 176, frameH: 208 },
+    // Stone Bridge (Single bridge span across river, frame 0 clipped to 184x112)
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
     // Balor's Wagon
-    { file: 'public/village_assets/architecture/market_stalls/Balor/spr_town_balor_wagon_spring.png', x: 875, y: 2056, isBottomOrigin: true }
+    { file: 'public/village_assets/architecture/market_stalls/Balor/spr_town_balor_wagon_spring.png', x: 875, y: 2056, isBottomOrigin: true, frameW: 104, frameH: 96 }
   ];
 
   for (const b of keyBuildings) {
@@ -243,10 +254,12 @@ async function main() {
     if (fs.existsSync(resolved)) {
       const img = await getDecodedObj(resolved);
       if (img) {
+        const frameW = b.frameW || img.w;
+        const frameH = b.frameH || img.h;
         const destX = b.x;
-        const destY = b.isBottomOrigin ? b.y - img.h : b.y;
-        blitImage(img, destX, destY);
-        console.log(`Placed building: ${path.basename(b.file)} at (${destX}, ${destY})`);
+        const destY = b.isBottomOrigin ? b.y - frameH : b.y;
+        blitImage(img, destX, destY, frameW, frameH);
+        console.log(`Placed building: ${path.basename(b.file)} at (${destX}, ${destY}) [${frameW}x${frameH}]`);
       }
     } else {
       console.warn(`Building file missing: ${b.file}`);
@@ -266,13 +279,31 @@ async function main() {
         if (cleanGid < 1504) {
           const info = gmTiles.get(cleanGid - 1);
           if (info && info.file) {
-            // Don't re-render already placed main buildings
+            // Don't re-render already placed buildings or spritesheets
             const base = info.baseName;
-            if (base.includes('generalstore') || base.includes('inn_spring') || base.includes('bell_tower') || base.includes('clinic') || base.includes('bathhouse') || base.includes('manor') || base.includes('blacksmith_left') || base.includes('blacksmith_right') || base.includes('gazebo')) {
+            if (
+              base.includes('generalstore') ||
+              base.includes('inn_spring') ||
+              base.includes('bell_tower') ||
+              base.includes('clinic') ||
+              base.includes('bathhouse') ||
+              base.includes('manor') ||
+              base.includes('blacksmith_left') ||
+              base.includes('blacksmith_right') ||
+              base.includes('gazebo') ||
+              base.includes('mill_spring') ||
+              base.includes('stone_bridge') ||
+              base.includes('celine_spring') ||
+              base.includes('balor_wagon')
+            ) {
               continue;
             }
             const img = await getDecodedObj(info.file);
-            if (img) blitImage(img, Math.round(obj.x), Math.round(obj.y - img.h));
+            if (img) {
+              const frameW = obj.width || info.tileW || img.w;
+              const frameH = obj.height || info.tileH || img.h;
+              blitImage(img, Math.round(obj.x), Math.round(obj.y - frameH), frameW, frameH);
+            }
           }
         }
       }
@@ -287,15 +318,17 @@ async function main() {
     await renderAssets(layer);
   }
 
-  // 4. Save to public/village_assets/rm_town_full.png
-  const outPath = 'public/village_assets/rm_town_full.png';
-  console.log(`Saving full map (${pixelW}x${pixelH}) to ${outPath}...`);
-  await sharp(canvasBuffer, { raw: { width: pixelW, height: pixelH, channels: 4 } })
+  // 4. Save to public/village_assets/rm_town_full.png and village_assets/rm_town_full.png
+  const outPath1 = 'public/village_assets/rm_town_full.png';
+  const outPath2 = 'village_assets/rm_town_full.png';
+  console.log(`Saving full map (${pixelW}x${pixelH}) to ${outPath1}...`);
+  const pngBuffer = await sharp(canvasBuffer, { raw: { width: pixelW, height: pixelH, channels: 4 } })
     .png({ compressionLevel: 6 })
-    .toFile(outPath);
+    .toBuffer();
 
-  const stat = fs.statSync(outPath);
-  console.log(`SUCCESS! Saved ${outPath} (${Math.round(stat.size / 1024)} KB)`);
+  fs.writeFileSync(outPath1, pngBuffer);
+  fs.writeFileSync(outPath2, pngBuffer);
+  console.log('Successfully baked single authentic rm_town_full.png with ZERO duplicates!');
 }
 
 main().catch(console.error);
