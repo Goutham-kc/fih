@@ -783,6 +783,10 @@ export default function PixelWorldCanvas({
       lilypad_flower: null,
       cattails: null,
       water_caustics: null,
+      grain_sack: null,
+      flower_planter: null,
+      wash_tub: null,
+      treasure_chest: null,
     },
     loaded: false,
     camera: { x: 32 * 16, y: 33 * 16 }, // Center at Central Plaza Fountain on spawn
@@ -898,6 +902,10 @@ export default function PixelWorldCanvas({
       { key: 'lilypad_flower', src: '/assets/props/lilypad_flower.png' },
       { key: 'cattails', src: '/assets/props/cattails.png' },
       { key: 'water_caustics', src: '/assets/props/water_caustics.png' },
+      { key: 'grain_sack', src: '/assets/props/grain_sack.png' },
+      { key: 'flower_planter', src: '/assets/props/flower_planter.png' },
+      { key: 'wash_tub', src: '/assets/props/wash_tub.png' },
+      { key: 'treasure_chest', src: '/assets/props/treasure_chest.png' },
     ];
 
     let count = 0;
@@ -1426,10 +1434,22 @@ export default function PixelWorldCanvas({
             ctx.drawImage(wellImg, 10.5 * TILE_SIZE, 12 * TILE_SIZE - 4, 32, 36);
           }
 
+          // Farmstead Wooden Wash Tub (tx: 9.5, ty: 13.5)
+          const tubImg = state.images.wash_tub;
+          if (tubImg) {
+            ctx.drawImage(tubImg, 9.5 * TILE_SIZE, 13.5 * TILE_SIZE, 16, 16);
+          }
+
           // Farmstead Wooden Cart (tx: 17, ty: 12.5)
           const cartImg = state.images.farm_cart;
           if (cartImg) {
             ctx.drawImage(cartImg, 17 * TILE_SIZE, 12.5 * TILE_SIZE, 36, 26);
+          }
+
+          // Farmstead Burlap Grain Sack (tx: 19, ty: 13)
+          const sackImg = state.images.grain_sack;
+          if (sackImg) {
+            ctx.drawImage(sackImg, 19 * TILE_SIZE, 13 * TILE_SIZE, 24, 20);
           }
 
           // Farmstead Golden Haystack (tx: 10, ty: 15)
@@ -1451,6 +1471,12 @@ export default function PixelWorldCanvas({
             const bX = 50 * TILE_SIZE - bW / 2; // 800 - 43 = 757px
             const bY = 14 * TILE_SIZE + 4 - bH; // 224 + 4 - 86 = 142px
             ctx.drawImage(bankImg, bX, bY, bW, bH);
+            // Symmetrical Flower Planter Boxes
+            const planterImg = state.images.flower_planter;
+            if (planterImg) {
+              ctx.drawImage(planterImg, 47 * TILE_SIZE, 14 * TILE_SIZE - 4, 24, 16);
+              ctx.drawImage(planterImg, 52.5 * TILE_SIZE, 14 * TILE_SIZE - 4, 24, 16);
+            }
           } else {
             const hx = 48 * TILE_SIZE;
             const hy = 11 * TILE_SIZE;
@@ -1584,6 +1610,11 @@ export default function PixelWorldCanvas({
             const bX = 16 * TILE_SIZE - bW / 2; // 256 - 64 = 192px
             const bY = 52 * TILE_SIZE - bH + 4; // 832 - 94 + 4 = 742px
             ctx.drawImage(festImg, bX, bY, bW, bH);
+            // Festive Market Cache Chest
+            const chestImg = state.images.treasure_chest;
+            if (chestImg) {
+              ctx.drawImage(chestImg, 20.5 * TILE_SIZE, 51 * TILE_SIZE, 16, 16);
+            }
           } else {
             const gx = 15 * TILE_SIZE;
             const gy = 48 * TILE_SIZE;
