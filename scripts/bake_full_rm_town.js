@@ -260,32 +260,62 @@ async function main() {
   console.log('Rendering authentic buildings from village_assets...');
   const keyBuildings = [
     // Manor House
-    { file: 'public/village_assets/buildings/manor/spr_town_building_manor_spring.png', x: 872, y: 512, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/manor/spr_town_building_manor_spring.png', x: 872, y: 512, isBottomOrigin: true, frameW: 448, frameH: 432 },
+    { file: 'public/village_assets/buildings/manor/spr_town_building_manor_spring_top.png', x: 872, y: 512, isBottomOrigin: true, frameW: 448, frameH: 432 },
+    { file: 'public/village_assets/buildings/manor/spr_town_building_manor_doorway_spring.png', x: 1048, y: 504, isBottomOrigin: true, frameW: 96, frameH: 104 },
+    { file: 'public/village_assets/buildings/manor/spr_town_building_manor_door_spring_closed.png', x: 1064, y: 504, isBottomOrigin: true, frameW: 64, frameH: 88 },
+    { file: 'public/village_assets/buildings/manor/spr_manorhouse_tree_square_spring.png', x: 1006, y: 480, isBottomOrigin: true, frameW: 48, frameH: 88 },
+    { file: 'public/village_assets/buildings/manor/spr_manorhouse_tree_square_spring.png', x: 1138, y: 480, isBottomOrigin: true, frameW: 48, frameH: 88 },
+    
     // Gazebo
-    { file: 'public/village_assets/buildings/manor/spr_town_gazebo_spring.png', x: 1424, y: 284, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/manor/Gazebo/spr_town_gazebo_spring_ground.png', x: 1424, y: 284, isBottomOrigin: true, frameW: 120, frameH: 144 },
+    { file: 'public/village_assets/buildings/manor/Gazebo/spr_town_gazebo_spring.png', x: 1424, y: 284, isBottomOrigin: true, frameW: 120, frameH: 144 },
+
     // Blacksmith Forge & Shop
-    { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_left_spring.png', x: 504, y: 1016, isBottomOrigin: true },
-    { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_right_spring.png', x: 600, y: 984, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_left_spring_ground.png', x: 504, y: 1016, isBottomOrigin: true, frameW: 136, frameH: 248 },
+    { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_left_spring.png', x: 504, y: 1016, isBottomOrigin: true, frameW: 136, frameH: 248 },
+    { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_right_spring.png', x: 600, y: 984, isBottomOrigin: true, frameW: 232, frameH: 200 },
+    { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_door_spring_closed.png', x: 684, y: 984, isBottomOrigin: true, frameW: 56, frameH: 71 },
+
     // Bathhouse
-    { file: 'public/village_assets/buildings/bathhouse/spr_town_building_bathhouse_spring.png', x: 1388, y: 929, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/bathhouse/spr_town_building_bathhouse_spring.png', x: 1388, y: 929, isBottomOrigin: true, frameW: 280, frameH: 208 },
+    { file: 'public/village_assets/buildings/bathhouse/spr_town_building_bathhouse_door_spring_closed.png', x: 1436, y: 926, isBottomOrigin: true, frameW: 56, frameH: 64 },
+
     // Clinic
-    { file: 'public/village_assets/buildings/clinic/spr_town_building_clinic_spring.png', x: 1344, y: 1281, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/clinic/spr_town_building_clinic_spring.png', x: 1344, y: 1281, isBottomOrigin: true, frameW: 288, frameH: 224 },
+    { file: 'public/village_assets/buildings/clinic/spr_town_building_clinic_door1_spring_closed.png', x: 1396, y: 1281, isBottomOrigin: true, frameW: 56, frameH: 71 },
+    { file: 'public/village_assets/buildings/clinic/spr_town_building_clinic_door2_spring_closed.png', x: 1508, y: 1281, isBottomOrigin: true, frameW: 56, frameH: 71 },
+
     // Bell Tower
-    { file: 'public/village_assets/buildings/bell_tower/spr_town_building_bell_tower_fixed_spring.png', x: 448, y: 1280, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/bell_tower/spr_town_building_bell_tower_fixed_spring.png', x: 448, y: 1280, isBottomOrigin: true, frameW: 160, frameH: 240 },
+    { file: 'public/village_assets/buildings/bell_tower/spr_town_building_bell_tower_door_spring_closed.png', x: 504, y: 1276, isBottomOrigin: true, frameW: 48, frameH: 54 },
+
     // Sleeping Dragon Inn
-    { file: 'public/village_assets/buildings/inn/spr_town_building_inn_spring.png', x: 812, y: 1736, isBottomOrigin: true },
-    { file: 'public/village_assets/buildings/inn/spr_town_building_inn_wooden_beams_spring.png', x: 1020, y: 1728, isBottomOrigin: true },
+    { file: 'public/village_assets/buildings/inn/spr_town_building_inn_spring.png', x: 812, y: 1736, isBottomOrigin: true, frameW: 256, frameH: 264 },
+    { file: 'public/village_assets/buildings/inn/spr_town_building_inn_wooden_beams_spring.png', x: 1020, y: 1728, isBottomOrigin: true, frameW: 152, frameH: 160 },
+    { file: 'public/village_assets/buildings/inn/spr_inn_main_door_spring_closed.png', x: 916, y: 1735, isBottomOrigin: true, frameW: 56, frameH: 71 },
+
     // General Store
-    { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_spring.png', x: 1148, y: 1729, isBottomOrigin: true },
-    { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_side_spring.png', x: 1284, y: 1727, isBottomOrigin: true },
-    // Mill (Only 1 single authentic Mill tower & blades, frame 0 clipped to 192x288)
+    { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_spring.png', x: 1148, y: 1729, isBottomOrigin: true, frameW: 168, frameH: 240 },
+    { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_side_spring.png', x: 1284, y: 1727, isBottomOrigin: true, frameW: 104, frameH: 176 },
+    { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_door_spring_closed.png', x: 1204, y: 1737, isBottomOrigin: true, frameW: 56, frameH: 71 },
+
+    // Mill (Single authentic Mill tower, base, doorway, door & blades - all clipped to frame 0 192x288)
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_base_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_doorway_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
-    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_door_on.png', x: 1488, y: 1728, isBottomOrigin: true, frameW: 32, frameH: 48 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_door_spring_closed.png', x: 1480, y: 1727, isBottomOrigin: true, frameW: 48, frameH: 64 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_tower_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
+    { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_blades_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
+
     // Celine's Cottage
-    { file: 'public/village_assets/buildings/cottage/spr_town_building_cottage_spring.png', x: 1264, y: 2136, isBottomOrigin: true },
-    // Stone Bridge over the eastern river
-    { file: 'public/village_assets/architecture/bridges/spr_town_bridge_stone_middle.png', x: 1616, y: 1016, isBottomOrigin: true, frameW: 64, frameH: 96 }
+    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_spring.png', x: 1256, y: 2129, isBottomOrigin: true, frameW: 176, frameH: 208 },
+    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_door_spring_closed.png', x: 1304, y: 2135, isBottomOrigin: true, frameW: 64, frameH: 72 },
+
+    // Stone Bridge over eastern river (frame 0 clipped to 184x112)
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring_ground.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_water.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring_top.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 }
   ];
 
   for (const b of keyBuildings) {
