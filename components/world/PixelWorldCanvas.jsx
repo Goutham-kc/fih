@@ -216,13 +216,7 @@ export function getPathTileInfo(tx, ty) {
   // 3. Interior Dirt Center
   const pathDetail = hash2D(tx, ty, 888) % 10;
   if (pathDetail === 0) {
-    return { col: 3, row: 0 }; // Slate river stepping stone
-  }
-  if (pathDetail === 1) {
-    return { col: 4, row: 1 }; // Embedded cobble paver
-  }
-  if (pathDetail === 2) {
-    return { col: 1, row: 7 }; // Autumn leaf on earth
+    return { col: 4, row: 1 }; // Embedded cobble paver (the only detail kept; others looked like holes)
   }
   return { col: 4, row: 0 }; // Smooth packed dirt center
 }
@@ -394,6 +388,7 @@ export function generateForestTrees() {
     { minX: 21, maxX: 28, minY: 7, maxY: 16 }, // North Copse West (Farmstead ⟷ Bell Tower)
     { minX: 36, maxX: 45, minY: 7, maxY: 16 }, // North Copse East (Bell Tower ⟷ Ledger Hut)
     { minX: 2, maxX: 9, minY: 18, maxY: 26 }, // West woods (north)
+    { minX: 10, maxX: 14, minY: 21, maxY: 25 }, // Small orchard copse west of the connector
     { minX: 2, maxX: 8, minY: 27, maxY: 35 }, // West woods behind Archive
     { minX: 2, maxX: 11, minY: 36, maxY: 44 }, // South-west woods
     { minX: 50, maxX: 60, minY: 19, maxY: 27 }, // North-east woods
@@ -549,7 +544,7 @@ export function isWalkable(wx, wy) {
   }
 
   // 11. Chapter 8: The Toolshed Workbench & Forge (two rows above its door)
-  if (tx >= TOOLSHED.x - 1 && tx <= TOOLSHED.x + 1 && ty >= TOOLSHED.y - 2 && ty <= TOOLSHED.y - 1) {
+  if (tx >= TOOLSHED.x - 2 && tx <= TOOLSHED.x + 2 && ty >= TOOLSHED.y - 4 && ty <= TOOLSHED.y - 1) {
     return false;
   }
 
@@ -1625,15 +1620,21 @@ export default function PixelWorldCanvas({
       renderables.push({
         y: TOOLSHED.y * TILE_SIZE,
         render: () => {
-          const sx = (TOOLSHED.x - 1) * TILE_SIZE;
-          const sy = (TOOLSHED.y - 2) * TILE_SIZE;
-          // Pegboard tool rack & saw
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx, sy, TILE_SIZE, TILE_SIZE);
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 2 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + TILE_SIZE, sy, TILE_SIZE, TILE_SIZE);
-          // Heavy iron anvil on stump
-          ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx + 2 * TILE_SIZE, sy + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // Split firewood pile & tool barrel
-          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, sx - 1 * TILE_SIZE, sy + 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // Workshop building: the Archive Cellar sprite mirrored horizontally
+          const shedImg = state.images.archive_cellar;
+          if (shedImg) {
+            const bW = 76;
+            const bH = 90;
+            const bY = (TOOLSHED.y + 1) * TILE_SIZE - bH - 4;
+            ctx.save();
+            ctx.translate(TOOLSHED.x * TILE_SIZE, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(shedImg, -bW / 2, bY, bW, bH);
+            ctx.restore();
+          }
+          // Iron anvil and split firewood beside the door
+          ctx.drawImage(tileset, 6 * TILE_SIZE, 3 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x + 2) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(tileset, 5 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE, TILE_SIZE, (TOOLSHED.x - 3) * TILE_SIZE, (TOOLSHED.y - 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
           // Grain sack stacked beside the yard fence
           const sackImg = state.images.grain_sack;
@@ -1779,7 +1780,7 @@ export default function PixelWorldCanvas({
 
       // ── 11b. Rustic Woodland Log Benches (resting spots along the middle roads) ──
       const logBenches = [
-        { x: 22, y: 31 }, { x: 42, y: 31 },
+        { x: 24, y: 32 }, { x: 40, y: 32 },
         // Pondside viewing spots
         { x: 28, y: 41 }, { x: 36, y: 41 },
       ];
@@ -1879,6 +1880,10 @@ export default function PixelWorldCanvas({
         { x: 18, y: 26, type: 'poppy' }, { x: 21, y: 26, type: 'daisy' },
         // Toolshed yard marigolds
         { x: 49, y: 34, type: 'sunflower' },
+        // Roadside meadow patches between the connectors and the plaza
+        { x: 21, y: 29, type: 'poppy' }, { x: 23, y: 30, type: 'daisy' }, { x: 25, y: 29, type: 'sunflower' },
+        { x: 41, y: 29, type: 'poppy' }, { x: 43, y: 30, type: 'daisy' }, { x: 39, y: 29, type: 'sunflower' },
+        { x: 20, y: 22, type: 'daisy' }, { x: 44, y: 22, type: 'poppy' },
       ];
       flowerBeds.forEach((fb) => {
         if (viewW < 1000 && (fb.x * TILE_SIZE < camMinX || fb.x * TILE_SIZE > camMaxX || fb.y * TILE_SIZE < camMinY || fb.y * TILE_SIZE > camMaxY)) return;
@@ -1915,6 +1920,9 @@ export default function PixelWorldCanvas({
         { x: 27, y: 43, type: 'tiered' }, { x: 37, y: 43, type: 'green' },
         // Toolshed yard hedges
         { x: 55, y: 34, type: 'green' }, { x: 49, y: 31, type: 'yellow' },
+        // Meadow hedges
+        { x: 22, y: 28, type: 'tiered' }, { x: 42, y: 28, type: 'tiered' },
+        { x: 25, y: 31, type: 'green' }, { x: 39, y: 31, type: 'green' },
       ];
       bushes.forEach((bp) => {
         if (viewW < 1000 && (bp.x * TILE_SIZE < camMinX || bp.x * TILE_SIZE > camMaxX || bp.y * TILE_SIZE < camMinY || bp.y * TILE_SIZE > camMaxY)) return;
