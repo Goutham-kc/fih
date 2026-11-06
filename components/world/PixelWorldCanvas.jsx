@@ -1929,39 +1929,6 @@ function ClassicPixelCanvas({
         ctx.drawImage(townOverhead, 0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
       }
 
-      // ── Layer 4a: Ambient Lantern Radial Halos & Flame Flicker ──
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      const allLanternLights = [
-        { x: 1040, y: 1680, radius: 36 },
-        { x: 1140, y: 1680, radius: 36 },
-        { x: 900, y: 1680, radius: 36 },
-        { x: 1230, y: 1680, radius: 36 },
-        { x: 1040, y: 1150, radius: 36 },
-        { x: 1150, y: 1150, radius: 36 },
-        { x: 448, y: 1290, radius: 36 },
-        { x: 1400, y: 1290, radius: 36 },
-        { x: 1260, y: 2135, radius: 32 },
-        { x: 1084, y: 485, radius: 36 },
-      ];
-
-      allLanternLights.forEach((ll, lIdx) => {
-        if (viewW < 1000 && (ll.x < camMinX - 32 || ll.x > camMaxX + 32 || ll.y < camMinY - 32 || ll.y > camMaxY + 32)) return;
-        const flicker = Math.sin(state.animFrame * 0.2 + lIdx * 2.1) * 0.08 + Math.cos(state.animFrame * 0.35 + lIdx * 1.3) * 0.04;
-        const r = ll.radius * (1 + flicker);
-        const grad = ctx.createRadialGradient(ll.x, ll.y, 1, ll.x, ll.y, r);
-        grad.addColorStop(0, `rgba(254, 240, 138, ${(0.40 + flicker * 0.22).toFixed(3)})`);
-        grad.addColorStop(0.35, `rgba(245, 158, 11, 0.15)`);
-        grad.addColorStop(0.7, `rgba(217, 119, 6, 0.05)`);
-        grad.addColorStop(1, 'rgba(180, 83, 9, 0)');
-
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(ll.x, ll.y, r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.restore();
-
       // ── Layer 4b: Bioluminescent Woodland Fireflies ──
       state.fireflies.forEach((f) => {
         f.x = f.baseX + Math.sin(f.phase + state.animFrame * 0.05) * 14;
