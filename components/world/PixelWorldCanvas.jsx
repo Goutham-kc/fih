@@ -1367,6 +1367,13 @@ function ClassicPixelCanvas({
   }, [onPlayerInteract, onNearbyBuildingChange]);
 
   const lastReportedNearbyRef = useRef(undefined);
+  const lastBroadcastRef = useRef({
+    x: 0,
+    y: 0,
+    dir: 0,
+    walking: false,
+    time: 0,
+  });
 
   const stateRef = useRef({
     images: {
@@ -1444,81 +1451,153 @@ function ClassicPixelCanvas({
   });
 
 
-  // ── Multi-User World Presence Heartbeat ──
+  // ── Multi-User Real-Time World Presence (SSE Stream + Fallback) ──
   useEffect(() => {
     let active = true;
-    let isFetching = false;
+    let es = null;
+    let fallbackTimer = null;
 
-    async function sendPresenceHeartbeat() {
-      if (!active || isFetching) return;
-      isFetching = true;
-      try {
-        const pip = stateRef.current.pip;
-        const charId = stateRef.current.characterId || 'celine';
-        const res = await fetch('/api/world/presence', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            x: Math.round(pip.x),
-            y: Math.round(pip.y),
-            dir: pip.dir,
-            walking: pip.walking,
-            characterId: charId,
-          }),
-        });
+    function applyPresenceSync(players = []) {
+      if (!active) return;
+      const currentMap = stateRef.current.otherPlayers || {};
+      const nextMap = {};
 
-        if (res.ok) {
-          const data = await res.json();
-          if (!active) return;
-          if (data.self?.name) {
-            stateRef.current.selfName = data.self.name;
-          }
-
-          const currentMap = stateRef.current.otherPlayers || {};
-          const nextMap = {};
-
-          (data.players || []).forEach((p) => {
-            const existing = currentMap[p.id];
-            if (existing) {
-              nextMap[p.id] = {
-                ...existing,
-                targetX: p.x,
-                targetY: p.y,
-                dir: p.dir,
-                walking: p.walking,
-                characterId: p.characterId,
-                name: p.name,
-              };
-            } else {
-              nextMap[p.id] = {
-                id: p.id,
-                currentX: p.x,
-                currentY: p.y,
-                targetX: p.x,
-                targetY: p.y,
-                dir: p.dir,
-                walking: p.walking,
-                characterId: p.characterId,
-                name: p.name,
-              };
-            }
-          });
-
-          stateRef.current.otherPlayers = nextMap;
+      players.forEach((p) => {
+        const existing = currentMap[p.id];
+        if (existing) {
+          nextMap[p.id] = {
+            ...existing,
+            targetX: p.x,
+            targetY: p.y,
+            dir: p.dir,
+            walking: p.walking,
+            characterId: p.characterId,
+            name: p.name,
+          };
+        } else {
+          nextMap[p.id] = {
+            id: p.id,
+            currentX: p.x,
+            currentY: p.y,
+            targetX: p.x,
+            targetY: p.y,
+            dir: p.dir,
+            walking: p.walking,
+            characterId: p.characterId,
+            name: p.name,
+          };
         }
-      } catch (err) {
-        // Silently tolerate background network timeouts
-      } finally {
-        isFetching = false;
+      });
+
+      stateRef.current.otherPlayers = nextMap;
+    }
+
+    function applyPlayerUpdate(player) {
+      if (!active || !player || !player.id) return;
+      const others = stateRef.current.otherPlayers || {};
+      const existing = others[player.id];
+      if (existing) {
+        existing.targetX = player.x;
+        existing.targetY = player.y;
+        existing.dir = player.dir;
+        existing.walking = player.walking;
+        existing.characterId = player.characterId;
+        existing.name = player.name;
+      } else {
+        others[player.id] = {
+          id: player.id,
+          currentX: player.x,
+          currentY: player.y,
+          targetX: player.x,
+          targetY: player.y,
+          dir: player.dir,
+          walking: player.walking,
+          characterId: player.characterId,
+          name: player.name,
+        };
       }
     }
 
-    sendPresenceHeartbeat();
-    const interval = setInterval(sendPresenceHeartbeat, 1500);
+    function applyPlayerLeft(id) {
+      if (!active || !id) return;
+      const others = stateRef.current.otherPlayers || {};
+      if (others[id]) {
+        delete others[id];
+      }
+    }
+
+    // Connect to Server-Sent Events stream for sub-50ms live updates
+    function connectEventStream() {
+      try {
+        es = new EventSource('/api/world/stream');
+        es.onmessage = (event) => {
+          if (!active || !event.data) return;
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'sync') {
+              applyPresenceSync(data.players);
+            } else if (data.type === 'player_moved' || data.type === 'player_joined') {
+              applyPlayerUpdate(data.player);
+            } else if (data.type === 'player_left') {
+              applyPlayerLeft(data.id);
+            }
+          } catch {}
+        };
+      } catch (err) {
+        console.warn('[WorldPresence] SSE stream init error:', err);
+      }
+    }
+
+    connectEventStream();
+
+    // Secondary background poll every 4s to catch any dropped connections
+    fallbackTimer = setInterval(async () => {
+      if (!active) return;
+      try {
+        const res = await fetch('/api/world/presence');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.players) {
+            applyPresenceSync(data.players);
+          }
+        }
+      } catch {}
+    }, 4000);
+
+    // Initial broadcast to announce self immediately
+    const initialPip = stateRef.current.pip;
+    fetch('/api/world/presence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        x: Math.round(initialPip.x),
+        y: Math.round(initialPip.y),
+        dir: initialPip.dir,
+        walking: false,
+        characterId: stateRef.current.characterId || 'celine',
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.self?.name && stateRef.current) {
+          stateRef.current.selfName = d.self.name;
+        }
+      })
+      .catch(() => {});
+
+    // Graceful unload beacon
+    const handleBeforeUnload = () => {
+      try {
+        navigator.sendBeacon('/api/world/leave');
+      } catch {}
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       active = false;
-      clearInterval(interval);
+      if (es) es.close();
+      if (fallbackTimer) clearInterval(fallbackTimer);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
@@ -1891,6 +1970,46 @@ function ClassicPixelCanvas({
         pip.walking = false;
       }
 
+      // ── Real-Time Presence Broadcast Dispatch ──
+      const now = performance.now();
+      const lastBc = lastBroadcastRef.current;
+      const movedDist = Math.hypot(pip.x - lastBc.x, pip.y - lastBc.y);
+      const stateChanged = pip.walking !== lastBc.walking || pip.dir !== lastBc.dir;
+      const timeSinceLast = now - lastBc.time;
+
+      // Broadcast immediately on state/dir changes, every 60ms while walking, or 3.5s while idle
+      const shouldBroadcast =
+        stateChanged ||
+        (pip.walking && movedDist >= 2 && timeSinceLast >= 60) ||
+        (!pip.walking && timeSinceLast >= 3500);
+
+      if (shouldBroadcast) {
+        lastBc.x = pip.x;
+        lastBc.y = pip.y;
+        lastBc.dir = pip.dir;
+        lastBc.walking = pip.walking;
+        lastBc.time = now;
+
+        fetch('/api/world/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            x: Math.round(pip.x),
+            y: Math.round(pip.y),
+            dir: pip.dir,
+            walking: pip.walking,
+            characterId: state.characterId || 'celine',
+          }),
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.self?.name && state) {
+              state.selfName = d.self.name;
+            }
+          })
+          .catch(() => {});
+      }
+
       // ── Update Proximity Detection ──
       const nearby = getNearbyBuilding(pip.x + 8, pip.y + 20, 36, true);
       state.nearbyBuilding = nearby;
@@ -2016,13 +2135,42 @@ function ClassicPixelCanvas({
         },
       });
 
-      // ── 14. Other Online Logged-In Villagers (Multi-User Presence) ──
+      // ── 14. Other Online Logged-In Villagers (Multi-User Real-Time Presence) ──
       Object.values(state.otherPlayers || {}).forEach((other) => {
-        // Smooth linear interpolation towards target position
-        other.currentX += (other.targetX - other.currentX) * 0.18;
-        other.currentY += (other.targetY - other.currentY) * 0.18;
+        const dx = other.targetX - other.currentX;
+        const dy = other.targetY - other.currentY;
+        const dist = Math.hypot(dx, dy);
 
-        const otherHero = VILLAGE_HEROES.find(h => h.id === other.characterId) || VILLAGE_HEROES[0];
+        if (dist > 180) {
+          // Hard snap for sudden teleports (e.g. entering buildings or loading)
+          other.currentX = other.targetX;
+          other.currentY = other.targetY;
+        } else if (dist > 0.4) {
+          // Frame-rate independent velocity catch-up matching player speed
+          const baseSpeed = 85 * dt;
+          const catchupSpeed = Math.max(baseSpeed, dist * 14 * dt);
+          const step = Math.min(dist, catchupSpeed);
+          other.currentX += (dx / dist) * step;
+          other.currentY += (dy / dist) * step;
+        } else {
+          other.currentX = other.targetX;
+          other.currentY = other.targetY;
+        }
+
+        // Animate walk cycle if reported walking OR if physically in motion
+        const isWalking = other.walking || dist > 1.2;
+
+        // Display direction adapts smoothly if in active transit
+        let displayDir = other.dir ?? 0;
+        if (dist > 2.0) {
+          if (Math.abs(dx) > Math.abs(dy)) {
+            displayDir = dx > 0 ? 2 : 1;
+          } else {
+            displayDir = dy > 0 ? 0 : 3;
+          }
+        }
+
+        const otherHero = VILLAGE_HEROES.find((h) => h.id === other.characterId) || VILLAGE_HEROES[0];
 
         renderables.push({
           y: other.currentY + 20, // foot Y for depth sorting
@@ -2031,8 +2179,8 @@ function ClassicPixelCanvas({
               px: Math.floor(other.currentX),
               py: Math.floor(other.currentY),
               charId: other.characterId || 'march',
-              dir: other.dir ?? 0,
-              walking: other.walking,
+              dir: displayDir,
+              walking: isWalking,
               animFrame: state.animFrame,
               name: other.name,
               isSelf: false,
