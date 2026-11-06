@@ -100,7 +100,7 @@ export const BUILDING_HITBOXES = [
     rmMaxX: 1388,
     rmMaxY: 1745,
     rmBannerX: 1220,
-    rmBannerY: 1475,
+    rmBannerY: 1675,
   },
   {
     id: 'reminders',
@@ -144,7 +144,7 @@ export const BUILDING_HITBOXES = [
     rmMaxX: 1370,
     rmMaxY: 1745,
     rmBannerX: 1352,
-    rmBannerY: 1680,
+    rmBannerY: 1715,
   },
   {
     id: 'dates',

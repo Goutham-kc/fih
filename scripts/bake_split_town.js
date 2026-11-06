@@ -105,8 +105,17 @@ async function bakeSplit() {
         if (lx < 0 || lx >= 16 || ly < 0 || ly >= 16) continue;
 
         const sIdx = ((srcY + ly) * ts.w + (srcX + lx)) * 4;
-        const sa = ts.raw[sIdx + 3];
+        let sa = ts.raw[sIdx + 3];
         if (sa === 0) continue;
+
+        if (ts.name === 'shadows') {
+          // On bridge walkway tx: 132 (x: 1050..1070), ty: 186..196 (y: 1480..1580), skip the shadow tile so pavers are solid wall to wall!
+          if (destX >= 1050 && destX <= 1070 && destY >= 1480 && destY <= 1580) {
+            continue;
+          }
+          sa = Math.round(sa * 0.28);
+          if (sa === 0) continue;
+        }
 
         const dIdx = (ty * pixelW + tx) * 4;
         if (sa === 255) {
@@ -199,7 +208,7 @@ async function bakeSplit() {
           const inv = 1 - a;
           targetBuf[dIdx] = Math.round(img.raw[sIdx] * a + targetBuf[dIdx] * inv);
           targetBuf[dIdx + 1] = Math.round(img.raw[sIdx + 1] * a + targetBuf[dIdx + 1] * inv);
-          targetBuf[dIdx + 2] = Math.round(ts.raw[sIdx + 2] * a + targetBuf[dIdx + 2] * inv);
+          targetBuf[dIdx + 2] = Math.round(img.raw[sIdx + 2] * a + targetBuf[dIdx + 2] * inv);
           targetBuf[dIdx + 3] = Math.max(targetBuf[dIdx + 3], sa);
         }
       }
