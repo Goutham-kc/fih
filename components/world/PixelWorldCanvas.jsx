@@ -1447,19 +1447,20 @@ function ClassicPixelCanvas({
 
     if (!isOverworld) {
       const anchor = CHAPTER_ANCHORS[activeTab] || CHAPTER_ANCHORS.debts;
-      const targetX = anchor.x * TILE_SIZE;
-      const targetY = anchor.y * TILE_SIZE;
+      const bHitbox = BUILDING_HITBOXES.find((b) => b.id === activeTab);
+      const targetDoorX = (bHitbox && bHitbox.rmDoorX !== undefined) ? bHitbox.rmDoorX : (anchor.x * TILE_SIZE);
+      const targetDoorY = (bHitbox && bHitbox.rmDoorY !== undefined) ? bHitbox.rmDoorY : (anchor.y * TILE_SIZE);
 
-      stateRef.current.targetCamera = { x: targetX, y: targetY };
+      stateRef.current.targetCamera = { x: targetDoorX, y: targetDoorY };
+      stateRef.current.camera = { x: targetDoorX, y: targetDoorY };
 
-      if (reducedMotion) {
-        stateRef.current.camera = { x: targetX, y: targetY };
-        stateRef.current.pip.x = targetX - 24;
-        stateRef.current.pip.y = targetY + 8;
-        stateRef.current.pip.walking = false;
-      } else {
-        stateRef.current.pip.walking = true;
-      }
+      // Teleport character directly to the destination doorstep
+      stateRef.current.pip.x = targetDoorX - 8;
+      stateRef.current.pip.y = targetDoorY - 20;
+      stateRef.current.pip.walking = false;
+      stateRef.current.pip.dir = 0;
+      stateRef.current.clickTarget = null;
+      activeKeysRef.current.clear();
     }
   }, [activeTab, reducedMotion]);
 
@@ -1732,29 +1733,6 @@ function ClassicPixelCanvas({
             onNavigateToChapter(target.buildingId, { panelOnly: false });
           }
           state.clickTarget = null;
-        }
-      } else if (!state.isOverworldMode) {
-        // ── Auto-walk to current Chapter Anchor when panel is active ──
-        const tCam = state.targetCamera;
-        const destX = tCam.x - 20;
-        const destY = tCam.y + 12;
-        const dx = destX - pip.x;
-        const dy = destY - pip.y;
-        const dist = Math.hypot(dx, dy);
-
-        if (dist > 3 && !reducedMotion) {
-          pip.walking = true;
-          const walkSpeed = 60 * dt;
-          pip.x += (dx / dist) * Math.min(dist, walkSpeed);
-          pip.y += (dy / dist) * Math.min(dist, walkSpeed);
-
-          if (Math.abs(dx) > Math.abs(dy)) {
-            pip.dir = dx > 0 ? 2 : 1;
-          } else {
-            pip.dir = dy > 0 ? 0 : 3;
-          }
-        } else {
-          pip.walking = false;
         }
       } else {
         pip.walking = false;
