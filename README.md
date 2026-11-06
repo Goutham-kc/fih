@@ -119,7 +119,7 @@ Open `.env.local` and populate the required variables:
 
 ### 4. Seed the Admin User
 
-FIH is designed as a single-user personal assistant. Start the application locally or run the seed API to create your account:
+FIH supports multi-user personal productivity with a single central database and shared WhatsApp bot. Start the application locally or run the seed API to create your account:
 
 1. Start the server:
    ```bash
@@ -359,3 +359,4 @@ npm run lint
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
+

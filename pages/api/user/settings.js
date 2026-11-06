@@ -12,14 +12,37 @@ async function handler(req, res) {
 
     if (req.method === 'GET') {
       return res.status(200).json({
+        email: user.email,
+        whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode || 'live',
-        theme: user.theme || 'dark'
+        theme: user.theme || 'dark',
       });
     }
 
     if (req.method === 'PATCH') {
-      const { environmentMode, theme } = req.body || {};
+      const { environmentMode, theme, whatsappNumber } = req.body || {};
       let modeChanged = false;
+
+      if (whatsappNumber !== undefined) {
+        const cleanPhone = String(whatsappNumber).replace(/\D/g, '').trim();
+        if (cleanPhone.length < 10) {
+          return res.status(400).json({ error: 'Please provide a valid WhatsApp number with country code (at least 10 digits)' });
+        }
+        if (cleanPhone !== user.whatsappNumber) {
+          const last10 = cleanPhone.slice(-10);
+          const inUse = await User.findOne({
+            _id: { $ne: userId },
+            $or: [
+              { whatsappNumber: cleanPhone },
+              { whatsappNumber: new RegExp(last10 + '$') },
+            ],
+          });
+          if (inUse) {
+            return res.status(409).json({ error: 'This WhatsApp number is already linked to another account' });
+          }
+          user.whatsappNumber = cleanPhone;
+        }
+      }
 
       if (environmentMode !== undefined) {
         if (!['live', 'development'].includes(environmentMode)) {
@@ -46,13 +69,15 @@ async function handler(req, res) {
           action: 'SYSTEM',
           module: 'system',
           description: `Switched environment mode to: ${user.environmentMode.toUpperCase()} (via UI setting)`,
-          environmentMode: user.environmentMode
+          environmentMode: user.environmentMode,
         });
       }
 
       return res.status(200).json({
+        email: user.email,
+        whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode,
-        theme: user.theme
+        theme: user.theme,
       });
     }
 

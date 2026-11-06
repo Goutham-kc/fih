@@ -1,12 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
 import { toast } from 'sonner';
-import { Moon, Sun, Monitor, AlertTriangle, Database } from 'lucide-react';
+import { Moon, Sun, Monitor, AlertTriangle, Database, Phone, Mail } from 'lucide-react';
 
 export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [wiping, setWiping] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // 'live' | 'development' | null
+
+  // User Profile
+  const [email, setEmail] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneModified, setPhoneModified] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/user/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.email) setEmail(data.email);
+        if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
+      })
+      .catch((err) => console.error('Failed to load profile settings:', err));
+  }, []);
+
+  async function handleSavePhone(e) {
+    e.preventDefault();
+    const cleanPhone = whatsappNumber.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      toast.error('Please enter a valid phone number with country code (e.g. 919876543210)');
+      return;
+    }
+
+    setSavingPhone(true);
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappNumber: cleanPhone }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWhatsappNumber(data.whatsappNumber);
+        setPhoneModified(false);
+        toast.success('WhatsApp number updated successfully!');
+      } else {
+        toast.error(data.error || 'Failed to update WhatsApp number');
+      }
+    } catch {
+      toast.error('Network error when updating phone number.');
+    } finally {
+      setSavingPhone(false);
+    }
+  }
 
   async function executeWipe(targetMode) {
     setWiping(true);
@@ -38,8 +84,70 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           Preferences & Controls
         </h2>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-          Manage your interface appearance, database collection environment, and data maintenance.
+          Manage your account profile, appearance, database collection environment, and data maintenance.
         </p>
+      </div>
+
+      {/* 0. Account & WhatsApp Number Card */}
+      <div className="fih-card" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
+              Account & WhatsApp Number
+            </h3>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
+              Your account credentials and the phone number linked to your WhatsApp assistant bot.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 10 }}>
+          {/* Email row */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+              LOGIN EMAIL
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-sunken)', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+              <Mail size={16} color="var(--text-secondary)" />
+              <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>{email || 'Loading...'}</span>
+            </div>
+          </div>
+
+          {/* WhatsApp phone number form */}
+          <form onSubmit={handleSavePhone}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+              LINKED WHATSAPP NUMBER
+            </label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Phone size={16} color="var(--accent-emerald)" style={{ position: 'absolute', left: 12, top: 12 }} />
+                <input
+                  type="tel"
+                  className="fih-input"
+                  style={{ paddingLeft: 38 }}
+                  value={whatsappNumber}
+                  onChange={(e) => {
+                    setWhatsappNumber(e.target.value);
+                    setPhoneModified(true);
+                  }}
+                  placeholder="e.g. 919876543210 (country code without +)"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={!phoneModified || savingPhone}
+                style={{ fontSize: 13, padding: '0 16px', borderRadius: 10, height: 40 }}
+              >
+                {savingPhone ? 'Saving...' : 'Update Phone'}
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, marginBottom: 0 }}>
+              💡 Messages sent to the FIH bot from this phone number are automatically assigned to your account.
+            </p>
+          </form>
+        </div>
       </div>
 
       {/* 1. Theme Selection Card */}
@@ -228,13 +336,13 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <AlertTriangle size={17} color="var(--accent-rose)" />
+          <AlertTriangle size={18} color="var(--accent-rose)" />
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent-rose)', margin: 0 }}>
-            Database Reset & Maintenance
+            Reset & Wipe Database
           </h3>
         </div>
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
-          Permanently clear stored records for a specific environment. This resets todos, debts, deadlines, dates, watchlist, and reminders.
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
+          Permanently clear all items from your chosen database environment. This action is irreversible.
         </p>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

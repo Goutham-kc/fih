@@ -701,23 +701,30 @@ export default async function handler(req, res) {
 
   await connectDB();
 
-  // Find user by WhatsApp number (flexible digit matching & single-user fallback)
+  // Find user by WhatsApp number (flexible digit & suffix matching)
   const cleanFrom = from.replace(/\D/g, '');
-  const allUsers = await User.find({});
-  let user = allUsers.find(u => {
-    const userDigits = (u.whatsappNumber || '').replace(/\D/g, '');
-    return userDigits && (userDigits === cleanFrom || cleanFrom.endsWith(userDigits) || userDigits.endsWith(cleanFrom));
-  });
+  let user = await User.findOne({ whatsappNumber: cleanFrom });
+  if (!user && cleanFrom.length >= 10) {
+    const last10 = cleanFrom.slice(-10);
+    user = await User.findOne({ whatsappNumber: new RegExp(last10 + '$') });
+  }
+  if (!user) {
+    const allUsers = await User.find({}, 'whatsappNumber email environmentMode');
+    user = allUsers.find(u => {
+      const userDigits = (u.whatsappNumber || '').replace(/\D/g, '');
+      return userDigits && (userDigits === cleanFrom || cleanFrom.endsWith(userDigits) || userDigits.endsWith(cleanFrom));
+    });
+  }
 
   console.log(`[WhatsApp Webhook Incoming] from=${from} text="${text}" id=${messageId}`);
 
-  if (!user && allUsers.length > 0) {
-    console.warn(`[WhatsApp Webhook] No exact phone match for from=${from}. Falling back to primary user (${allUsers[0].email})`);
-    user = allUsers[0];
-  }
-
   if (!user) {
-    console.warn('Unknown WhatsApp sender:', from);
+    console.warn(`[WhatsApp Webhook] Unrecognized sender: ${from}`);
+    const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'the dashboard';
+    await sendWhatsAppMessage(
+      from,
+      `👋 *Welcome to FIH!*\n\nYour WhatsApp number is not linked to an account yet.\n\nPlease create an account or verify your registered phone number at:\n🌐 ${siteUrl}/login\n\nOnce registered, you can text me your tasks, reminders, expenses, and deadlines directly!`
+    );
     return res.status(200).end();
   }
 
