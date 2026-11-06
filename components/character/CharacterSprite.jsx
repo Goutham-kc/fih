@@ -62,7 +62,7 @@ export const CHARACTER_META = {
     name: 'Rowan',
     title: 'The Artisan',
     role: 'Homestead Builder',
-    location: 'The Toolshed',
+    location: "The Blacksmith's Forge",
     color: '#eab308',
   },
 };

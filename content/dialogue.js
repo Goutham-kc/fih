@@ -124,7 +124,7 @@ export const VILLAGE_DIALOGUE = {
   },
   settings: {
     character: 'rowan',
-    chapterTitle: 'The Toolshed Workbench',
+    chapterTitle: "Chapter 8: The Blacksmith's Forge (Settings & Tools)",
     morning: 'Morning in the workshop! The coal stove is stoked and the chisels are sharp. Let us tune the homestead.',
     day: 'A master builder tunes her workshop to match her rhythm. Set your audio levels and visual controls.',
     evening: 'Putting away the files and calipers for dusk. Everything tuned to exact satisfaction.',

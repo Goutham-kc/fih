@@ -10,7 +10,7 @@ const CHAPTER_HOTBAR = [
   { id: 'dates', label: 'Mill', icon: '🌸', num: '5' },
   { id: 'watchlist', label: 'Cinema', icon: '🎬', num: '6' },
   { id: 'audit', label: 'Cellar', icon: '📜', num: '7' },
-  { id: 'settings', label: 'Toolshed', icon: '🔧', num: '8' },
+  { id: 'settings', label: 'Forge', icon: '⚒️', num: '8' },
 ];
 
 export default function RPGHotbar({

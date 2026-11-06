@@ -196,10 +196,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
                 letterSpacing: '0.01em',
               }}
             >
-              The Toolshed (Settings & Workshop)
+              The Blacksmith's Forge (Village Workshop & Tuning)
             </h2>
             <p style={{ fontSize: 13, color: '#c4b5a5', margin: '4px 0 0 0' }}>
-              Tune your village soundscapes, seasonal weather, camera motion, security keyring, and database workshop environments.
+              Tune your village soundscapes, seasonal skies, hearthfire lanterns, iron keyring, and realm forge archives.
             </p>
           </div>
         </div>
@@ -212,10 +212,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             {soundMuted ? <VolumeX size={20} color="#c2415a" /> : <Volume2 size={20} color="#8fc45a" />}
             <div>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
-                Acoustic Soundscape & Chimes
+                Anvil Resonances & Valley Chimes
               </h3>
               <p style={{ fontSize: 12, color: '#c4b5a5', margin: '2px 0 0 0' }}>
-                Procedural 8-bit web audio chimes, wood taps, and soft mountain breezes.
+                Procedural 8-bit chimes, blacksmith hammer taps, and soft mountain breezes.
               </p>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           {/* Master Volume */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2' }}>Master Volume</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2' }}>Master Resonator</span>
               <span style={{ fontSize: 12, color: '#f2c230', fontFamily: 'var(--font-pixel, monospace)' }}>
                 {Math.round(masterVol * 100)}%
               </span>
@@ -262,7 +262,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           {/* SFX Volume */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2' }}>Sound Effects (SFX)</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2' }}>Tool & Chime Effects (SFX)</span>
               <span style={{ fontSize: 12, color: '#f2c230', fontFamily: 'var(--font-pixel, monospace)' }}>
                 {Math.round(sfxVol * 100)}%
               </span>
@@ -282,7 +282,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           {/* Ambience Volume */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2' }}>Nature Ambience</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2' }}>Valley Breeze & Nature Sounds</span>
               <span style={{ fontSize: 12, color: '#f2c230', fontFamily: 'var(--font-pixel, monospace)' }}>
                 {Math.round(ambienceVol * 100)}%
               </span>
@@ -304,7 +304,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
       {/* 2. Toolshed Motion & Weather Controls (Spec 8.2 & 8.5) */}
       <WoodPanel variant="default" style={{ padding: '20px 22px' }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', marginBottom: 4 }}>
-          Atmosphere & Parallax Camera
+          Valley Skies & Horizon Panorama
         </h3>
         <p style={{ fontSize: 12, color: '#c4b5a5', marginBottom: 16 }}>
           Control horizon camera panning speeds, day/night lighting, and seasonal skies.
@@ -327,7 +327,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             <Compass size={18} color="#f2c230" />
             <div>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#fdf6e2' }}>
-                Parallax Camera Panning
+                Horizon Camera Tracking
               </span>
               <p style={{ fontSize: 11, color: '#a38d7b', margin: 0 }}>
                 {reducedMotion ? 'Reduced Motion (Instant 150ms fade)' : 'Full 4-Layer Dynamic Parallax Scene'}
@@ -346,7 +346,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         {/* Weather Selector */}
         <div style={{ marginBottom: 14 }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2', display: 'block', marginBottom: 8 }}>
-            Sky Weather Override:
+            Valley Weather Dial:
           </span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {[
@@ -380,7 +380,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         {/* Time of Day Override */}
         <div>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#fdf6e2', display: 'block', marginBottom: 8 }}>
-            Time of Day Lighting:
+            Sundial Time of Day:
           </span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {[
@@ -416,10 +416,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
-              Theme & Appearance
+              Hearthfire & Village Lanterns
             </h3>
             <p style={{ fontSize: 12, color: '#c4b5a5', margin: '2px 0 0 0' }}>
-              Choose your preferred visual theme for the web interface.
+              Choose your preferred illumination for the village interface.
             </p>
           </div>
           <PixelBadge variant="info">
@@ -447,7 +447,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               <span style={{ fontWeight: 600, fontSize: 13, color: '#fdf6e2' }}>Dark</span>
             </div>
             <p style={{ fontSize: 11, color: '#a38d7b', margin: 0 }}>
-              Cozy Fih Valley hearth
+              Midnight Hearth (Warm glowing embers)
             </p>
           </div>
 
@@ -470,7 +470,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               <span style={{ fontWeight: 600, fontSize: 13, color: '#fdf6e2' }}>Light</span>
             </div>
             <p style={{ fontSize: 11, color: '#a38d7b', margin: 0 }}>
-              Crisp parchment mode
+              Sunlit Parchment (Crisp morning scribe mode)
             </p>
           </div>
 
@@ -493,7 +493,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               <span style={{ fontWeight: 600, fontSize: 13, color: '#fdf6e2' }}>System Auto</span>
             </div>
             <p style={{ fontSize: 11, color: '#a38d7b', margin: 0 }}>
-              Syncs with OS
+              Sundial Sync (Matches realm sundial)
             </p>
           </div>
         </div>
@@ -506,10 +506,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             <KeyRound size={20} color="#f2c230" />
             <div>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
-                Keyring Vault: Change Password
+                The Iron Keyring: Passphrase Vault
               </h3>
               <p style={{ fontSize: 12, color: '#c4b5a5', margin: '2px 0 0 0' }}>
-                Update your login password securely. Requires verifying your current password.
+                Temper your secret login passphrase securely. Requires verifying your current passkey.
               </p>
             </div>
           </div>
@@ -519,7 +519,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 440 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fdf6e2', marginBottom: 4 }}>
-              Current Password
+              Current Passkey
             </label>
             <input
               type="password"
@@ -543,7 +543,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fdf6e2', marginBottom: 4 }}>
-                New Password (8+ chars)
+                New Secret Passphrase (8+ runes)
               </label>
               <input
                 type="password"
@@ -565,7 +565,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fdf6e2', marginBottom: 4 }}>
-                Confirm New Password
+                Confirm Secret Passphrase
               </label>
               <input
                 type="password"
@@ -594,7 +594,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               type="submit"
               disabled={passwordStatus === 'saving'}
             >
-              {passwordStatus === 'saving' ? 'Updating Keyring...' : 'Update Password 🗝️'}
+              {passwordStatus === 'saving' ? 'Tempering Keyring...' : 'Forge New Passphrase 🗝️'}
             </PixelButton>
           </div>
         </form>
@@ -605,10 +605,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
-              Database Environment Mode
+              Village Realm & Chronicle Scrolls
             </h3>
             <p style={{ fontSize: 12, color: '#c4b5a5', margin: '2px 0 0 0' }}>
-              Select which database collection is active for your web dashboard and WhatsApp bot.
+              Select which realm collection is active for your village ledger and WhatsApp messenger bird.
             </p>
           </div>
           <PixelBadge variant={envMode === 'live' ? 'success' : 'warning'}>
@@ -630,10 +630,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#8fc45a' }} />
-              <span style={{ fontWeight: 600, fontSize: 14, color: '#fdf6e2' }}>Live Production</span>
+              <span style={{ fontWeight: 600, fontSize: 14, color: '#fdf6e2' }}>The Living Valley (Live Realm)</span>
             </div>
             <p style={{ fontSize: 12, color: '#c4b5a5', margin: 0, lineHeight: 1.4 }}>
-              Your real personal data. Daily WhatsApp messages and active items are stored here.
+              Your real personal chronicle. Daily WhatsApp messages and active village items are preserved here.
             </p>
           </div>
 
@@ -650,10 +650,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f2c230' }} />
-              <span style={{ fontWeight: 600, fontSize: 14, color: '#fdf6e2' }}>Development Sandbox</span>
+              <span style={{ fontWeight: 600, fontSize: 14, color: '#fdf6e2' }}>The Artisan Forge (Sandbox Realm)</span>
             </div>
             <p style={{ fontSize: 12, color: '#c4b5a5', margin: 0, lineHeight: 1.4 }}>
-              Isolated testing collection. Perfect for testing new bot features without cluttering Live data.
+              Isolated testing workshop. Perfect for experimenting with new bot commands without cluttering the Living Valley.
             </p>
           </div>
         </div>
@@ -670,11 +670,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <AlertTriangle size={18} color="#c2415a" />
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#c2415a', margin: 0 }}>
-            Database Reset & Maintenance
+            The Great Forge Purification
           </h3>
         </div>
         <p style={{ fontSize: 12, color: '#c4b5a5', marginBottom: 16, lineHeight: 1.5 }}>
-          Permanently clear stored records for a specific environment. This resets todos, debts, deadlines, dates, watchlist, and reminders.
+          Permanently smelt and clear stored records for a specific realm. This resets quests, debts, deadlines, milestones, watchlist reels, and belfry alerts.
         </p>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -684,7 +684,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             onClick={() => setConfirmTarget('live')}
             disabled={wiping}
           >
-            Wipe Live Database
+            Smelt Live Realm Records
           </PixelButton>
 
           <PixelButton
@@ -693,7 +693,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             onClick={() => setConfirmTarget('development')}
             disabled={wiping}
           >
-            Wipe Development Database
+            Smelt Sandbox Records
           </PixelButton>
         </div>
 

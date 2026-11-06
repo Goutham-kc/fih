@@ -44,7 +44,7 @@ export const CHAPTER_ANCHORS = {
   dates: { x: Math.round(1504 / TILE_SIZE), y: Math.round(1736 / TILE_SIZE), name: 'The Town Mill', resident: 'clover', chapterTitle: 'Chapter 5: The Town Mill' },
   watchlist: { x: Math.round(916 / TILE_SIZE), y: Math.round(1741 / TILE_SIZE), name: 'The Moonlight Cinema', resident: 'juniper', chapterTitle: 'Chapter 6: The Moonlight Cinema' },
   audit: { x: Math.round(1084 / TILE_SIZE), y: Math.round(485 / TILE_SIZE), name: 'The Archive Cellar', resident: 'moss', chapterTitle: 'Chapter 7: The Archive Cellar' },
-  settings: { x: Math.round(700 / TILE_SIZE), y: Math.round(997 / TILE_SIZE), name: 'The Toolshed Workbench', resident: 'rowan', chapterTitle: 'Chapter 8: The Toolshed' },
+  settings: { x: Math.round(700 / TILE_SIZE), y: Math.round(997 / TILE_SIZE), name: "The Blacksmith's Forge", resident: 'rowan', chapterTitle: "Chapter 8: The Blacksmith's Forge" },
 };
 
 // Interactive Building Hitboxes for Click & Proximity Navigation
@@ -214,9 +214,9 @@ export const BUILDING_HITBOXES = [
   },
   {
     id: 'settings',
-    name: 'The Toolshed Workbench',
-    label: 'Toolshed Workshop',
-    icon: '🛠️',
+    name: "The Blacksmith's Forge",
+    label: 'The Forge',
+    icon: '⚒️',
     doorX: 52 * TILE_SIZE,
     doorY: 33 * TILE_SIZE,
     minX: 50 * TILE_SIZE,
