@@ -73,8 +73,8 @@ export const VILLAGE_DIALOGUE = {
   },
   dates: {
     character: 'clover',
-    chapterTitle: 'Chapter 5: The Festival Grounds (Milestones)',
-    morning: 'A bright morning for the village calendar! Which dear neighbor or milestone are we honoring next?',
+    chapterTitle: 'Chapter 5: The Town Mill (Milestones)',
+    morning: 'A bright morning at the Town Mill! Which dear neighbor or milestone are we honoring next?',
     day: 'Flowers may wither in winter, but the warmth of remembered birthdays blooms forever. Mark milestones with joy!',
     evening: 'Evening bunting catches the golden hour light. May our valley memories grow sweeter each year.',
     night: 'Starlight twinkles over the festival ribbon arches. Happy memories never fade in Fih Valley.',
@@ -83,7 +83,7 @@ export const VILLAGE_DIALOGUE = {
     snow: 'Snowflakes fall softly upon the solstice square. Hot cider and warm hearts keep the winter cheerful.',
     fireflies: 'Summer festival night! Fireflies illuminate the ribbon trees while music floats over the meadow.',
     tales: [
-      'Dearie, look at our village festival calendar! From the Starlight Solstice to annual birthdays, every celebration draws our valley family closer together.',
+      'Dearie, welcome to the Town Mill! From the Starlight Solstice to annual birthdays, every celebration draws our valley family closer together.',
       'Flowers may wither in winter, but the warmth of remembered birthdays blooms forever. Mark every milestone with joy!',
       'The festival bunting flutters merrily in the wind. Never let a dear friend’s celebration pass without a handwritten card.',
     ],

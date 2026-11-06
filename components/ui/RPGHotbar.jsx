@@ -7,7 +7,7 @@ const CHAPTER_HOTBAR = [
   { id: 'reminders', label: 'Belfry', icon: '🔔', num: '2' },
   { id: 'debts', label: 'Ledger', icon: '🪙', num: '3' },
   { id: 'deadlines', label: 'Board', icon: '📌', num: '4' },
-  { id: 'dates', label: 'Festivals', icon: '🌸', num: '5' },
+  { id: 'dates', label: 'Mill', icon: '🌸', num: '5' },
   { id: 'watchlist', label: 'Cinema', icon: '🎬', num: '6' },
   { id: 'audit', label: 'Cellar', icon: '📜', num: '7' },
   { id: 'settings', label: 'Toolshed', icon: '🔧', num: '8' },

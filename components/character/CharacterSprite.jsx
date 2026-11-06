@@ -55,7 +55,7 @@ export const CHARACTER_META = {
     name: 'Clover',
     title: 'The Elder',
     role: 'Festival Keeper',
-    location: 'The Festival Grounds',
+    location: 'The Town Mill',
     color: '#a78bfa',
   },
   rowan: {

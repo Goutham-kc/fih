@@ -181,11 +181,11 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(hitTower.id).toBe('reminders');
     expect(hitTower.name).toBe('The Bell Tower');
 
-    // Clicking on the new Festival Grounds pavilion (at tx: 16, ty: 48) hits The Festival Grounds
+    // Clicking on The Town Mill (at tx: 16, ty: 48) hits The Town Mill
     const hitFestival = getHitBuilding(16 * 16, 48 * 16);
     expect(hitFestival).not.toBeNull();
     expect(hitFestival.id).toBe('dates');
-    expect(hitFestival.name).toBe('The Festival Grounds');
+    expect(hitFestival.name).toBe('The Town Mill');
 
     // Clicking on the new Moonlight Cinema screen (at tx: 48, ty: 48) hits The Moonlight Cinema
     const hitCinema = getHitBuilding(48 * 16, 48 * 16);
@@ -218,10 +218,10 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(nearby.id).toBe('watchlist');
   });
 
-  it('detects entrance proximity for the custom Festival Grounds', async () => {
+  it('detects entrance proximity for the custom Town Mill', async () => {
     const { getNearbyBuilding } = await import('../components/world/PixelWorldCanvas');
 
-    // Standing on the cobblestone apron at (tx: 16, ty: 51) detects The Festival Grounds within range
+    // Standing on the cobblestone apron at (tx: 16, ty: 51) detects The Town Mill within range
     const nearby = getNearbyBuilding(16 * 16, 51 * 16, 36);
     expect(nearby).not.toBeNull();
     expect(nearby.id).toBe('dates');
@@ -301,8 +301,9 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     // 4. Chapter 4: Notice Board approach is walkable
     expect(isWalkable(1352, 1736)).toBe(true);
 
-    // 5. Chapter 5: The Festival Grounds / Saturday Market plaza is walkable
-    expect(isWalkable(1088, 1220)).toBe(true);
+    // 5. Chapter 5: The Town Mill entrance is walkable, walls are solid
+    expect(isWalkable(1504, 1736)).toBe(true);
+    expect(isWalkable(1450, 1600)).toBe(false);
 
     // 6. Chapter 6: Sleeping Dragon Inn walls are solid, door is walkable
     expect(isWalkable(850, 1600)).toBe(false);
