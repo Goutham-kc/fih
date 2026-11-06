@@ -546,7 +546,7 @@ export default function Dashboard() {
         )}
 
         {/* Top HUD */}
-        <header className="pixel-wood-card dashboard-hud">
+        <header className="dashboard-hud">
 
           <div className="dashboard-hud-left">
 
@@ -803,28 +803,28 @@ export default function Dashboard() {
           left: 14px;
           right: 14px;
           z-index: 80;
-          padding: 9px 13px;
+          padding: 8px 14px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           flex-wrap: wrap;
           gap: 10px;
 
-          background:
-            linear-gradient(
-              180deg,
-              #244434 0%,
-              #1a3326 22%,
-              #12241b 100%
-            ) !important;
+          background: linear-gradient(
+            180deg,
+            rgba(20, 38, 28, 0.72) 0%,
+            rgba(13, 27, 20, 0.82) 100%
+          ) !important;
+          backdrop-filter: blur(10px) saturate(1.25);
+          -webkit-backdrop-filter: blur(10px) saturate(1.25);
 
-          border: 3px solid #0a1711 !important;
+          border: 1.5px solid rgba(80, 207, 143, 0.28) !important;
+          border-radius: 8px;
 
           box-shadow:
-            inset 0 2px 0 #3d7054,
-            inset 0 -3px 0 #09140f,
-            0 5px 0 rgba(0, 0, 0, 0.28),
-            0 10px 28px rgba(0, 0, 0, 0.38) !important;
+            inset 0 1px 0 rgba(255, 255, 255, 0.12),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+            0 8px 24px rgba(6, 16, 11, 0.45) !important;
 
           transition: right 0.2s ease;
         }
@@ -841,12 +841,13 @@ export default function Dashboard() {
           display: flex;
           align-items: center;
           gap: 7px;
-          padding-right: 10px;
-          border-right: 1px solid rgba(80, 207, 143, 0.25);
+          padding-right: 12px;
+          border-right: 1px solid rgba(80, 207, 143, 0.22);
         }
 
         .dashboard-brand-icon {
           font-size: 18px;
+          filter: drop-shadow(0 0 4px rgba(242, 194, 48, 0.4));
         }
 
         .dashboard-brand-name {
@@ -855,7 +856,7 @@ export default function Dashboard() {
           color: #ffdc75;
           text-transform: uppercase;
           letter-spacing: 0.04em;
-          text-shadow: 2px 2px 0 #0d1f16;
+          text-shadow: 1px 1px 0 #0d1f16, 0 0 8px rgba(250, 204, 21, 0.3);
         }
 
         .dashboard-info-pill,
@@ -866,22 +867,28 @@ export default function Dashboard() {
           align-items: center;
           gap: 5px;
           min-height: 28px;
-          padding: 5px 9px;
-          border: 1px solid rgba(255, 220, 170, 0.2);
-          background: rgba(14, 28, 21, 0.55);
+          padding: 4px 10px;
+          border: 1px solid rgba(80, 207, 143, 0.18);
+          border-radius: 5px;
+          background: rgba(10, 22, 16, 0.5);
+          backdrop-filter: blur(4px);
           font-size: 11px;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .dashboard-info-pill {
-          color: #fdf6e2;
+          color: #fdfbf4;
         }
 
         .dashboard-info-divider {
-          color: #d6a94c;
+          color: #50cf8f;
+          opacity: 0.6;
         }
 
         .dashboard-gold-pill {
           font-weight: 700;
+          border-color: rgba(242, 194, 48, 0.3);
+          background: rgba(30, 24, 8, 0.5);
         }
 
         .gold-positive {
@@ -893,19 +900,42 @@ export default function Dashboard() {
         }
 
         .dashboard-weather-pill {
-          color: #a9d8ff;
+          color: #9fd8f0;
           text-transform: capitalize;
         }
 
         .dashboard-controls-pill {
-          color: #fef08a;
+          color: #fde047;
           font-size: 10px;
+          opacity: 0.9;
         }
 
         .dashboard-action-button {
-          padding: 6px 9px !important;
+          padding: 6px 11px !important;
           font-size: 9px !important;
-          min-height: 29px;
+          min-height: 28px;
+          border-radius: 5px !important;
+          background: rgba(36, 68, 52, 0.85) !important;
+          border: 1px solid rgba(80, 207, 143, 0.35) !important;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+          color: #fdfbf4 !important;
+          backdrop-filter: blur(4px);
+        }
+
+        .dashboard-action-button:hover {
+          background: rgba(48, 92, 70, 0.95) !important;
+          border-color: rgba(80, 207, 143, 0.6) !important;
+        }
+
+        .dashboard-action-button.btn-gold {
+          background: rgba(234, 179, 8, 0.9) !important;
+          border-color: #fde047 !important;
+          color: #1a1005 !important;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .dashboard-action-button.btn-gold:hover {
+          background: #facc15 !important;
         }
 
         /* Chapter panel positioning */
@@ -1122,14 +1152,13 @@ export default function Dashboard() {
             top: 8px;
             left: 8px;
             right: 8px;
-            padding: 7px 9px;
-            border-width: 2px !important;
+            padding: 6px 10px;
             gap: 6px;
-
+            border-radius: 6px;
+            border: 1px solid rgba(80, 207, 143, 0.25) !important;
             box-shadow:
-              inset 0 2px 0 #a9784b,
-              inset 0 -2px 0 #170d07,
-              0 4px 12px rgba(0, 0, 0, 0.35) !important;
+              inset 0 1px 0 rgba(255, 255, 255, 0.1),
+              0 6px 16px rgba(0, 0, 0, 0.4) !important;
           }
 
           .dashboard-hud-left {
