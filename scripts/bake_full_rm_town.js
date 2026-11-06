@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-async function main() {
-  console.log('=== BAKING COMPLETE 2128x2928 RM_TOWN MAP ===');
+async function bake() {
+  console.log('=== BAKING AUTHENTIC RM_TOWN MAP WITH ALL DECORATIONS & PROPER ALIGNMENT ===');
   const tmj = JSON.parse(fs.readFileSync('public/village_assets/tiled_map/rm_town.tmj', 'utf8'));
 
   const mapW = tmj.width; // 266
@@ -124,9 +124,10 @@ async function main() {
     }
   }
 
-  // Index all image files
+  // Index all image files across public/village_assets
   const allImages = new Map();
   function indexImages(dir) {
+    if (!fs.existsSync(dir)) return;
     for (const f of fs.readdirSync(dir)) {
       const full = path.join(dir, f);
       if (fs.statSync(full).isDirectory()) indexImages(full);
@@ -134,8 +135,9 @@ async function main() {
     }
   }
   indexImages('public/village_assets');
+  console.log(`Indexed ${allImages.size} images in public/village_assets`);
 
-  // Parse __gm_import
+  // Parse __gm_import.tsx
   const gmXml = fs.readFileSync('public/village_assets/tiled_map/__gm_import.tsx', 'utf8');
   const gmTiles = new Map();
   const tileRegex = /<tile id="(\d+)"(?:[^>]*?width="(\d+)"[^>]*?height="(\d+)")?[^>]*?>([\s\S]*?)<\/tile>/g;
@@ -147,11 +149,18 @@ async function main() {
     if (imgMatch) {
       const tileW = m[2] ? parseInt(m[2], 10) : (imgMatch[1] ? parseInt(imgMatch[1], 10) : null);
       const tileH = m[3] ? parseInt(m[3], 10) : (imgMatch[2] ? parseInt(imgMatch[2], 10) : null);
-      const baseName = path.basename(imgMatch[3]).toLowerCase();
+      let baseName = path.basename(imgMatch[3]).toLowerCase();
+
+      // Replace broken inn door with spring closed door
+      if (baseName === 'spr_inn_main_broken_door_spring_closed.png') {
+        baseName = 'spr_inn_main_door_spring_closed.png';
+      }
+
       const resolved = allImages.get(baseName);
       if (resolved) gmTiles.set(tileId, { file: resolved, baseName, tileW, tileH });
     }
   }
+  console.log(`Resolved ${gmTiles.size} tiles from __gm_import.tsx`);
 
   const loadedObjs = new Map();
   async function getDecodedObj(file) {
@@ -213,7 +222,6 @@ async function main() {
         const rawGid = l.data[i];
         if (rawGid === 0) continue;
 
-        // Extract full Tiled transformation
         const { gid: cleanGid, rotation, flipped } = parseGid(rawGid);
         const ts = getTilesetForGid(cleanGid);
         if (!ts) continue;
@@ -227,25 +235,6 @@ async function main() {
       if (count > 0) console.log(`Tilelayer: ${name} (${count} tiles)`);
     }
 
-    // Render floor sprites
-    if (l.name === 'Level_0_FloorSprites' && l.objects) {
-      for (const obj of l.objects) {
-        if (!obj.gid) continue;
-        const cleanGid = obj.gid & 0x1fffffff;
-        if (cleanGid < 1504) {
-          const info = gmTiles.get(cleanGid - 1);
-          if (info) {
-            const img = await getDecodedObj(info.file);
-            if (img) {
-              const frameW = obj.width || info.tileW || img.w;
-              const frameH = obj.height || info.tileH || img.h;
-              blitImage(img, Math.round(obj.x), Math.round(obj.y - frameH), frameW, frameH);
-            }
-          }
-        }
-      }
-    }
-
     if (l.layers) {
       for (const sub of l.layers) await renderTileLayer(sub);
     }
@@ -256,20 +245,94 @@ async function main() {
     await renderTileLayer(layer);
   }
 
-  // 2. Render all authentic building sprites
-  console.log('Rendering authentic buildings from village_assets...');
+  // 2. Render all authentic object layers in authentic Tiled depth order
+  const objectLayersToBake = [
+    'Level_0_FloorSprites',
+    'Level_0_FloorSprites_General_Store_Fixed',
+    'Level_0_FloorSprites_Saturday_Market',
+    'Level_0_FloorSprites_Stall_Zorel',
+    'Level_0_FloorSprites_Stall_Vera',
+    'Level_0_FloorSprites_Stall_Stillwell',
+    'Level_0_FloorSprites_Stall_Louis',
+    'Level_0_FloorSprites_Stall_Darcy',
+    'Level_0_FloorSprites_Stall_Merri',
+    'Level_0_Assets',
+    'Level_0_Assets_Plaza_Fixed',
+    'Level_0_Assets_General_Store_Fixed',
+    'Level_0_Assets_Inn_Fixed',
+    'Level_0_Assets_Mill_Fixed',
+    'Level_0_Assets_Bell_Tower_Fixed',
+    'Level_0_Assets_Bell_Tower_Fixed_Door',
+    'Level_0_Assets_Bell_Tower_Fixed_Bell',
+    'Level_0_Assets_Saturday_Market',
+    'Level_0_Assets_Stall_Zorel',
+    'Level_0_Assets_Stall_Wheedle',
+    'Level_0_Assets_Stall_Vera',
+    'Level_0_Assets_Stall_Stillwell',
+    'Level_0_Assets_Stall_Louis',
+    'Level_0_Assets_Stall_Darcy',
+    'Level_0_Assets_Stall_Merri',
+    'Level_0_Assets_Stall_Taliferro',
+    'Level_1_Assets_Manor_Lamps'
+  ];
+
+  async function renderObjectLayer(l) {
+    if (l.visible === false) return;
+    if (l.objects && objectLayersToBake.includes(l.name)) {
+      // Sort objects by Y (depth sorting)
+      const sorted = [...l.objects].sort((a, b) => a.y - b.y);
+      let count = 0;
+      for (const obj of sorted) {
+        if (!obj.gid) continue;
+        const cleanGid = (obj.gid & 0x1fffffff) - 1;
+        const info = gmTiles.get(cleanGid);
+        if (!info) continue;
+
+        // Skip broken mill blits if any (Mill is handled by Mill_Fixed)
+        if (l.name.includes('Broken')) continue;
+
+        const img = await getDecodedObj(info.file);
+        if (!img) continue;
+
+        const frameW = obj.width || info.tileW || img.w;
+        const frameH = obj.height || info.tileH || img.h;
+        const destX = Math.round(obj.x);
+        const destY = Math.round(obj.y - frameH);
+
+        blitImage(img, destX, destY, frameW, frameH);
+        count++;
+      }
+      console.log(`Object layer [${l.name}]: blitted ${count} objects`);
+    }
+
+    if (l.layers) {
+      for (const sub of l.layers) await renderObjectLayer(sub);
+    }
+  }
+
+  console.log('Rendering authentic object layers (decorations, planters, lamps, flora, fences)...');
+  for (const layer of tmj.layers) {
+    await renderObjectLayer(layer);
+  }
+
+  // 3. Render authentic buildings from keyBuildings (to ensure top covers, roofs, gazebo, bridges are flawless)
+  console.log('Rendering authentic key buildings & bridges...');
   const keyBuildings = [
-    // Manor House
+    // Stone Bridge over eastern river (frame 0 clipped to 184x112)
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring_ground.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_water.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring_top.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
+
+    // Manor House & Gazebo
+    { file: 'public/village_assets/buildings/manor/Gazebo/spr_town_gazebo_spring_ground.png', x: 1424, y: 284, isBottomOrigin: true, frameW: 120, frameH: 144 },
+    { file: 'public/village_assets/buildings/manor/Gazebo/spr_town_gazebo_spring.png', x: 1424, y: 284, isBottomOrigin: true, frameW: 120, frameH: 144 },
     { file: 'public/village_assets/buildings/manor/spr_town_building_manor_spring.png', x: 872, y: 512, isBottomOrigin: true, frameW: 448, frameH: 432 },
     { file: 'public/village_assets/buildings/manor/spr_town_building_manor_spring_top.png', x: 872, y: 512, isBottomOrigin: true, frameW: 448, frameH: 432 },
     { file: 'public/village_assets/buildings/manor/spr_town_building_manor_doorway_spring.png', x: 1048, y: 504, isBottomOrigin: true, frameW: 96, frameH: 104 },
     { file: 'public/village_assets/buildings/manor/spr_town_building_manor_door_spring_closed.png', x: 1064, y: 504, isBottomOrigin: true, frameW: 64, frameH: 88 },
     { file: 'public/village_assets/buildings/manor/spr_manorhouse_tree_square_spring.png', x: 1006, y: 480, isBottomOrigin: true, frameW: 48, frameH: 88 },
     { file: 'public/village_assets/buildings/manor/spr_manorhouse_tree_square_spring.png', x: 1138, y: 480, isBottomOrigin: true, frameW: 48, frameH: 88 },
-    
-    // Gazebo
-    { file: 'public/village_assets/buildings/manor/Gazebo/spr_town_gazebo_spring_ground.png', x: 1424, y: 284, isBottomOrigin: true, frameW: 120, frameH: 144 },
-    { file: 'public/village_assets/buildings/manor/Gazebo/spr_town_gazebo_spring.png', x: 1424, y: 284, isBottomOrigin: true, frameW: 120, frameH: 144 },
 
     // Blacksmith Forge & Shop
     { file: 'public/village_assets/buildings/blacksmith/spr_town_building_blacksmith_left_spring_ground.png', x: 504, y: 1016, isBottomOrigin: true, frameW: 136, frameH: 248 },
@@ -290,17 +353,17 @@ async function main() {
     { file: 'public/village_assets/buildings/bell_tower/spr_town_building_bell_tower_fixed_spring.png', x: 448, y: 1280, isBottomOrigin: true, frameW: 160, frameH: 240 },
     { file: 'public/village_assets/buildings/bell_tower/spr_town_building_bell_tower_door_spring_closed.png', x: 504, y: 1276, isBottomOrigin: true, frameW: 48, frameH: 54 },
 
-    // Sleeping Dragon Inn
+    // Sleeping Dragon Inn (door precisely placed at x: 888, y: 1736, 80x64)
     { file: 'public/village_assets/buildings/inn/spr_town_building_inn_spring.png', x: 812, y: 1736, isBottomOrigin: true, frameW: 256, frameH: 264 },
     { file: 'public/village_assets/buildings/inn/spr_town_building_inn_wooden_beams_spring.png', x: 1020, y: 1728, isBottomOrigin: true, frameW: 152, frameH: 160 },
-    { file: 'public/village_assets/buildings/inn/spr_inn_main_door_spring_closed.png', x: 916, y: 1735, isBottomOrigin: true, frameW: 56, frameH: 71 },
+    { file: 'public/village_assets/buildings/inn/spr_inn_main_door_spring_closed.png', x: 888, y: 1736, isBottomOrigin: true, frameW: 80, frameH: 64 },
 
     // General Store
     { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_spring.png', x: 1148, y: 1729, isBottomOrigin: true, frameW: 168, frameH: 240 },
     { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_side_spring.png', x: 1284, y: 1727, isBottomOrigin: true, frameW: 104, frameH: 176 },
     { file: 'public/village_assets/buildings/general_store/spr_town_building_generalstore_door_spring_closed.png', x: 1204, y: 1737, isBottomOrigin: true, frameW: 56, frameH: 71 },
 
-    // Mill (Single authentic Mill tower, base, doorway, door & blades - all clipped to frame 0 192x288)
+    // Mill (Single authentic Mill tower, base, doorway, door & blades - frame 0 192x288)
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_base_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_spring_doorway_on.png', x: 1408, y: 1728, isBottomOrigin: true, frameW: 192, frameH: 288 },
     { file: 'public/village_assets/buildings/mill/spr_town_building_mill_door_spring_closed.png', x: 1480, y: 1727, isBottomOrigin: true, frameW: 48, frameH: 64 },
@@ -309,13 +372,7 @@ async function main() {
 
     // Celine's Cottage
     { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_spring.png', x: 1256, y: 2129, isBottomOrigin: true, frameW: 176, frameH: 208 },
-    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_door_spring_closed.png', x: 1304, y: 2135, isBottomOrigin: true, frameW: 64, frameH: 72 },
-
-    // Stone Bridge over eastern river (frame 0 clipped to 184x112)
-    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring_ground.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
-    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_water.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
-    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 },
-    { file: 'public/village_assets/architecture/bridges/spr_town_stone_bridge_horizontal_flat_spring_top.png', x: 1616, y: 1128, isBottomOrigin: true, frameW: 184, frameH: 112 }
+    { file: 'public/village_assets/buildings/cottage/spr_town_building_celine_door_spring_closed.png', x: 1304, y: 2135, isBottomOrigin: true, frameW: 64, frameH: 72 }
   ];
 
   for (const b of keyBuildings) {
@@ -327,22 +384,6 @@ async function main() {
       const w = b.frameW || img.w;
       const destY = b.isBottomOrigin ? b.y - h : b.y;
       blitImage(img, b.x, destY, w, h);
-    }
-  }
-
-  // 3. Render authentic market stalls
-  console.log('Rendering Saturday Market Stalls...');
-  const stalls = [
-    { file: 'public/village_assets/architecture/market/spr_town_market_stall_zorel_spring.png', x: 1040, y: 1216 },
-    { file: 'public/village_assets/architecture/market/spr_town_market_stall_wheedle_spring.png', x: 1136, y: 1216 },
-    { file: 'public/village_assets/architecture/market/spr_town_market_stall_vera_spring.png', x: 1040, y: 1296 },
-    { file: 'public/village_assets/architecture/market/spr_town_market_stall_stillwell_spring.png', x: 1136, y: 1296 }
-  ];
-
-  for (const s of stalls) {
-    if (fs.existsSync(s.file)) {
-      const img = await getDecodedObj(s.file);
-      if (img) blitImage(img, s.x, s.y - img.h, img.w, img.h);
     }
   }
 
@@ -362,7 +403,7 @@ async function main() {
   console.log('SUCCESS! Complete rm_town_full.png baked and written to public and village_assets.');
 }
 
-main().catch(err => {
+bake().catch(err => {
   console.error(err);
   process.exit(1);
 });

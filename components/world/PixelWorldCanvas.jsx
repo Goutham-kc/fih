@@ -61,13 +61,13 @@ export const BUILDING_HITBOXES = [
     maxY: 15 * TILE_SIZE,
     bannerX: 14 * TILE_SIZE,
     bannerY: 9 * TILE_SIZE - 6,
-    rmDoorX: 1304,
-    rmDoorY: 2135,
-    rmMinX: 1240,
+    rmDoorX: 1324,
+    rmDoorY: 2133,
+    rmMinX: 1256,
     rmMinY: 1920,
-    rmMaxX: 1380,
-    rmMaxY: 2160,
-    rmBannerX: 1304,
+    rmMaxX: 1432,
+    rmMaxY: 2145,
+    rmBannerX: 1324,
     rmBannerY: 1910,
   },
   {
@@ -85,12 +85,12 @@ export const BUILDING_HITBOXES = [
     bannerY: 9 * TILE_SIZE - 6,
     rmDoorX: 1220,
     rmDoorY: 1741,
-    rmMinX: 1140,
-    rmMinY: 1480,
-    rmMaxX: 1390,
-    rmMaxY: 1760,
+    rmMinX: 1148,
+    rmMinY: 1489,
+    rmMaxX: 1388,
+    rmMaxY: 1745,
     rmBannerX: 1220,
-    rmBannerY: 1470,
+    rmBannerY: 1475,
   },
   {
     id: 'reminders',
@@ -105,14 +105,14 @@ export const BUILDING_HITBOXES = [
     maxY: 14 * TILE_SIZE,
     bannerX: 32 * TILE_SIZE,
     bannerY: 7 * TILE_SIZE - 6,
-    rmDoorX: 516,
-    rmDoorY: 1291,
-    rmMinX: 440,
-    rmMinY: 1050,
-    rmMaxX: 630,
-    rmMaxY: 1300,
-    rmBannerX: 516,
-    rmBannerY: 1040,
+    rmDoorX: 528,
+    rmDoorY: 1280,
+    rmMinX: 448,
+    rmMinY: 1040,
+    rmMaxX: 608,
+    rmMaxY: 1290,
+    rmBannerX: 528,
+    rmBannerY: 1030,
   },
   {
     id: 'deadlines',
@@ -129,10 +129,10 @@ export const BUILDING_HITBOXES = [
     bannerY: 20 * TILE_SIZE - 6,
     rmDoorX: 1352,
     rmDoorY: 1736,
-    rmMinX: 1320,
+    rmMinX: 1336,
     rmMinY: 1690,
-    rmMaxX: 1384,
-    rmMaxY: 1750,
+    rmMaxX: 1370,
+    rmMaxY: 1745,
     rmBannerX: 1352,
     rmBannerY: 1680,
   },
@@ -151,12 +151,12 @@ export const BUILDING_HITBOXES = [
     bannerY: 44 * TILE_SIZE - 6,
     rmDoorX: 1088,
     rmDoorY: 1220,
-    rmMinX: 950,
-    rmMinY: 1120,
-    rmMaxX: 1250,
+    rmMinX: 1000,
+    rmMinY: 1150,
+    rmMaxX: 1180,
     rmMaxY: 1270,
     rmBannerX: 1088,
-    rmBannerY: 1110,
+    rmBannerY: 1140,
   },
   {
     id: 'watchlist',
@@ -171,14 +171,14 @@ export const BUILDING_HITBOXES = [
     maxY: 52 * TILE_SIZE,
     bannerX: 48 * TILE_SIZE,
     bannerY: 44 * TILE_SIZE - 6,
-    rmDoorX: 916,
-    rmDoorY: 1741,
-    rmMinX: 800,
-    rmMinY: 1460,
-    rmMaxX: 1080,
-    rmMaxY: 1760,
-    rmBannerX: 916,
-    rmBannerY: 1450,
+    rmDoorX: 928,
+    rmDoorY: 1740,
+    rmMinX: 812,
+    rmMinY: 1472,
+    rmMaxX: 1068,
+    rmMaxY: 1745,
+    rmBannerX: 928,
+    rmBannerY: 1460,
   },
   {
     id: 'audit',
@@ -193,13 +193,13 @@ export const BUILDING_HITBOXES = [
     maxY: 34 * TILE_SIZE,
     bannerX: 12 * TILE_SIZE,
     bannerY: 28 * TILE_SIZE - 6,
-    rmDoorX: 1084,
+    rmDoorX: 1096,
     rmDoorY: 485,
-    rmMinX: 870,
+    rmMinX: 872,
     rmMinY: 80,
     rmMaxX: 1320,
     rmMaxY: 520,
-    rmBannerX: 1084,
+    rmBannerX: 1096,
     rmBannerY: 70,
   },
   {
@@ -215,14 +215,14 @@ export const BUILDING_HITBOXES = [
     maxY: 34 * TILE_SIZE,
     bannerX: 52 * TILE_SIZE,
     bannerY: 30 * TILE_SIZE - 6,
-    rmDoorX: 700,
+    rmDoorX: 712,
     rmDoorY: 997,
-    rmMinX: 500,
-    rmMinY: 760,
-    rmMaxX: 840,
-    rmMaxY: 1020,
-    rmBannerX: 700,
-    rmBannerY: 750,
+    rmMinX: 504,
+    rmMinY: 768,
+    rmMaxX: 832,
+    rmMaxY: 1016,
+    rmBannerX: 712,
+    rmBannerY: 755,
   },
 ];
 
@@ -632,10 +632,19 @@ export const INTERNAL_TREE_TRUNKS = new Set(
   FOREST_TREES.filter((t) => t.x >= 6 && t.x <= 58 && t.y >= 6 && t.y <= 58).map((t) => `${t.x},${t.y}`)
 );
 
-export function getHitBuilding(wx, wy) {
+export function getHitBuilding(wx, wy, preferRmTown = false) {
+  if (preferRmTown || wx > 1024 || wy > 1024) {
+    for (const b of BUILDING_HITBOXES) {
+      if (b.rmMinX !== undefined && wx >= b.rmMinX && wx <= b.rmMaxX && wy >= b.rmMinY && wy <= b.rmMaxY) {
+        return b;
+      }
+    }
+  }
   for (const b of BUILDING_HITBOXES) {
-    if ((wx >= b.minX && wx <= b.maxX && wy >= b.minY && wy <= b.maxY) ||
-        (b.rmMinX && wx >= b.rmMinX && wx <= b.rmMaxX && wy >= b.rmMinY && wy <= b.rmMaxY)) {
+    if (wx >= b.minX && wx <= b.maxX && wy >= b.minY && wy <= b.maxY) {
+      return b;
+    }
+    if (b.rmMinX !== undefined && wx >= b.rmMinX && wx <= b.rmMaxX && wy >= b.rmMinY && wy <= b.rmMaxY) {
       return b;
     }
   }
@@ -735,9 +744,25 @@ export function getKeyboardVelocity(activeKeys) {
   return { vx, vy };
 }
 
-export function getNearbyBuilding(pipX, pipY, threshold = 40) {
+export function getNearbyBuilding(pipX, pipY, threshold = 40, preferRmTown = false) {
   let closest = null;
   let minDist = threshold;
+
+  // In rm_town mode or if pip is in rm_town coordinates, only check authentic rm_town doors
+  if (preferRmTown || pipX > 1024 || pipY > 1024) {
+    for (const b of BUILDING_HITBOXES) {
+      if (b.rmDoorX !== undefined && b.rmDoorY !== undefined) {
+        const distRm = Math.hypot(pipX - b.rmDoorX, pipY - b.rmDoorY);
+        if (distRm < minDist) {
+          minDist = distRm;
+          closest = b;
+        }
+      }
+    }
+    return closest;
+  }
+
+  // Fallback / legacy mode (for unit test compatibility)
   for (const b of BUILDING_HITBOXES) {
     const distLegacy = Math.hypot(pipX - b.doorX, pipY - b.doorY);
     if (distLegacy < minDist) {
@@ -1549,7 +1574,7 @@ function ClassicPixelCanvas({
     const worldX = screenX - Math.floor(viewW / 2 - cam.x);
     const worldY = screenY - Math.floor(viewH / 2 - cam.y);
 
-    const hit = getHitBuilding(worldX, worldY);
+    const hit = getHitBuilding(worldX, worldY, true);
     stateRef.current.hoverBuilding = hit;
     canvas.style.cursor = hit ? 'pointer' : 'default';
   }, []);
@@ -1574,7 +1599,7 @@ function ClassicPixelCanvas({
     const worldX = screenX - Math.floor(viewW / 2 - cam.x);
     const worldY = screenY - Math.floor(viewH / 2 - cam.y);
 
-    const hit = getHitBuilding(worldX, worldY);
+    const hit = getHitBuilding(worldX, worldY, true);
 
     if (hit) {
       soundManager.playSfx('wood');
@@ -1735,7 +1760,7 @@ function ClassicPixelCanvas({
       }
 
       // ── Update Proximity Detection ──
-      const nearby = getNearbyBuilding(pip.x + 8, pip.y + 20, 36);
+      const nearby = getNearbyBuilding(pip.x + 8, pip.y + 20, 36, true);
       state.nearbyBuilding = nearby;
 
       const nearbyId = nearby ? nearby.id : null;
