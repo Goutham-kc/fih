@@ -26,6 +26,15 @@ import dialogueContent, {
   getContextualDialogue,
 } from '@/content/dialogue';
 import { CHARACTER_META } from '@/components/character/CharacterSprite';
+import {
+  PixelWheat,
+  PixelCoin,
+  PixelSeasonIcon,
+  PixelWeatherIcon,
+  PixelMap,
+  PixelScroll,
+  PixelKeyboard,
+} from '@/components/ui/PixelIcons';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -551,7 +560,7 @@ export default function Dashboard() {
           <div className="dashboard-hud-left">
 
             <div className="dashboard-brand">
-              <span className="dashboard-brand-icon">🌾</span>
+              <span className="dashboard-brand-icon" style={{ display: 'inline-flex', alignItems: 'center' }}><PixelWheat size={18} /></span>
               <span className="dashboard-brand-name">
                 Fih Valley
               </span>
@@ -568,8 +577,9 @@ export default function Dashboard() {
             />
 
             <div className="dashboard-info-pill tabular-nums">
-              <span>
-                {seasonEmoji} {dayName}. {dayOfMonth}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <PixelSeasonIcon season={season} size={14} />
+                <span>{dayName}. {dayOfMonth}</span>
               </span>
               <span className="dashboard-info-divider">•</span>
               <span>{timeStr}</span>
@@ -579,18 +589,25 @@ export default function Dashboard() {
               className={`dashboard-gold-pill tabular-nums ${
                 netGold >= 0 ? 'gold-positive' : 'gold-negative'
               }`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
             >
-              🪙 {netGold >= 0 ? '+' : '-'}₹
-              {Math.abs(netGold).toLocaleString('en-IN')}g
+              <PixelCoin size={14} />
+              <span>
+                {netGold >= 0 ? '+' : '-'}₹
+                {Math.abs(netGold).toLocaleString('en-IN')}g
+              </span>
             </div>
 
             {!isMobile && (
-              <div className="dashboard-weather-pill">
-                {currentWeather === 'rain'
-                  ? '🌧️ Rain'
-                  : currentWeather === 'snow'
-                    ? '❄️ Snow'
-                    : '☀️ Clear'}
+              <div className="dashboard-weather-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <PixelWeatherIcon weather={currentWeather} size={14} />
+                <span>
+                  {currentWeather === 'rain'
+                    ? 'Rain'
+                    : currentWeather === 'snow'
+                      ? 'Snow'
+                      : 'Clear'}
+                </span>
               </div>
             )}
           </div>
@@ -599,8 +616,8 @@ export default function Dashboard() {
             <div className="dashboard-hud-right">
 
               {hudControlsGuide && (
-                <div className="dashboard-controls-pill">
-                  <span>⌨️</span>
+                <div className="dashboard-controls-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <PixelKeyboard size={13} />
                   <span>{hudControlsGuide}</span>
                 </div>
               )}
@@ -611,8 +628,10 @@ export default function Dashboard() {
                   className="btn-pixel btn-gold dashboard-action-button"
                   onClick={handleCloseChapter}
                   title="Return to Village Map (Esc / M)"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 >
-                  🗺️ Village Map
+                  <PixelMap size={13} />
+                  <span>Village Map</span>
                 </button>
               )}
 
@@ -623,8 +642,19 @@ export default function Dashboard() {
                 }`}
                 onClick={() => setShowCanvas(!showCanvas)}
                 title="Toggle between World Map and Panel Only view"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
               >
-                {showCanvas ? '📜 Panel Only' : '🗺️ Show World'}
+                {showCanvas ? (
+                  <>
+                    <PixelScroll size={13} />
+                    <span>Panel Only</span>
+                  </>
+                ) : (
+                  <>
+                    <PixelMap size={13} />
+                    <span>Show World</span>
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -678,9 +708,17 @@ export default function Dashboard() {
                           : 'Switch to Split World View'
                       }
                     >
-                      {showCanvas
-                        ? '📜 Panel Only'
-                        : '🗺️ Split World'}
+                      {showCanvas ? (
+                        <>
+                          <PixelScroll size={12} style={{ marginRight: 4 }} />
+                          <span>Panel Only</span>
+                        </>
+                      ) : (
+                        <>
+                          <PixelMap size={12} style={{ marginRight: 4 }} />
+                          <span>Split World</span>
+                        </>
+                      )}
                     </button>
 
                     <button
@@ -709,8 +747,8 @@ export default function Dashboard() {
               {/* Mobile resident dialogue */}
               {isMobile && (
                 <div className="dashboard-resident-quote">
-                  <span className="dashboard-resident-icon">
-                    {CHARACTER_META[currentResidentId]?.icon || '🌾'}
+                  <span className="dashboard-resident-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <PixelWheat size={20} />
                   </span>
 
                   <div className="dashboard-resident-text">

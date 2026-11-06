@@ -16,6 +16,7 @@ import {
   Award,
 } from 'lucide-react';
 import DevModeIndicator from '@/components/ui/DevModeIndicator';
+import { PixelSeasonIcon } from '@/components/ui/PixelIcons';
 import PixelButton from '@/components/ui/PixelButton';
 import WoodPanel from '@/components/ui/WoodPanel';
 import CharacterSprite from '@/components/character/CharacterSprite';
@@ -236,14 +237,16 @@ export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }
                   position: 'absolute',
                   bottom: -2,
                   right: -2,
-                  fontSize: 13,
                   background: '#162a22',
                   borderRadius: '50%',
-                  padding: '1px 2px',
+                  padding: '2px',
                   border: '1px solid #2b523e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {seasonEmoji}
+                <PixelSeasonIcon season={season} size={14} />
               </span>
             </div>
 

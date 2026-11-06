@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { PixelHotbarIcon } from '@/components/ui/PixelIcons';
 
 const CHAPTER_HOTBAR = [
   { id: null, label: 'Map', icon: '🗺️', num: 'M' },
@@ -68,8 +69,8 @@ export default function RPGHotbar({
               className={`rpg-hotbar-slot ${isActive ? 'active' : ''}`}
             >
               <span className="rpg-hotbar-key">{item.num}</span>
-              <span className="rpg-hotbar-icon" aria-hidden="true">
-                {item.icon}
+              <span className="rpg-hotbar-icon" aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PixelHotbarIcon id={item.id} size={22} />
               </span>
               <span className="rpg-hotbar-label">{item.label}</span>
               {isActive && <span className="rpg-hotbar-indicator" />}
