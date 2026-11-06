@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
 import { toast } from 'sonner';
-import { Moon, Sun, Monitor, AlertTriangle, Database, Phone, Mail } from 'lucide-react';
+import { Moon, Sun, Monitor, AlertTriangle, Database, Phone, Mail, User } from 'lucide-react';
 
 export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -10,19 +10,53 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
 
   // User Profile
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [savingPhone, setSavingPhone] = useState(false);
   const [phoneModified, setPhoneModified] = useState(false);
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameModified, setUsernameModified] = useState(false);
 
   useEffect(() => {
     fetch('/api/user/settings')
       .then((res) => res.json())
       .then((data) => {
         if (data.email) setEmail(data.email);
+        if (data.username !== undefined) setUsername(data.username);
         if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
       })
       .catch((err) => console.error('Failed to load profile settings:', err));
   }, []);
+
+  async function handleSaveUsername(e) {
+    e.preventDefault();
+    const cleanUsername = username.toLowerCase().trim();
+    if (cleanUsername && !/^[a-zA-Z0-9_.-]{3,30}$/.test(cleanUsername)) {
+      toast.error('Username must be 3-30 characters (letters, numbers, _, -, .)');
+      return;
+    }
+
+    setSavingUsername(true);
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUsername }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsername(data.username || '');
+        setUsernameModified(false);
+        toast.success('Username updated successfully!');
+      } else {
+        toast.error(data.error || 'Failed to update username');
+      }
+    } catch {
+      toast.error('Network error when updating username.');
+    } finally {
+      setSavingUsername(false);
+    }
+  }
 
   async function handleSavePhone(e) {
     e.preventDefault();
@@ -93,10 +127,10 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
-              Account & WhatsApp Number
+              Account & Credentials
             </h3>
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
-              Your account credentials and the phone number linked to your WhatsApp assistant bot.
+              Your username, login email, and phone number linked to the WhatsApp assistant bot.
             </p>
           </div>
         </div>
@@ -112,6 +146,40 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>{email || 'Loading...'}</span>
             </div>
           </div>
+
+          {/* Username form */}
+          <form onSubmit={handleSaveUsername}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+              USERNAME
+            </label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <User size={16} color="var(--accent-indigo)" style={{ position: 'absolute', left: 12, top: 12 }} />
+                <input
+                  type="text"
+                  className="fih-input"
+                  style={{ paddingLeft: 38 }}
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameModified(true);
+                  }}
+                  placeholder="e.g. goutham or alex_smith"
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={!usernameModified || savingUsername}
+                style={{ fontSize: 13, padding: '0 16px', borderRadius: 10, height: 40 }}
+              >
+                {savingUsername ? 'Saving...' : 'Update Username'}
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, marginBottom: 0 }}>
+              💡 You can use either your email or this username to sign into the dashboard.
+            </p>
+          </form>
 
           {/* WhatsApp phone number form */}
           <form onSubmit={handleSavePhone}>

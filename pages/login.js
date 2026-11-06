@@ -6,7 +6,7 @@ import AuroraBackground from '@/components/AuroraBackground';
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function Login() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -97,7 +97,7 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: 18 }}>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 style={{
                   display: 'block',
                   fontSize: 11,
@@ -107,15 +107,15 @@ export default function Login() {
                   letterSpacing: '0.04em',
                 }}
               >
-                EMAIL ADDRESS
+                EMAIL OR USERNAME
               </label>
               <input
-                id="email"
-                type="email"
+                id="identifier"
+                type="text"
                 className="fih-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="you@example.com or username"
                 required
                 autoFocus
               />

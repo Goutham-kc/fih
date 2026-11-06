@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [envMode, setEnvMode] = useState('live');
   const [updatingEnv, setUpdatingEnv] = useState(false);
   const [greeting, setGreeting] = useState('Good day');
+  const [username, setUsername] = useState('');
   const [dateStr, setDateStr] = useState('');
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function Dashboard() {
             .then((r) => r.json())
             .then((data) => {
               if (data.environmentMode) setEnvMode(data.environmentMode);
+              if (data.username) setUsername(data.username);
             });
         }
       })
@@ -403,7 +405,7 @@ export default function Dashboard() {
                   ? 'Settings & Controls'
                   : activeTab === 'audit'
                   ? 'System Audit Chronicle'
-                  : `${greeting}, Goutham.`}
+                  : `${greeting}, ${username ? username.charAt(0).toUpperCase() + username.slice(1) : 'friend'}.`}
               </h1>
             </div>
 

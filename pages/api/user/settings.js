@@ -13,6 +13,7 @@ async function handler(req, res) {
     if (req.method === 'GET') {
       return res.status(200).json({
         email: user.email,
+        username: user.username || '',
         whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode || 'live',
         theme: user.theme || 'dark',
@@ -20,8 +21,29 @@ async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      const { environmentMode, theme, whatsappNumber } = req.body || {};
+      const { environmentMode, theme, whatsappNumber, username } = req.body || {};
       let modeChanged = false;
+
+      if (username !== undefined) {
+        const cleanUsername = String(username).toLowerCase().trim();
+        if (cleanUsername) {
+          if (!/^[a-zA-Z0-9_.-]{3,30}$/.test(cleanUsername)) {
+            return res.status(400).json({ error: 'Username must be 3-30 characters (letters, numbers, _, -, .)' });
+          }
+          if (cleanUsername !== user.username) {
+            const inUse = await User.findOne({
+              _id: { $ne: userId },
+              username: cleanUsername,
+            });
+            if (inUse) {
+              return res.status(409).json({ error: 'This username is already taken' });
+            }
+            user.username = cleanUsername;
+          }
+        } else {
+          user.username = undefined;
+        }
+      }
 
       if (whatsappNumber !== undefined) {
         const cleanPhone = String(whatsappNumber).replace(/\D/g, '').trim();
@@ -75,6 +97,7 @@ async function handler(req, res) {
 
       return res.status(200).json({
         email: user.email,
+        username: user.username || '',
         whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode,
         theme: user.theme,

@@ -137,6 +137,7 @@ curl -X POST http://localhost:3000/api/seed \
   -H "x-seed-secret: replace_with_your_SEED_SECRET" \
   -d '{
     "email": "you@example.com",
+    "username": "johndoe",
     "password": "yourStrongPassword123",
     "whatsappNumber": "919876543210"
   }'
@@ -359,4 +360,6 @@ npm run lint
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
+
+
 
