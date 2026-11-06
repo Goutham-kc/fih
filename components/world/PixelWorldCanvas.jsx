@@ -47,6 +47,15 @@ export const CHAPTER_ANCHORS = {
 };
 
 // Interactive Building Hitboxes for Click & Proximity Navigation
+
+export const VILLAGE_HEROES = [
+  { id: 'celine', name: 'Celine', folder: 'Celine', title: 'The Botanist', color: '#10b981' },
+  { id: 'adeline', name: 'Adeline', folder: 'Adeline', title: 'Town Leader', color: '#8b5cf6' },
+  { id: 'balor', name: 'Balor', folder: 'Balor', title: 'The Merchant', color: '#f59e0b' },
+  { id: 'march', name: 'March', folder: 'March', title: 'The Blacksmith', color: '#ef4444' },
+  { id: 'hayden', name: 'Hayden', folder: 'Hayden', title: 'The Rancher', color: '#3b82f6' },
+];
+
 export const BUILDING_HITBOXES = [
   {
     id: 'todos',
@@ -1341,6 +1350,7 @@ function ClassicPixelCanvas({
   style = {},
 }) {
   const canvasRef = useRef(null);
+  const [activeHeroId, setActiveHeroId] = useState('celine');
   const activeKeysRef = useRef(new Set());
   const [nearbyBuildingState, setNearbyBuildingState] = useState(null);
 
@@ -1406,7 +1416,8 @@ function ClassicPixelCanvas({
     loaded: false,
     camera: { x: 1088, y: 1780 }, // Spawn at Town Center Plaza
     targetCamera: { x: 1088, y: 1780 },
-    pip: { x: 1088, y: 1780, dir: 0, frame: 0, walking: false }, // Spawn at Town Square
+    pip: { x: 1088, y: 1780, dir: 0, frame: 0, walking: false },
+    characterId: 'celine', // Spawn at Town Square
     clickTarget: null, // { x, y, buildingId }
     hoverBuilding: null,
     nearbyBuilding: null,
@@ -1427,14 +1438,25 @@ function ClassicPixelCanvas({
   // 1. Load 16-bit sprite sheets (Purely from new asset collections)
   useEffect(() => {
     let mounted = true;
-            const imagesToLoad = [
+    const imagesToLoad = [
       // Authentic Full Fields of Mistria Town Map (2128x2928 px)
       { key: 'town_full', src: '/village_assets/rm_town_full.png' },
       { key: 'tileset', src: '/village_assets/environment/tilesets/generic/spr_main_exteriors_spring.png' },
-      { key: 'pip', src: '/village_assets/villagers/Celine/Sprites/Spring/spr_npc_celine_spring_walk_south.png' },
-      { key: 'bram', src: '/village_assets/villagers/March/Sprites/Spring/spr_npc_march_specialanimation_spring_hurt_idle_south.png' },
-      { key: 'notice_board', src: '/village_assets/architecture/market_stalls/Stillwell/spr_town_stall_plaza_challenge_board_main.png' },
+            { key: 'notice_board', src: '/village_assets/architecture/market_stalls/Stillwell/spr_town_stall_plaza_challenge_board_main.png' },
     ];
+
+    // Load authentic directional walking and idle sprites for all 5 Mistria villagers
+    VILLAGE_HEROES.forEach((hero) => {
+      const base = `/village_assets/villagers/${hero.folder}/Sprites/Spring/spr_npc_${hero.id}_spring_`;
+      imagesToLoad.push(
+        { key: `${hero.id}_walk_south`, src: `${base}walk_south.png` },
+        { key: `${hero.id}_walk_north`, src: `${base}walk_north.png` },
+        { key: `${hero.id}_walk_east`, src: `${base}walk_east.png` },
+        { key: `${hero.id}_idle_south`, src: `${base}idle_south.png` },
+        { key: `${hero.id}_idle_north`, src: `${base}idle_north.png` },
+        { key: `${hero.id}_idle_east`, src: `${base}idle_east.png` }
+      );
+    });
 
     let count = 0;
     imagesToLoad.forEach(({ key, src }) => {
@@ -1535,6 +1557,15 @@ function ClassicPixelCanvas({
           soundManager.playSfx('wood');
           onNavigateToChapter(nearby.id, { panelOnly: true });
         }
+      } else if (code === 'KeyC') {
+        // Cycle playable character among authentic Mistria villagers
+        e.preventDefault();
+        const curId = stateRef.current.characterId || 'celine';
+        const curIdx = VILLAGE_HEROES.findIndex(h => h.id === curId);
+        const nextHero = VILLAGE_HEROES[(curIdx + 1) % VILLAGE_HEROES.length];
+        stateRef.current.characterId = nextHero.id;
+        setActiveHeroId(nextHero.id);
+        soundManager.playSfx('wood');
       } else if (code === 'Escape') {
         if (activeTab && onCloseChapter) {
           e.preventDefault();
@@ -1854,17 +1885,7 @@ function ClassicPixelCanvas({
         },
       });
 
-      // 3. Bram the Badger Factor (at General Store & Treasury Entrance)
-      renderables.push({
-        y: 1745,
-        render: () => {
-          const bramImg = state.images.bram;
-          if (bramImg) {
-            const frameCol = state.bram.talking ? 2 + state.bram.frame : state.bram.frame;
-            ctx.drawImage(bramImg, frameCol * 24, 0, 24, 32, 1236, 1718, 24, 32);
-          }
-        },
-      });
+
 
       // 4. Celine's Living Flora Farmstead Garden
       renderables.push({
@@ -1891,71 +1912,77 @@ function ClassicPixelCanvas({
         });
       }
 
-      // ── 13. Pip the Farmer ──
+      // ── 13. Authentic Village Character (Celine / Mistria Villagers) ──
       renderables.push({
-        y: pip.y + 20, // foot Y
+        y: pip.y + 20, // foot Y for depth sorting
         render: () => {
           const px = Math.floor(pip.x);
           const py = Math.floor(pip.y);
+          const charId = state.characterId || 'celine';
+          const hero = VILLAGE_HEROES.find(h => h.id === charId) || VILLAGE_HEROES[0];
 
-          // Drop shadow
-          ctx.fillStyle = 'rgba(20, 25, 20, 0.4)';
+          // Soft ground drop shadow under feet
+          ctx.save();
+          ctx.fillStyle = 'rgba(20, 25, 20, 0.35)';
           ctx.beginPath();
-          ctx.ellipse(px + 8, py + 18, 7, 3, 0, 0, Math.PI * 2);
+          ctx.ellipse(px + 8, py + 18, 9, 4, 0, 0, Math.PI * 2);
           ctx.fill();
+          ctx.restore();
 
-          // Chibi Farmer Sprite (matching reference style)
-          // Straw hat
-          ctx.fillStyle = '#fde047';
-          ctx.fillRect(px + 1, py + 2, 14, 3);
-          ctx.fillStyle = '#eab308';
-          ctx.fillRect(px + 4, py - 2, 8, 4);
-          ctx.fillStyle = '#ef4444'; // Red ribbon
-          ctx.fillRect(px + 4, py + 1, 8, 1);
+          // Select animation sheet based on movement and direction
+          let action = 'idle';
+          let dirKey = 'south';
+          let isFlipped = false;
+          let frameIndex = 0;
 
-          // Face & hair
-          ctx.fillStyle = '#fed7aa'; // Skin
-          ctx.fillRect(px + 4, py + 5, 8, 6);
-          ctx.fillStyle = '#78350f'; // Hair
-          ctx.fillRect(px + 3, py + 4, 2, 4);
-          ctx.fillRect(px + 11, py + 4, 2, 4);
+          if (pip.walking) {
+            action = 'walk';
+            frameIndex = Math.floor(state.animFrame * 0.16) % 4;
+            if (pip.dir === 0) dirKey = 'south';
+            else if (pip.dir === 3) dirKey = 'north';
+            else if (pip.dir === 2) { dirKey = 'east'; isFlipped = false; }
+            else if (pip.dir === 1) { dirKey = 'east'; isFlipped = true; }
+          } else {
+            action = 'idle';
+            if (pip.dir === 0) dirKey = 'south';
+            else if (pip.dir === 3) dirKey = 'north';
+            else if (pip.dir === 2) { dirKey = 'east'; isFlipped = false; }
+            else if (pip.dir === 1) { dirKey = 'east'; isFlipped = true; }
+          }
 
-          // Eyes
-          ctx.fillStyle = '#1e293b';
-          ctx.fillRect(px + 5, py + 7, 2, 2);
-          ctx.fillRect(px + 9, py + 7, 2, 2);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(px + 5, py + 7, 1, 1);
-          ctx.fillRect(px + 9, py + 7, 1, 1);
+          const spriteKey = `${charId}_${action}_${dirKey}`;
+          const charImg = state.images[spriteKey];
 
-          // Red shirt
-          ctx.fillStyle = '#ef4444';
-          ctx.fillRect(px + 4, py + 11, 8, 3);
+          if (charImg && charImg.complete && charImg.naturalWidth > 0) {
+            ctx.save();
+            // Authentic 80x80 frame, feet at vertical offset ~54
+            const drawX = px + 8;
+            const drawY = py + 20 - 54;
 
-          // Denim overalls
-          ctx.fillStyle = '#2563eb';
-          ctx.fillRect(px + 3, py + 13, 10, 5);
+            ctx.translate(drawX, drawY);
+            if (isFlipped) {
+              ctx.scale(-1, 1);
+            }
+            ctx.drawImage(
+              charImg,
+              frameIndex * 80, 0, 80, 80,
+              -40, 0, 80, 80
+            );
+            ctx.restore();
+          }
 
-          // Walking legs
-          const legSwing = pip.walking ? Math.sin(state.animFrame * 0.4) * 2 : 0;
-          ctx.fillStyle = '#1d4ed8';
-          ctx.fillRect(px + 4, py + 18, 3, 3 + legSwing);
-          ctx.fillRect(px + 9, py + 18, 3, 3 - legSwing);
-
-          // Boots
-          ctx.fillStyle = '#78350f';
-          ctx.fillRect(px + 3, py + 21 + legSwing, 4, 2);
-          ctx.fillRect(px + 9, py + 21 - legSwing, 4, 2);
-
-          // Name Tag: "Pip (You)"
+          // Character Name Tag: e.g. "Celine (You)"
           ctx.save();
           ctx.font = 'bold 7px monospace';
-          const nameText = 'Pip (You)';
+          const nameText = `${hero.name} (You)`;
           const tW = ctx.measureText(nameText).width;
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-          ctx.fillRect(px + 8 - tW / 2 - 2, py - 9, tW + 4, 8);
-          ctx.fillStyle = '#fde047';
-          ctx.fillText(nameText, px + 8 - tW / 2, py - 3);
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.fillRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
+          ctx.strokeStyle = hero.color || '#22c55e';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
+          ctx.fillStyle = '#fef08a';
+          ctx.fillText(nameText, px + 8 - tW / 2, py - 11);
           ctx.restore();
         },
       });
@@ -2202,6 +2229,43 @@ function ClassicPixelCanvas({
           imageRendering: 'pixelated',
         }}
       />
+
+      {/* Hero Switcher Button */}
+      <button
+        onClick={() => {
+          const curId = activeHeroId || 'celine';
+          const curIdx = VILLAGE_HEROES.findIndex(h => h.id === curId);
+          const nextHero = VILLAGE_HEROES[(curIdx + 1) % VILLAGE_HEROES.length];
+          stateRef.current.characterId = nextHero.id;
+          setActiveHeroId(nextHero.id);
+          soundManager.playSfx('wood');
+        }}
+        title="Click or press [C] to cycle player character"
+        style={{
+          position: 'absolute',
+          bottom: 12,
+          right: 12,
+          zIndex: 40,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '4px 10px',
+          background: 'rgba(28, 17, 10, 0.90)',
+          border: `1.5px solid ${VILLAGE_HEROES.find(h => h.id === activeHeroId)?.color || '#10b981'}`,
+          borderRadius: 6,
+          color: '#fdf6e2',
+          fontFamily: 'monospace',
+          fontSize: '10px',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+        }}
+      >
+        <span>Hero:</span>
+        <strong style={{ color: VILLAGE_HEROES.find(h => h.id === activeHeroId)?.color || '#10b981' }}>
+          {VILLAGE_HEROES.find(h => h.id === activeHeroId)?.name || 'Celine'}
+        </strong>
+        <span style={{ fontSize: '8px', opacity: 0.7 }}>[C]</span>
+      </button>
     </div>
   );
 }
