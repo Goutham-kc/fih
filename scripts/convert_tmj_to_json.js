@@ -105,16 +105,23 @@ function findObjectLayers(layers) {
 }
 const interactiveObjectLayers = findObjectLayers(tmj.layers);
 
-// Merge all specialized building / stall collision layers into the main Tiles_Collision layer!
+// Only merge active state collision overlays (Fixed buildings: Inn, General Store, Plaza).
+// NEVER merge alternative festival layouts (Spring/Harvest/Animal/Shooting Star) into default collision!
+const activeFixedColNames = [
+  'Tiles_Collision_Inn_Fixed',
+  'Tiles_Collision_General_Store_Fixed',
+  'Tiles_Collision_Plaza_Fixed'
+];
+
 const mainCol = flatTileLayers.find(l => l.name === 'Tiles_Collision');
 if (mainCol && mainCol.data) {
-  const otherCols = flatTileLayers.filter(l => l.name.startsWith('Tiles_Collision_') && l.name !== 'Tiles_Collision');
+  const activeCols = flatTileLayers.filter(l => activeFixedColNames.includes(l.name));
   let merged = 0;
-  for (const oc of otherCols) {
+  for (const oc of activeCols) {
     if (!oc.data) continue;
     for (let i = 0; i < oc.data.length; i++) {
       const gid = oc.data[i] & 0x1FFFFFFF;
-      // 1506 (river bank/curb), 1507 (solid wall/stall), 1508 (water), 1510 (barrier)
+      // 1506 (curb/slope), 1507 (solid wall), 1508 (water), 1510 (barrier)
       if (gid === 1506 || gid === 1507 || gid === 1508 || gid === 1510) {
         const cur = mainCol.data[i] & 0x1FFFFFFF;
         if (cur === 1504 || cur === 0) {
@@ -124,11 +131,11 @@ if (mainCol && mainCol.data) {
       }
     }
   }
-  console.log(`Merged ${merged} solid building/stall tiles into Tiles_Collision.`);
+  console.log(`Merged ${merged} active fixed building/plaza collision tiles into Tiles_Collision.`);
 }
 
 tmj.layers = [...flatTileLayers, ...interactiveObjectLayers];
 
 fs.writeFileSync('public/village_assets/tiled_map/rm_town.json', JSON.stringify(tmj), 'utf8');
 fs.writeFileSync('village_assets/tiled_map/rm_town.json', JSON.stringify(tmj), 'utf8');
-console.log('Successfully written rm_town.json with merged collision layer!');
+console.log('Successfully written rm_town.json with active state collision overlay!');
