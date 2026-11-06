@@ -837,16 +837,16 @@ export default function Dashboard() {
           background:
             linear-gradient(
               180deg,
-              #79502f 0%,
-              #51331f 22%,
-              #392315 100%
+              #244434 0%,
+              #1a3326 22%,
+              #12241b 100%
             ) !important;
 
-          border: 3px solid #1a0f08 !important;
+          border: 3px solid #0a1711 !important;
 
           box-shadow:
-            inset 0 2px 0 #b18455,
-            inset 0 -3px 0 #211208,
+            inset 0 2px 0 #3d7054,
+            inset 0 -3px 0 #09140f,
             0 5px 0 rgba(0, 0, 0, 0.28),
             0 10px 28px rgba(0, 0, 0, 0.38) !important;
 
@@ -866,7 +866,7 @@ export default function Dashboard() {
           align-items: center;
           gap: 7px;
           padding-right: 10px;
-          border-right: 1px solid rgba(255, 222, 173, 0.25);
+          border-right: 1px solid rgba(80, 207, 143, 0.25);
         }
 
         .dashboard-brand-icon {
@@ -879,7 +879,7 @@ export default function Dashboard() {
           color: #ffdc75;
           text-transform: uppercase;
           letter-spacing: 0.04em;
-          text-shadow: 2px 2px 0 #44240f;
+          text-shadow: 2px 2px 0 #0d1f16;
         }
 
         .dashboard-info-pill,
@@ -892,7 +892,7 @@ export default function Dashboard() {
           min-height: 28px;
           padding: 5px 9px;
           border: 1px solid rgba(255, 220, 170, 0.2);
-          background: rgba(25, 14, 8, 0.48);
+          background: rgba(14, 28, 21, 0.55);
           font-size: 11px;
         }
 
@@ -940,7 +940,7 @@ export default function Dashboard() {
           overflow-y: auto;
           overscroll-behavior: contain;
           scrollbar-width: thin;
-          scrollbar-color: #9b7044 #e4c99c;
+          scrollbar-color: #3b7450 #ebe0cd;
         }
 
         .rpg-parchment-stage.over-world {
@@ -971,29 +971,29 @@ export default function Dashboard() {
           background:
             radial-gradient(
               ellipse at 12% 8%,
-              rgba(255, 255, 255, 0.32),
+              rgba(255, 255, 255, 0.65),
               transparent 45%
             ),
             radial-gradient(
               ellipse at 90% 90%,
-              rgba(147, 95, 43, 0.09),
+              rgba(80, 207, 143, 0.08),
               transparent 50%
             ),
             linear-gradient(
               145deg,
-              #f6e9cc 0%,
-              #eddbb5 52%,
-              #e2c99c 100%
+              #fbf7ee 0%,
+              #f4ede0 52%,
+              #ebe0cd 100%
             ) !important;
 
-          border: 4px solid #684326 !important;
+          border: 4px solid #233e30 !important;
 
           box-shadow:
-            inset 0 0 0 2px rgba(255, 248, 220, 0.65),
-            inset 0 0 25px rgba(111, 70, 30, 0.12),
-            0 8px 25px rgba(0, 0, 0, 0.35) !important;
+            inset 0 0 0 2px rgba(254, 243, 199, 0.75),
+            inset 0 0 25px rgba(35, 62, 48, 0.08),
+            0 8px 30px rgba(10, 24, 18, 0.5) !important;
 
-          color: #3d2818;
+          color: #192e22;
         }
 
         /* Chapter heading */
@@ -1004,7 +1004,7 @@ export default function Dashboard() {
           justify-content: space-between;
           gap: 12px;
           padding-bottom: 13px;
-          border-bottom: 2px dashed rgba(104, 67, 38, 0.55);
+          border-bottom: 2px dashed rgba(43, 82, 60, 0.4);
         }
 
         .dashboard-chapter-heading-content {
@@ -1013,7 +1013,7 @@ export default function Dashboard() {
 
         .dashboard-chapter-eyebrow {
           margin-bottom: 7px;
-          color: #9a7044;
+          color: #3b7450;
           font-family: var(--font-pixel-display);
           font-size: 7px;
           letter-spacing: 0.13em;
@@ -1021,7 +1021,7 @@ export default function Dashboard() {
 
         .dashboard-chapter-title {
           display: block;
-          color: #452817;
+          color: #163322;
           font-family: var(--font-pixel-display);
           font-size: 13px;
           font-weight: 700;
@@ -1029,7 +1029,7 @@ export default function Dashboard() {
           text-transform: uppercase;
           letter-spacing: 0.04em;
           overflow-wrap: anywhere;
-          text-shadow: 1px 1px 0 rgba(255, 244, 210, 0.65);
+          text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .dashboard-chapter-subtitle {
@@ -1038,13 +1038,13 @@ export default function Dashboard() {
           align-items: center;
           gap: 6px;
           margin-top: 5px;
-          color: #795333;
+          color: #436650;
           font-size: 10px;
           line-height: 1.6;
         }
 
         .chapter-subtitle-dot {
-          color: #b28a52;
+          color: #3b7450;
         }
 
         .dashboard-chapter-actions {
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
         .dashboard-chapter-content {
           flex: 1;
           min-width: 0;
-          color: #3d2818;
+          color: #192e22;
         }
 
         .dashboard-parchment-card button.btn-pixel {
@@ -1092,9 +1092,9 @@ export default function Dashboard() {
           align-items: flex-start;
           gap: 10px;
           padding: 10px;
-          background: rgba(235, 215, 178, 0.7);
-          border: 1px solid #9a7044;
-          box-shadow: inset 0 0 0 1px rgba(255, 248, 220, 0.4);
+          background: rgba(238, 246, 240, 0.85);
+          border: 1px solid #3b7450;
+          box-shadow: inset 0 0 0 1px rgba(254, 243, 199, 0.5);
           border-radius: 3px;
         }
 
@@ -1104,14 +1104,14 @@ export default function Dashboard() {
         }
 
         .dashboard-resident-text {
-          color: #593a23;
+          color: #244434;
           font-size: 10px;
           font-style: italic;
           line-height: 1.6;
         }
 
         .dashboard-resident-text strong {
-          color: #452817;
+          color: #163322;
           font-style: normal;
         }
 

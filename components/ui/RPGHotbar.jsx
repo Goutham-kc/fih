@@ -87,11 +87,11 @@ export default function RPGHotbar({
           transform: translateX(-50%);
           max-width: calc(100vw - 24px);
           padding: 8px;
-          background: linear-gradient(180deg, #704526 0%, #3b2416 18%, #29180f 100%);
-          border: 3px solid #1a0f08;
+          background: linear-gradient(180deg, #244434 0%, #1a3326 18%, #12241b 100%);
+          border: 3px solid #0a1711;
           box-shadow:
-            inset 0 2px 0 #a9784b,
-            inset 0 -3px 0 #170d07,
+            inset 0 2px 0 #3d7054,
+            inset 0 -3px 0 #09140f,
             0 7px 0 rgba(0, 0, 0, 0.25),
             0 12px 28px rgba(0, 0, 0, 0.5);
         }
@@ -112,21 +112,21 @@ export default function RPGHotbar({
           width: 58px;
           height: 62px;
           padding: 5px 2px 4px;
-          border: 2px solid #56351f;
+          border: 2px solid #234232;
           border-radius: 0;
-          background: linear-gradient(145deg, #382315, #1b100a);
-          color: #ead5ad;
+          background: linear-gradient(145deg, #182e22, #0d1a13);
+          color: #e8f4ec;
           cursor: pointer;
           transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
           box-shadow:
-            inset 2px 2px 0 rgba(255, 220, 170, 0.08),
+            inset 2px 2px 0 rgba(80, 207, 143, 0.1),
             inset -2px -2px 0 rgba(0, 0, 0, 0.4);
         }
 
         .rpg-hotbar-slot:hover {
           transform: translateY(-4px);
-          background: linear-gradient(145deg, #58371f, #2b190f);
-          border-color: #b58a55;
+          background: linear-gradient(145deg, #224231, #13241b);
+          border-color: #4a8262;
         }
 
         .rpg-hotbar-slot:focus-visible {
@@ -137,11 +137,11 @@ export default function RPGHotbar({
         .rpg-hotbar-slot.active {
           transform: translateY(-5px);
           border-color: #facc15;
-          background: linear-gradient(145deg, #63421d, #35200e);
+          background: linear-gradient(145deg, #2c4e38, #183022);
           color: #fff2b8;
           box-shadow:
-            inset 2px 2px 0 #b88631,
-            inset -2px -2px 0 #261508,
+            inset 2px 2px 0 #ca8a04,
+            inset -2px -2px 0 #0f1d16,
             0 0 0 2px rgba(250, 204, 21, 0.2),
             0 0 14px rgba(250, 204, 21, 0.35);
         }
@@ -152,7 +152,7 @@ export default function RPGHotbar({
           left: 5px;
           font-family: var(--font-pixel-display, monospace);
           font-size: 8px;
-          color: #c4a27c;
+          color: #8faea0;
         }
 
         .rpg-hotbar-icon {
@@ -167,7 +167,7 @@ export default function RPGHotbar({
           font-family: var(--font-pixel-display, monospace);
           font-size: 7px;
           line-height: 1.3;
-          color: #d9bd91;
+          color: #c2d9cc;
           white-space: nowrap;
         }
 

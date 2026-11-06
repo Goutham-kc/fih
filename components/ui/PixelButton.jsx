@@ -23,24 +23,24 @@ export default function PixelButton({
       case 'golden':
         return {
           background: '#eab308',
-          color: '#1a0f08',
+          color: '#1a1005',
           border: '2px solid #713f12',
           boxShadow: 'inset 2px 2px 0 #fef08a, inset -2px -2px 0 #854d0e, 0 3px 0 #422006',
         };
       case 'primary':
         return {
-          background: '#c98f55',
-          color: '#1a0f08',
-          border: '2px solid #54331a',
-          boxShadow: 'inset 2px 2px 0 #fde047, inset -2px -2px 0 #784323, 0 3px 0 #2b1a11',
+          background: '#386e4e',
+          color: '#fdfbf4',
+          border: '2px solid #183324',
+          boxShadow: 'inset 2px 2px 0 #5ca077, inset -2px -2px 0 #183324, 0 3px 0 #0f2117',
         };
       case 'secondary':
       case 'wood':
         return {
-          background: '#7b4a28',
-          color: '#fdf6e2',
-          border: '2px solid #1a0f08',
-          boxShadow: 'inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06',
+          background: '#2a523c',
+          color: '#fdfbf4',
+          border: '2px solid #14291e',
+          boxShadow: 'inset 2px 2px 0 #468662, inset -2px -2px 0 #13241a, 0 3px 0 #0b1711',
         };
       case 'danger':
         return {
@@ -52,16 +52,16 @@ export default function PixelButton({
       case 'ghost':
         return {
           background: 'transparent',
-          color: '#fdf6e2',
+          color: '#fdfbf4',
           border: '2px solid transparent',
           boxShadow: 'none',
         };
       default:
         return {
-          background: '#7b4a28',
-          color: '#fdf6e2',
-          border: '2px solid #1a0f08',
-          boxShadow: 'inset 2px 2px 0 #a36c3a, inset -2px -2px 0 #3d1f0f, 0 3px 0 #120b06',
+          background: '#2a523c',
+          color: '#fdfbf4',
+          border: '2px solid #14291e',
+          boxShadow: 'inset 2px 2px 0 #468662, inset -2px -2px 0 #13241a, 0 3px 0 #0b1711',
         };
     }
   };

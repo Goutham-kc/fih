@@ -171,13 +171,13 @@ export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }
       <div
         className="pixel-hud-card"
         style={{
-          background: 'linear-gradient(180deg, #2b1a11 0%, #1f130b 100%)',
+          background: 'linear-gradient(180deg, #162a22 0%, #0d1c16 100%)',
           borderRadius: 16,
           padding: '16px 20px',
-          border: '3px solid #7b4a28',
+          border: '3px solid #2b523e',
           marginBottom: 24,
           position: 'relative',
-          boxShadow: '0 6px 24px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(201, 143, 85, 0.3)',
+          boxShadow: '0 6px 24px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(80, 207, 143, 0.2)',
         }}
       >
         {/* Corner Studs */}
@@ -200,10 +200,10 @@ export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }
               display: 'flex',
               alignItems: 'center',
               gap: 14,
-              background: 'linear-gradient(180deg, #3d2315 0%, #29150b 100%)',
+              background: 'linear-gradient(180deg, #1f382b 0%, #101e18 100%)',
               padding: '12px 16px',
               borderRadius: 12,
-              border: '2px solid #a36c3a',
+              border: '2px solid #386e4e',
               boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)',
             }}
           >
@@ -237,10 +237,10 @@ export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }
                   bottom: -2,
                   right: -2,
                   fontSize: 13,
-                  background: '#2b1a11',
+                  background: '#162a22',
                   borderRadius: '50%',
                   padding: '1px 2px',
-                  border: '1px solid #7b4a28',
+                  border: '1px solid #2b523e',
                 }}
               >
                 {seasonEmoji}
@@ -562,7 +562,7 @@ export default function PixelValleyHUD({ envMode, onSwitchEnvMode, updatingEnv }
                   <div
                     key={idx}
                     style={{
-                      borderBottom: idx === 6 ? 'none' : '1px solid #3d2315',
+                      borderBottom: idx === 6 ? 'none' : '1px solid #203c2e',
                       paddingBottom: 8,
                     }}
                   >

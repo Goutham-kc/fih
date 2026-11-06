@@ -175,7 +175,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               width: 48,
               height: 48,
               borderRadius: 10,
-              background: '#2b1a11',
+              background: '#162a22',
               border: '2px solid #a36c3a',
               display: 'flex',
               alignItems: 'center',
@@ -363,8 +363,8 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
                 style={{
                   padding: '6px 12px',
                   borderRadius: 6,
-                  border: weatherOverride === opt.id ? '2px solid #f2c230' : '1px solid #7b4a28',
-                  background: weatherOverride === opt.id ? '#3d2315' : '#2b1a11',
+                  border: weatherOverride === opt.id ? '2px solid #f2c230' : '1px solid #2b523e',
+                  background: weatherOverride === opt.id ? '#1f382a' : '#162a22',
                   color: weatherOverride === opt.id ? '#f2c230' : '#c4b5a5',
                   cursor: 'pointer',
                   fontSize: 12,
@@ -396,8 +396,8 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
                 style={{
                   padding: '6px 12px',
                   borderRadius: 6,
-                  border: timeOverride === opt.id ? '2px solid #f2c230' : '1px solid #7b4a28',
-                  background: timeOverride === opt.id ? '#3d2315' : '#2b1a11',
+                  border: timeOverride === opt.id ? '2px solid #f2c230' : '1px solid #2b523e',
+                  background: timeOverride === opt.id ? '#1f382a' : '#162a22',
                   color: timeOverride === opt.id ? '#f2c230' : '#c4b5a5',
                   cursor: 'pointer',
                   fontSize: 12,
@@ -432,11 +432,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           <div
             onClick={() => setTheme('dark')}
             style={{
-              border: `2px solid ${theme === 'dark' ? '#f2c230' : '#7b4a28'}`,
+              border: `2px solid ${theme === 'dark' ? '#f2c230' : '#2b523e'}`,
               borderRadius: 10,
               padding: '14px',
               cursor: 'pointer',
-              background: theme === 'dark' ? '#3d2315' : '#2b1a11',
+              background: theme === 'dark' ? '#1f382a' : '#162a22',
               display: 'flex',
               flexDirection: 'column',
               gap: 4,
@@ -455,11 +455,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           <div
             onClick={() => setTheme('light')}
             style={{
-              border: `2px solid ${theme === 'light' ? '#f2c230' : '#7b4a28'}`,
+              border: `2px solid ${theme === 'light' ? '#f2c230' : '#2b523e'}`,
               borderRadius: 10,
               padding: '14px',
               cursor: 'pointer',
-              background: theme === 'light' ? '#3d2315' : '#2b1a11',
+              background: theme === 'light' ? '#1f382a' : '#162a22',
               display: 'flex',
               flexDirection: 'column',
               gap: 4,
@@ -478,11 +478,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           <div
             onClick={() => setTheme('system')}
             style={{
-              border: `2px solid ${theme === 'system' ? '#f2c230' : '#7b4a28'}`,
+              border: `2px solid ${theme === 'system' ? '#f2c230' : '#2b523e'}`,
               borderRadius: 10,
               padding: '14px',
               cursor: 'pointer',
-              background: theme === 'system' ? '#3d2315' : '#2b1a11',
+              background: theme === 'system' ? '#1f382a' : '#162a22',
               display: 'flex',
               flexDirection: 'column',
               gap: 4,
@@ -530,8 +530,8 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               style={{
                 width: '100%',
                 padding: '8px 10px',
-                background: '#1a0f08',
-                border: '2px solid #7b4a28',
+                background: '#101e18',
+                border: '2px solid #2b523e',
                 color: '#fdf6e2',
                 fontSize: 12,
                 fontFamily: 'monospace',
@@ -621,11 +621,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           <div
             onClick={() => onSwitchEnvMode('live')}
             style={{
-              border: `2px solid ${envMode === 'live' ? '#8fc45a' : '#7b4a28'}`,
+              border: `2px solid ${envMode === 'live' ? '#8fc45a' : '#2b523e'}`,
               borderRadius: 10,
               padding: 16,
               cursor: updatingEnv ? 'not-allowed' : 'pointer',
-              background: envMode === 'live' ? 'rgba(143, 196, 90, 0.12)' : '#2b1a11',
+              background: envMode === 'live' ? 'rgba(143, 196, 90, 0.12)' : '#162a22',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -641,11 +641,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
           <div
             onClick={() => onSwitchEnvMode('development')}
             style={{
-              border: `2px solid ${envMode === 'development' ? '#f2c230' : '#7b4a28'}`,
+              border: `2px solid ${envMode === 'development' ? '#f2c230' : '#2b523e'}`,
               borderRadius: 10,
               padding: 16,
               cursor: updatingEnv ? 'not-allowed' : 'pointer',
-              background: envMode === 'development' ? 'rgba(242, 194, 48, 0.12)' : '#2b1a11',
+              background: envMode === 'development' ? 'rgba(242, 194, 48, 0.12)' : '#162a22',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>

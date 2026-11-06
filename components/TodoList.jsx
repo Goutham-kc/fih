@@ -176,9 +176,9 @@ export default function TodoList() {
                   flex: 1,
                   minWidth: 260,
                   fontSize: 14,
-                  background: '#24140b',
-                  border: '2px solid #7b4a28',
-                  color: '#fdf6e2',
+                  background: '#101e18',
+                  border: '2px solid #2b523e',
+                  color: '#fdfbf4',
                 }}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -209,9 +209,9 @@ export default function TodoList() {
                     minHeight: 34,
                     padding: '4px 10px',
                     fontSize: 13,
-                    background: '#24140b',
-                    border: '1px solid #7b4a28',
-                    color: '#fdf6e2',
+                    background: '#101e18',
+                    border: '1px solid #2b523e',
+                    color: '#fdfbf4',
                   }}
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -229,9 +229,9 @@ export default function TodoList() {
                     minHeight: 34,
                     padding: '4px 28px 4px 10px',
                     fontSize: 13,
-                    background: '#24140b',
-                    border: '1px solid #7b4a28',
-                    color: '#fdf6e2',
+                    background: '#101e18',
+                    border: '1px solid #2b523e',
+                    color: '#fdfbf4',
                   }}
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
@@ -283,8 +283,8 @@ export default function TodoList() {
           <div
             style={{
               display: 'inline-flex',
-              background: '#24140b',
-              border: '1px solid #7b4a28',
+              background: '#101e18',
+              border: '1px solid #2b523e',
               borderRadius: 6,
               padding: 2,
             }}
@@ -299,7 +299,7 @@ export default function TodoList() {
                 padding: '4px 8px',
                 borderRadius: 4,
                 border: 'none',
-                background: viewMode === 'plot' ? '#7b4a28' : 'transparent',
+                background: viewMode === 'plot' ? '#2b523e' : 'transparent',
                 color: viewMode === 'plot' ? '#f2c230' : '#c4b5a5',
                 fontSize: 11,
                 fontWeight: 700,
@@ -319,7 +319,7 @@ export default function TodoList() {
                 padding: '4px 8px',
                 borderRadius: 4,
                 border: 'none',
-                background: viewMode === 'ledger' ? '#7b4a28' : 'transparent',
+                background: viewMode === 'ledger' ? '#2b523e' : 'transparent',
                 color: viewMode === 'ledger' ? '#f2c230' : '#c4b5a5',
                 fontSize: 11,
                 fontWeight: 700,
@@ -392,7 +392,7 @@ export default function TodoList() {
                 className="pixel-plot-card"
                 style={{
                   background: 'linear-gradient(180deg, #3d2315 0%, #24140b 100%)',
-                  border: isOverdue(todo) ? '2px solid #c2415a' : '2px solid #7b4a28',
+                  border: isOverdue(todo) ? '2px solid #c2415a' : '2px solid #2b523e',
                   borderRadius: 10,
                   padding: '14px 16px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
@@ -481,8 +481,8 @@ export default function TodoList() {
               key={todo._id}
               className="todo-item stagger-item"
               style={{
-                background: 'linear-gradient(180deg, #2b1a11 0%, #1f130b 100%)',
-                border: '2px solid #7b4a28',
+                background: 'linear-gradient(180deg, #162a22 0%, #101e18 100%)',
+                border: '2px solid #2b523e',
                 borderRadius: 8,
                 padding: '10px 14px',
               }}
@@ -574,8 +574,8 @@ export default function TodoList() {
                   key={todo._id}
                   className="todo-item done-item"
                   style={{
-                    background: '#1a0f08',
-                    border: '1px solid #5a361d',
+                    background: '#0c1612',
+                    border: '1px solid #1f3c2c',
                     borderRadius: 8,
                     padding: '8px 12px',
                     opacity: 0.75,

@@ -260,7 +260,7 @@ export default function DebtTracker() {
               </label>
               <input
                 className="fih-input"
-                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
+                style={{ background: '#101e18', border: '1px solid #2b523e', color: '#fdfbf4' }}
                 value={person}
                 onChange={(e) => setPerson(e.target.value)}
                 placeholder="e.g. Alex"
@@ -274,7 +274,7 @@ export default function DebtTracker() {
               </label>
               <input
                 className="fih-input tabular-nums"
-                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
+                style={{ background: '#101e18', border: '1px solid #2b523e', color: '#fdfbf4' }}
                 type="number"
                 min="0.01"
                 step="0.01"
@@ -291,7 +291,7 @@ export default function DebtTracker() {
               </label>
               <select
                 className="fih-input"
-                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
+                style={{ background: '#101e18', border: '1px solid #2b523e', color: '#fdfbf4' }}
                 value={direction}
                 onChange={(e) => setDirection(e.target.value)}
               >
@@ -306,7 +306,7 @@ export default function DebtTracker() {
               </label>
               <input
                 className="fih-input"
-                style={{ background: '#24140b', border: '1px solid #7b4a28', color: '#fdf6e2' }}
+                style={{ background: '#101e18', border: '1px solid #2b523e', color: '#fdfbf4' }}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g. Dinner at saloon"
@@ -495,8 +495,8 @@ export default function DebtTracker() {
                   style={{
                     padding: '3px 8px',
                     borderRadius: 4,
-                    border: journalFilter === f ? '1px solid #f2c230' : '1px solid #7b4a28',
-                    background: journalFilter === f ? '#7b4a28' : '#2b1a11',
+                    border: journalFilter === f ? '1px solid #f2c230' : '1px solid #2b523e',
+                    background: journalFilter === f ? '#2b523e' : '#162a22',
                     color: journalFilter === f ? '#f2c230' : '#c4b5a5',
                     fontSize: 11,
                     fontWeight: 600,
