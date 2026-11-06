@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { soundManager } from '@/lib/soundManager';
 import { eventBus, EVENTS } from '@/lib/eventBus';
 import { loadCollisionGrid, isPointWalkable, isFeetWalkable, getGrid } from './collisionGrid';
+import { getManorGardenRenderables } from './manorGardenDecorations';
 
 // 16-bit RPG Tile Size & Full Fields of Mistria (rm_town) Map Dimensions
 export const TILE_SIZE = 16;
@@ -1800,6 +1801,12 @@ function ClassicPixelCanvas({
 
       // ── Layer 3: Depth-Sorted Entities (Dynamic Overlays & Characters) ──
       const renderables = [];
+
+      // 0. Manor Estate Botanical Gardens & Surrounding Decorations
+      const gardenItems = getManorGardenRenderables(ctx, state.animFrame, {
+        camMinX, camMaxX, camMinY, camMaxY,
+      });
+      gardenItems.forEach((item) => renderables.push(item));
 
       // 1. Town Notice Board at Plaza (Chapter 4 Anchor)
       renderables.push({
