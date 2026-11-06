@@ -1801,25 +1801,7 @@ function ClassicPixelCanvas({
       // ── Layer 3: Depth-Sorted Entities (Dynamic Overlays & Characters) ──
       const renderables = [];
 
-      // 1. Great Town Fountain Splash / Ripple Animation (rm_town Fountain at 1096, 1120)
-      renderables.push({
-        y: 1120,
-        render: () => {
-          const progress = (state.animFrame * 0.03) % 1;
-          const rX = 4 + progress * 16;
-          const rY = rX * 0.55;
-          const alpha = (1 - progress) * 0.7;
-          ctx.save();
-          ctx.strokeStyle = `rgba(186, 245, 255, ${alpha.toFixed(3)})`;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.ellipse(1096, 1120, rX, rY, 0, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
-        },
-      });
-
-      // 2. Town Notice Board at Plaza (Chapter 4 Anchor)
+      // 1. Town Notice Board at Plaza (Chapter 4 Anchor)
       renderables.push({
         y: 1736,
         render: () => {
@@ -1838,17 +1820,7 @@ function ClassicPixelCanvas({
         },
       });
 
-
-
-      // 4. Celine's Living Flora Farmstead Garden
-      renderables.push({
-        y: 2150,
-        render: () => {
-          drawFencedGardenPlot(ctx, 1315, 2125, state.animFrame);
-        },
-      });
-
-      // 5. Click Target Indicator Ring
+      // 2. Click Target Indicator Ring
       if (state.clickTarget) {
         renderables.push({
           y: state.clickTarget.y,
