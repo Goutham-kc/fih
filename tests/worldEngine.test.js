@@ -264,6 +264,10 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
   });
 
   it('validates walkable areas and detects obstacles like river and bounds', async () => {
+    const { initCollisionGrid } = await import('../components/world/collisionGrid');
+    const collisionData = await import('../public/village_assets/rm_town_collision.json');
+    initCollisionGrid(collisionData.default || collisionData);
+
     const { isWalkable } = await import('../components/world/PixelWorldCanvas');
     // Plaza path is walkable
     expect(isWalkable(1088, 1780)).toBe(true);

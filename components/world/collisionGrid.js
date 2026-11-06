@@ -2,51 +2,22 @@
 // Replaces the hand-coded rectangles in isWalkable() with the real Tiles_Collision grid of rm_town.
 let GRID = null; // { w, h, cell, cells: Uint8Array (1 = blocked) }
 
-function ensureGridSync() {
-  if (GRID) return;
-  if (typeof window === 'undefined') {
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const file = path.resolve('public/village_assets/rm_town_collision.json');
-      if (fs.existsSync(file)) {
-        const j = JSON.parse(fs.readFileSync(file, 'utf8'));
-        const cells = new Uint8Array(j.width * j.height);
-        for (let i = 0; i < cells.length; i++) cells[i] = j.walkable.charCodeAt(i) === 49 ? 1 : 0;
-        GRID = { w: j.width, h: j.height, cell: j.cell, cells, base: j };
-      }
-    } catch (e) {}
-  }
-}
-
-export async function loadCollisionGrid(url = '/village_assets/rm_town_collision.json') {
-  let j;
-  if (typeof fetch !== 'undefined') {
-    try {
-      j = await (await fetch(url)).json();
-    } catch (e) {
-      if (typeof window === 'undefined') {
-        const fs = require('fs');
-        const path = require('path');
-        const file = path.resolve('public/village_assets/rm_town_collision.json');
-        j = JSON.parse(fs.readFileSync(file, 'utf8'));
-      }
-    }
-  } else {
-    const fs = require('fs');
-    const path = require('path');
-    const file = path.resolve('public/village_assets/rm_town_collision.json');
-    j = JSON.parse(fs.readFileSync(file, 'utf8'));
-  }
+export function initCollisionGrid(j) {
+  if (!j || !j.walkable) return null;
   const cells = new Uint8Array(j.width * j.height);
   for (let i = 0; i < cells.length; i++) cells[i] = j.walkable.charCodeAt(i) === 49 ? 1 : 0;
   GRID = { w: j.width, h: j.height, cell: j.cell, cells, base: j };
   return GRID;
 }
 
+export async function loadCollisionGrid(url = '/village_assets/rm_town_collision.json') {
+  const res = await fetch(url);
+  const j = await res.json();
+  return initCollisionGrid(j);
+}
+
 // Turn extra overlays (stalls, festivals) on/off at runtime: setOverlay('Stall_Zorel', true)
 export function setOverlay(name, on) {
-  ensureGridSync();
   if (!GRID) return;
   const list = GRID.base.overlays[name];
   if (!list) return;
@@ -55,7 +26,6 @@ export function setOverlay(name, on) {
 }
 
 export function isCellBlocked(tx, ty) {
-  ensureGridSync();
   if (!GRID) return false; // grid not loaded yet: don't trap the player
   if (tx < 0 || ty < 0 || tx >= GRID.w || ty >= GRID.h) return true;
   return GRID.cells[ty * GRID.w + tx] === 1;
@@ -75,6 +45,5 @@ export function isFeetWalkable(fx, fy, halfW = 5, halfH = 3) {
 }
 
 export function getGrid() {
-  ensureGridSync();
   return GRID;
 }
