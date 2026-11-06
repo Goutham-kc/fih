@@ -68,10 +68,10 @@ export class VillageScene extends Phaser.Scene {
     if (collisionTileset) {
       this.collisionLayer = map.createLayer('Tiles_Collision', collisionTileset);
       if (this.collisionLayer) {
-        // Exclude empty tiles (-1, 0) and walkable ground (1504).
-        // All other tiles (1506 river bank/curb, 1507 solid walls/cliffs/buildings,
-        // 1508 river water, 1510 barriers) are 100% solid colliders!
-        this.collisionLayer.setCollisionByExclusion([-1, 0, 1504]);
+        // Exclude ONLY walkable ground (1504).
+        // All other tiles (1506 solid props/overlay, 1507 solid walls/cliffs/buildings,
+        // 1508 river water, 1510 barriers, 0 borders) are 100% solid colliders!
+        this.collisionLayer.setCollisionByExclusion([1504]);
         this.collisionLayer.setVisible(false);
       }
     }
@@ -110,9 +110,9 @@ export class VillageScene extends Phaser.Scene {
     const spawnY = 1780;
     this.player = this.physics.add.sprite(spawnX, spawnY, 'player_walk_south', 0);
 
-    // Adjust player hitbox size to fit feet instead of whole body
-    this.player.setSize(18, 14);
-    this.player.setOffset(31, 56);
+    // Adjust player hitbox size to fit feet instead of whole body (8-12px wide, 6-8px tall at bottom)
+    this.player.setSize(12, 8);
+    this.player.setOffset(34, 62);
 
     // Add physics collision between player and collision layer
     if (this.collisionLayer) {
