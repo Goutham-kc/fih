@@ -62,7 +62,13 @@ export default function RPGHotbar({
             <button
               key={item.id || 'map'}
               type="button"
-              onClick={() => onSelectTab?.(item.id)}
+              onClick={() => {
+                if (isActive) {
+                  onSelectTab?.(null);
+                } else {
+                  onSelectTab?.(item.id);
+                }
+              }}
               title={`${item.label} (${item.num})`}
               aria-label={`${item.label}, shortcut ${item.num}`}
               aria-current={isActive ? 'page' : undefined}

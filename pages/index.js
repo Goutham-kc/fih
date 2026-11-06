@@ -613,6 +613,28 @@ export default function Dashboard() {
             )}
           </div>
 
+          {isMobile && activeTab && (
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn-pixel btn-gold dashboard-action-button"
+                onClick={handleCloseChapter}
+                title="Return to Village Map"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 10px',
+                  fontSize: 10,
+                  height: 28,
+                }}
+              >
+                <PixelMap size={12} />
+                <span>✕ Map</span>
+              </button>
+            </div>
+          )}
+
           {!isMobile && (
             <div className="dashboard-hud-right">
 
@@ -694,55 +716,58 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {!isMobile && (
-                  <div className="dashboard-chapter-actions">
+                <div className="dashboard-chapter-actions">
+                  <button
+                    type="button"
+                    className="btn-pixel btn-gold dashboard-panel-button"
+                    onClick={handleCloseChapter}
+                    title="Return to Village Map (Esc / M)"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <PixelMap size={12} />
+                    <span>✕ Map</span>
+                  </button>
 
-                    <button
-                      type="button"
-                      className={`btn-pixel dashboard-panel-button ${
-                        !showCanvas ? 'btn-gold' : ''
-                      }`}
-                      onClick={() => setShowCanvas(!showCanvas)}
-                      title={
-                        showCanvas
-                          ? 'Switch to Fullscreen Panel Only'
-                          : 'Switch to Split World View'
-                      }
-                    >
-                      {showCanvas ? (
-                        <>
-                          <PixelScroll size={12} style={{ marginRight: 4 }} />
-                          <span>Panel Only</span>
-                        </>
-                      ) : (
-                        <>
-                          <PixelMap size={12} style={{ marginRight: 4 }} />
-                          <span>Split World</span>
-                        </>
-                      )}
-                    </button>
+                  {!isMobile && (
+                    <>
+                      <button
+                        type="button"
+                        className={`btn-pixel dashboard-panel-button ${
+                          !showCanvas ? 'btn-gold' : ''
+                        }`}
+                        onClick={() => setShowCanvas(!showCanvas)}
+                        title={
+                          showCanvas
+                            ? 'Switch to Fullscreen Panel Only'
+                            : 'Switch to Split World View'
+                        }
+                      >
+                        {showCanvas ? (
+                          <>
+                            <PixelScroll size={12} style={{ marginRight: 4 }} />
+                            <span>Panel Only</span>
+                          </>
+                        ) : (
+                          <>
+                            <PixelMap size={12} style={{ marginRight: 4 }} />
+                            <span>Split World</span>
+                          </>
+                        )}
+                      </button>
 
-                    <button
-                      type="button"
-                      className="btn-pixel btn-gold dashboard-panel-button"
-                      onClick={handleCloseChapter}
-                      title="Return to Village Map (Esc)"
-                    >
-                      ✕ Map
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn-pixel dashboard-panel-button"
-                      onClick={() =>
-                        setPanelMinimized(!panelMinimized)
-                      }
-                      title="Minimize or expand parchment panel"
-                    >
-                      {panelMinimized ? '▲ Open' : '▼ Min'}
-                    </button>
-                  </div>
-                )}
+                      <button
+                        type="button"
+                        className="btn-pixel dashboard-panel-button"
+                        onClick={() =>
+                          setPanelMinimized(!panelMinimized)
+                        }
+                        title="Minimize or expand parchment panel"
+                      >
+                        {panelMinimized ? '▲ Open' : '▼ Min'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Mobile resident dialogue */}
@@ -1253,6 +1278,10 @@ export default function Dashboard() {
           }
 
           .dashboard-chapter-header {
+            display: flex !important;
+            align-items: flex-start !important;
+            justify-content: space-between !important;
+            gap: 8px !important;
             padding-bottom: 10px;
           }
 
