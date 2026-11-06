@@ -557,30 +557,6 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <Link
-              href="/phaser"
-              className="dashboard-game-btn"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#15803d',
-                color: '#fef08a',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                textDecoration: 'none',
-                border: '1px solid #22c55e',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                cursor: 'pointer'
-              }}
-              title="Play 2D Pixel Village with Phaser 3 Game Engine"
-            >
-              <span>🎮</span>
-              <span>Phaser 3 Game</span>
-            </Link>
-
             <DevModeIndicator
               envMode={envMode}
               onToggle={() =>
