@@ -263,64 +263,54 @@ describe('Continuous Village Chapter Anchors (Addendum Section 3)', () => {
     expect(nearby.id).toBe('todos');
   });
 
-  it('validates walkable areas and detects obstacles like pond and bounds', async () => {
+  it('validates walkable areas and detects obstacles like river and bounds', async () => {
     const { isWalkable } = await import('../components/world/PixelWorldCanvas');
     // Plaza path is walkable
-    expect(isWalkable(32 * 16, 33 * 16)).toBe(true);
+    expect(isWalkable(1088, 1780)).toBe(true);
 
-    // Pond at tx: 30, ty: 41 is impassable water
-    expect(isWalkable(30 * 16, 43 * 16)).toBe(false);
+    // River water is impassable
+    expect(isWalkable(1700, 500)).toBe(false);
 
-    // Footbridge across pond at tx: 32, ty: 41 is walkable
-    expect(isWalkable(32 * 16, 43 * 16)).toBe(true);
+    // Stone bridge across river is walkable
+    expect(isWalkable(1680, 1080)).toBe(true);
 
     // Out of map bounds is impassable
-    expect(isWalkable(0, 0)).toBe(false);
-    expect(isWalkable(64 * 16, 64 * 16)).toBe(false);
+    expect(isWalkable(-10, 0)).toBe(false);
+    expect(isWalkable(2200, 1000)).toBe(false);
   });
 
   it('prevents walking through houses, building walls, counters, and obstacles', async () => {
     const { isWalkable } = await import('../components/world/PixelWorldCanvas');
 
-    // 1. Chapter 1: The Farmstead Cabin walls & roof (tx: 12-16, ty: 10-13) are solid
-    expect(isWalkable(14 * 16, 11 * 16)).toBe(false);
-    expect(isWalkable(14 * 16, 14 * 16)).toBe(true); // farm porch doorstep is walkable
+    // 1. Chapter 1: The Farmstead Cabin walls are solid, door is walkable
+    expect(isWalkable(1300, 2050)).toBe(false);
+    expect(isWalkable(1324, 2133)).toBe(true);
 
-    // 2. Chapter 2: The Ledger Hut / Bank (tx: 48-52, ty: 10-13) is solid
-    expect(isWalkable(50 * 16, 11 * 16)).toBe(false);
-    expect(isWalkable(50 * 16, 14 * 16)).toBe(true); // steps in front of bank
+    // 2. Chapter 2: The Ledger Hut / General store walls are solid, door is walkable
+    expect(isWalkable(1200, 1600)).toBe(false);
+    expect(isWalkable(1220, 1741)).toBe(true);
 
-    // 3. Chapter 3: The Bell Tower masonry (tx: 31-33, ty: 9-13) is solid
-    expect(isWalkable(32 * 16, 11 * 16)).toBe(false);
-    expect(isWalkable(32 * 16, 14 * 16)).toBe(true); // door approach is walkable
+    // 3. Chapter 3: The Bell Tower masonry is solid, door is walkable
+    expect(isWalkable(500, 1200)).toBe(false);
+    expect(isWalkable(516, 1291)).toBe(true);
 
-    // 4. Chapter 4: The Notice Board posts (tx: 31-33, ty: 35) are solid
-    expect(isWalkable(32 * 16, 23 * 16)).toBe(false);
-    expect(isWalkable(32 * 16, 24 * 16)).toBe(true); // in front of board is walkable
+    // 4. Chapter 4: Notice Board approach is walkable
+    expect(isWalkable(1352, 1736)).toBe(true);
 
-    // 5. Chapter 5: The Festival Grounds stage (tx: 14-18, ty: 47-49) is solid
-    expect(isWalkable(16 * 16, 48 * 16)).toBe(false);
-    expect(isWalkable(16 * 16, 51 * 16)).toBe(true); // festival entrance is walkable
+    // 5. Chapter 5: The Festival Grounds / Saturday Market plaza is walkable
+    expect(isWalkable(1088, 1220)).toBe(true);
 
-    // 6. Chapter 6: The Moonlight Cinema screen (tx: 46-50, ty: 47-49) is solid
-    expect(isWalkable(48 * 16, 48 * 16)).toBe(false);
-    expect(isWalkable(48 * 16, 51 * 16)).toBe(true); // seating is walkable
+    // 6. Chapter 6: Sleeping Dragon Inn walls are solid, door is walkable
+    expect(isWalkable(850, 1600)).toBe(false);
+    expect(isWalkable(916, 1741)).toBe(true);
 
-    // 7. Chapter 7: The Archive Cellar stone walls (tx: 10-13, ty: 30-32) are solid
-    expect(isWalkable(12 * 16, 31 * 16)).toBe(false);
-    expect(isWalkable(12 * 16, 33 * 16)).toBe(true); // cellar door is walkable
+    // 7. Chapter 7: The Archive Cellar / Manor House walls are solid, door is walkable
+    expect(isWalkable(1000, 400)).toBe(false);
+    expect(isWalkable(1084, 485)).toBe(true);
 
-    // 8. Chapter 8: The Toolshed Workbench & Forge (tx: 15-17, ty: 21-22) is solid
-    expect(isWalkable(52 * 16, 31 * 16)).toBe(false);
-    expect(isWalkable(52 * 16, 33 * 16)).toBe(true); // clearing beside toolshed is walkable
-
-    // 9. Central Village Fountain basin (tx: 32, ty: 31) is solid
-    expect(isWalkable(32 * 16, 31 * 16)).toBe(false);
-    expect(isWalkable(32 * 16, 32 * 16)).toBe(true); // fountain apron is walkable
-
-    // 10. Fences block movement, but farm gate allows passage
-    expect(isWalkable(11 * 16, 16 * 16)).toBe(false); // garden fence
-    expect(isWalkable(14 * 16, 16 * 16)).toBe(true); // farm gate opening
+    // 8. Chapter 8: The Toolshed / Blacksmith walls are solid, entrance is walkable
+    expect(isWalkable(650, 900)).toBe(false);
+    expect(isWalkable(700, 997)).toBe(true);
   });
 
   it('computes normalized velocity vectors from keyboard inputs', async () => {

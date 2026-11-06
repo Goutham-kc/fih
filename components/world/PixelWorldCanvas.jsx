@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { soundManager } from '@/lib/soundManager';
 import { eventBus, EVENTS } from '@/lib/eventBus';
+import { loadCollisionGrid, isPointWalkable, isFeetWalkable, getGrid } from './collisionGrid';
 
 // 16-bit RPG Tile Size & Full Fields of Mistria (rm_town) Map Dimensions
 export const TILE_SIZE = 16;
@@ -662,79 +663,10 @@ export function getHitBuilding(wx, wy, preferRmTown = false) {
 
 export function isWalkable(wx, wy) {
   // Out of world boundaries
-  if (wx < 0 || wy < 0 || wx > MAP_WIDTH_PX || wy > MAP_HEIGHT_PX) {
+  if (wx < 0 || wy < 0 || wx >= MAP_WIDTH_PX || wy >= MAP_HEIGHT_PX) {
     return false;
   }
-
-  // Legacy test bounds check
-  if (wx <= 0 || wy <= 0 || (wx === 64 * TILE_SIZE && wy === 64 * TILE_SIZE)) {
-    return false;
-  }
-
-  const tx = Math.floor(wx / TILE_SIZE);
-  const ty = Math.floor(wy / TILE_SIZE);
-
-  // Woodland Pond (excluding the footbridge column)
-  if (isPondTile(tx, ty)) {
-    return false;
-  }
-
-  // Central Village Stone Fountain basin (tx: 32, ty: 31)
-  if (tx === 32 && ty === 31) {
-    return false;
-  }
-
-  // rm_town Authentic Great Town Fountain basin (centered at 1096, 1120)
-  if (Math.hypot(wx - 1096, wy - 1120) < 26) {
-    return false;
-  }
-
-  // Chapter 1: Farmstead Cabin / Celine's Cottage walls
-  if (tx >= 12 && tx <= 16 && ty >= 10 && ty <= 13) return false;
-  if (wx >= 1260 && wx <= 1380 && wy >= 1920 && wy <= 2110) return false;
-
-  // Chapter 2: Ledger / Bank / General Store walls
-  if (tx >= 48 && tx <= 52 && ty >= 10 && ty <= 13) return false;
-  if (wx >= 1148 && wx <= 1380 && wy >= 1489 && wy <= 1715) return false;
-
-  // Chapter 3: Bell Tower masonry
-  if (tx >= 31 && tx <= 33 && ty >= 9 && ty <= 13) return false;
-  if (wx >= 448 && wx <= 600 && wy >= 1056 && wy <= 1265) return false;
-
-  // Chapter 4: Notice Board
-  if (tx >= NOTICE.x - 1 && tx <= NOTICE.x + 1 && ty === NOTICE.y) return false;
-  if (wx >= 1340 && wx <= 1365 && wy >= 1715 && wy <= 1730) return false;
-
-  // Chapter 5: Festival Grounds stage
-  if (tx >= 14 && tx <= 18 && ty >= 47 && ty <= 49) return false;
-
-  // Chapter 6: Sleeping Dragon Inn walls
-  if (tx >= 46 && tx <= 50 && ty >= 47 && ty <= 49) return false;
-  if (tx === 48 && ty === 51) return true; // Cinema seating approach
-  if (wx >= 812 && wx <= 1060 && wy >= 1472 && wy <= 1715) return false;
-
-  // Chapter 7: Archive Cellar / Manor House walls
-  if (tx >= 10 && tx <= 14 && ty >= 29 && ty <= 32) return false;
-  if (wx >= 872 && wx <= 1320 && wy >= 80 && wy <= 460) return false;
-
-  // Chapter 8: Toolshed / Blacksmith walls
-  if (tx >= TOOLSHED.x - 2 && tx <= TOOLSHED.x + 2 && ty >= TOOLSHED.y - 4 && ty <= TOOLSHED.y - 1) return false;
-  if (wx >= 504 && wx <= 840 && wy >= 768 && wy <= 980) return false;
-
-  // Bathhouse & Clinic walls
-  if (wx >= 1388 && wx <= 1600 && wy >= 721 && wy <= 930) return false;
-  if (wx >= 1344 && wx <= 1550 && wy >= 1057 && wy <= 1260) return false;
-  if (wx >= 1408 && wx <= 1550 && wy >= 1440 && wy <= 1680) return false;
-
-  // Legacy fences & props
-  if ((tx >= 10 && tx <= 13 && ty === 16) || (tx >= 16 && tx <= 17 && ty === 16)) return false;
-  if (tx >= INN.x - 2 && tx <= INN.x + 1 && ty >= INN.y - 3 && ty <= INN.y - 1) return false;
-  if (tx >= COTTAGE.x - 2 && tx <= COTTAGE.x + 1 && ty >= COTTAGE.y - 4 && ty <= COTTAGE.y - 1) return false;
-  if ((tx === 35 || tx === 36) && ty === 31) return false;
-  if ((tx === WISHING_WELL.x || tx === WISHING_WELL.x + 1) && ty === WISHING_WELL.y) return false;
-  if (INTERNAL_TREE_TRUNKS.has(`${tx},${ty}`)) return false;
-
-  return true;
+  return isPointWalkable(wx, wy);
 }
 
 export function getKeyboardVelocity(activeKeys) {
@@ -1430,6 +1362,8 @@ function ClassicPixelCanvas({
     bellSwing: 0,
     fountainFrame: 0,
     isOverworldMode: !activeTab || activeTab === 'map',
+    collisionReady: false,
+    showDebugCollision: false,
     fireflies: createInitialFireflies(),
     petals: createInitialPetals(),
     rain: createInitialRain(),
@@ -1439,11 +1373,33 @@ function ClassicPixelCanvas({
   useEffect(() => {
     let mounted = true;
     const imagesToLoad = [
-      // Authentic Full Fields of Mistria Town Map (2128x2928 px)
+      // Split Authentic Fields of Mistria Town Map (2128x2928 px)
+      { key: 'town_base', src: '/village_assets/rm_town_base.png' },
+      { key: 'town_overhead', src: '/village_assets/rm_town_overhead.png' },
       { key: 'town_full', src: '/village_assets/rm_town_full.png' },
       { key: 'tileset', src: '/village_assets/environment/tilesets/generic/spr_main_exteriors_spring.png' },
-            { key: 'notice_board', src: '/village_assets/architecture/market_stalls/Stillwell/spr_town_stall_plaza_challenge_board_main.png' },
+      { key: 'notice_board', src: '/village_assets/architecture/market_stalls/Stillwell/spr_town_stall_plaza_challenge_board_main.png' },
     ];
+
+    // Load authentic 8px Tiled collision grid
+    loadCollisionGrid('/village_assets/rm_town_collision.json')
+      .then((grid) => {
+        if (!mounted) return;
+        stateRef.current.collisionReady = true;
+        if (grid) {
+          let blocked = 0;
+          for (let i = 0; i < grid.cells.length; i++) if (grid.cells[i] === 1) blocked++;
+          const pct = ((blocked / grid.cells.length) * 100).toFixed(1);
+          console.log(`[CollisionGrid] Loaded: ${grid.w}x${grid.h} (${grid.cells.length} cells), ${blocked} blocked (~${pct}%)`);
+          BUILDING_HITBOXES.forEach((b) => {
+            const bx = b.rmDoorX || b.doorX;
+            const by = b.rmDoorY || b.doorY;
+            const free = isPointWalkable(bx, by);
+            console.log(`[CollisionGrid] Door "${b.name}" at (${bx}, ${by}): ${free ? 'FREE' : 'BLOCKED'}`);
+          });
+        }
+      })
+      .catch((err) => console.error('[CollisionGrid] Failed to load:', err));
 
     // Load authentic directional walking and idle sprites for all 5 Mistria villagers
     VILLAGE_HEROES.forEach((hero) => {
@@ -1557,6 +1513,9 @@ function ClassicPixelCanvas({
           soundManager.playSfx('wood');
           onNavigateToChapter(nearby.id, { panelOnly: true });
         }
+      } else if (code === 'F2') {
+        e.preventDefault();
+        stateRef.current.showDebugCollision = !stateRef.current.showDebugCollision;
       } else if (code === 'KeyC') {
         // Cycle playable character among authentic Mistria villagers
         e.preventDefault();
@@ -1719,15 +1678,15 @@ function ClassicPixelCanvas({
         const nextX = pip.x + vx * speed;
         const nextY = pip.y + vy * speed;
 
-        // Collision test using Pip's foot position (x + 8, y + 28)
-        if (isWalkable(nextX + 8, nextY + 28)) {
+        // Collision test using feet box (10x6 px centred on feet: x + 8, y + 28)
+        if (isFeetWalkable(nextX + 8, nextY + 28, 5, 3)) {
           pip.x = nextX;
           pip.y = nextY;
         } else {
           // Slide along X or Y axis if partial direction is walkable
-          if (isWalkable(nextX + 8, pip.y + 28)) {
+          if (isFeetWalkable(nextX + 8, pip.y + 28, 5, 3)) {
             pip.x = nextX;
-          } else if (isWalkable(pip.x + 8, nextY + 28)) {
+          } else if (isFeetWalkable(pip.x + 8, nextY + 28, 5, 3)) {
             pip.y = nextY;
           }
         }
@@ -1748,8 +1707,19 @@ function ClassicPixelCanvas({
         if (dist > 3) {
           pip.walking = true;
           const walkSpeed = 70 * dt;
-          pip.x += (dx / dist) * Math.min(dist, walkSpeed);
-          pip.y += (dy / dist) * Math.min(dist, walkSpeed);
+          const stepX = (dx / dist) * Math.min(dist, walkSpeed);
+          const stepY = (dy / dist) * Math.min(dist, walkSpeed);
+          if (isFeetWalkable(pip.x + stepX + 8, pip.y + stepY + 28, 5, 3)) {
+            pip.x += stepX;
+            pip.y += stepY;
+          } else if (isFeetWalkable(pip.x + stepX + 8, pip.y + 28, 5, 3)) {
+            pip.x += stepX;
+          } else if (isFeetWalkable(pip.x + 8, pip.y + stepY + 28, 5, 3)) {
+            pip.y += stepY;
+          } else {
+            pip.walking = false;
+            state.clickTarget = null;
+          }
 
           if (Math.abs(dx) > Math.abs(dy)) {
             pip.dir = dx > 0 ? 2 : 1;
@@ -1836,13 +1806,18 @@ function ClassicPixelCanvas({
 
       const tileset = state.images.tileset;
 
-      // ── Layer 1: Ground Tiles (Full Authentic Fields of Mistria rm_town Map) ──
-      const townFull = state.images.town_full;
-      if (townFull && townFull.complete && townFull.naturalWidth > 0) {
-        ctx.drawImage(townFull, 0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
+      // ── Layer 1: Ground & Base Tiles (Under the Player) ──
+      const townBase = state.images.town_base;
+      if (townBase && townBase.complete && townBase.naturalWidth > 0) {
+        ctx.drawImage(townBase, 0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
       } else {
-        ctx.fillStyle = '#8dc653';
-        ctx.fillRect(0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
+        const townFull = state.images.town_full;
+        if (townFull && townFull.complete && townFull.naturalWidth > 0) {
+          ctx.drawImage(townFull, 0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
+        } else {
+          ctx.fillStyle = '#8dc653';
+          ctx.fillRect(0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
+        }
       }
 
       // ── Layer 3: Depth-Sorted Entities (Dynamic Overlays & Characters) ──
@@ -1990,6 +1965,12 @@ function ClassicPixelCanvas({
       // Sort all renderables by foot Y for depth sorting
       renderables.sort((a, b) => a.y - b.y);
       renderables.forEach((item) => item.render());
+
+      // ── Layer 3: Overhead Tiles (Tree Canopies, Bridge Top, Manor Top) ──
+      const townOverhead = state.images.town_overhead;
+      if (townOverhead && townOverhead.complete && townOverhead.naturalWidth > 0) {
+        ctx.drawImage(townOverhead, 0, 0, MAP_WIDTH_PX, MAP_HEIGHT_PX);
+      }
 
       // ── Layer 4a: Ambient Lantern Radial Halos & Flame Flicker ──
       ctx.save();
@@ -2175,6 +2156,50 @@ function ClassicPixelCanvas({
         ctx.fillStyle = '#78350f';
         ctx.fillText(promptText, bX + 4, bY + 8);
         ctx.restore();
+      }
+
+      // ── Layer 5: F2 Debug Collision Overlay (World Space 8px Grid & Feet Box) ──
+      if (state.showDebugCollision) {
+        const grid = getGrid();
+        if (grid) {
+          ctx.save();
+          const tMinX = Math.max(0, Math.floor(camMinX / 8));
+          const tMaxX = Math.min(grid.w - 1, Math.ceil(camMaxX / 8));
+          const tMinY = Math.max(0, Math.floor(camMinY / 8));
+          const tMaxY = Math.min(grid.h - 1, Math.ceil(camMaxY / 8));
+
+          // Draw blocked 8px cells as translucent red
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.45)';
+          for (let ty = tMinY; ty <= tMaxY; ty++) {
+            for (let tx = tMinX; tx <= tMaxX; tx++) {
+              if (grid.cells[ty * grid.w + tx] === 1) {
+                ctx.fillRect(tx * 8, ty * 8, 8, 8);
+              }
+            }
+          }
+
+          // Draw Pip feet collision box
+          const fx = Math.floor(pip.x + 8);
+          const fy = Math.floor(pip.y + 28);
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(fx - 5, fy - 3, 10, 6);
+
+          // Text HUD above Pip feet showing tile coordinates & collision status
+          const curTx = Math.floor(fx / 8);
+          const curTy = Math.floor(fy / 8);
+          const curBlocked = (curTx >= 0 && curTy >= 0 && curTx < grid.w && curTy < grid.h) ? (grid.cells[curTy * grid.w + curTx] === 1) : true;
+          const statusText = `Cell (${curTx},${curTy}) ${curBlocked ? 'BLOCKED' : 'FREE'}`;
+          ctx.font = 'bold 8px monospace';
+          const stW = ctx.measureText(statusText).width;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+          ctx.fillRect(fx - stW / 2 - 4, fy - 20, stW + 8, 12);
+          ctx.strokeStyle = curBlocked ? '#ef4444' : '#22c55e';
+          ctx.strokeRect(fx - stW / 2 - 4, fy - 20, stW + 8, 12);
+          ctx.fillStyle = curBlocked ? '#fca5a5' : '#86efac';
+          ctx.fillText(statusText, fx - stW / 2, fy - 11);
+          ctx.restore();
+        }
       }
 
       ctx.restore();
