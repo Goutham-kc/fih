@@ -723,7 +723,7 @@ export default async function handler(req, res) {
     const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'the dashboard';
     await sendWhatsAppMessage(
       from,
-      `👋 *Welcome to FIH!*\n\nYour WhatsApp number is not linked to an account yet.\n\nPlease create an account or verify your registered phone number at:\n🌐 ${siteUrl}/login\n\nOnce registered, you can text me your tasks, reminders, expenses, and deadlines directly!`
+      `👋 *Welcome to FIH!*\n\nYour WhatsApp number is not linked to an account.\n\nPlease contact your administrator to provision your account.`
     );
     return res.status(200).end();
   }

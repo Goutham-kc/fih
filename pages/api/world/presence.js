@@ -10,14 +10,14 @@ async function handler(req, res) {
 
     if (req.method === 'POST') {
       const { x, y, dir, walking, characterId } = req.body || {};
-      const user = await User.findById(userId).select('email');
+      const user = await User.findById(userId).select('email username');
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
 
-      // Format display name from email (e.g. "arjun" from "arjun@gmail.com")
+      // Format display name from username if set, else email handle
       const cleanEmail = user.email || '';
-      const rawName = cleanEmail.split('@')[0] || 'Villager';
+      const rawName = user.username || cleanEmail.split('@')[0] || 'Villager';
       const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
       // Upsert current player's presence

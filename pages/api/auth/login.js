@@ -5,19 +5,30 @@ import User from '@/models/User';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  const { email, password } = req.body || {};
-  if (!email || !password)
-    return res.status(400).json({ error: { message: 'Email and password required', code: 'MISSING_FIELDS' } });
+  const { email, username, identifier, password } = req.body || {};
+  const loginIdentifier = (identifier || email || username || '').toLowerCase().trim();
+
+  if (!loginIdentifier || !password) {
+    return res.status(400).json({ error: { message: 'Email/username and password required', code: 'MISSING_FIELDS' } });
+  }
 
   try {
     await connectDB();
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user)
+    const user = await User.findOne({
+      $or: [
+        { email: loginIdentifier },
+        { username: loginIdentifier },
+      ],
+    });
+
+    if (!user) {
       return res.status(401).json({ error: { message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' } });
+    }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid)
+    if (!valid) {
       return res.status(401).json({ error: { message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' } });
+    }
 
     const token = signToken(user._id);
     res.setHeader(

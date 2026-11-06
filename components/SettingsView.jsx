@@ -26,19 +26,53 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
   const [confirmTarget, setConfirmTarget] = useState(null); // 'live' | 'development' | null
   // User Profile & Multi-User Phone
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [savingPhone, setSavingPhone] = useState(false);
   const [phoneModified, setPhoneModified] = useState(false);
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameModified, setUsernameModified] = useState(false);
 
   useEffect(() => {
     fetch('/api/user/settings')
       .then((res) => res.json())
       .then((data) => {
         if (data.email) setEmail(data.email);
+        if (data.username !== undefined) setUsername(data.username);
         if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
       })
       .catch((err) => console.error('Failed to load profile settings:', err));
   }, []);
+
+    async function handleSaveUsername(e) {
+    e.preventDefault();
+    const cleanUsername = username.toLowerCase().trim();
+    if (cleanUsername && !/^[a-zA-Z0-9_.-]{3,30}$/.test(cleanUsername)) {
+      toast.error('Username must be 3-30 characters (letters, numbers, _, -, .)');
+      return;
+    }
+
+    setSavingUsername(true);
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUsername }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsername(data.username || '');
+        setUsernameModified(false);
+        toast.success('Username updated successfully!');
+      } else {
+        toast.error(data.error || 'Failed to update username');
+      }
+    } catch {
+      toast.error('Network error when updating username.');
+    } finally {
+      setSavingUsername(false);
+    }
+  }
 
   async function handleSavePhone(e) {
     e.preventDefault();
@@ -275,6 +309,48 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
               <Mail size={16} color="#468662" />
               <span style={{ fontSize: 13, color: '#fdfbf4', fontWeight: 500 }}>{email || 'Loading profile...'}</span>
             </div>
+          </div>
+
+                    <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#f2c230', marginBottom: 6, letterSpacing: '0.04em' }}>
+              USERNAME
+            </label>
+            <form onSubmit={handleSaveUsername} style={{ display: 'flex', gap: 10 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <User size={15} color="#468662" style={{ position: 'absolute', left: 12, top: 12 }} />
+                <input
+                  type="text"
+                  style={{
+                    width: '100%',
+                    paddingLeft: 34,
+                    height: 40,
+                    background: '#101e18',
+                    color: '#fdfbf4',
+                    border: '1.5px solid #2b523e',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                  }}
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameModified(true);
+                  }}
+                  placeholder="e.g. johndoe (optional unique handle)"
+                />
+              </div>
+              <PixelButton
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={savingUsername || !usernameModified}
+              >
+                {savingUsername ? 'Saving...' : 'Set Username'}
+              </PixelButton>
+            </form>
+            <span style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4, display: 'block' }}>
+              Used to sign in or display your player tag in the village overworld.
+            </span>
           </div>
 
           <div>

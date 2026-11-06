@@ -50,6 +50,7 @@ export default function Dashboard() {
   const [panelMinimized, setPanelMinimized] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [nearbyBuilding, setNearbyBuilding] = useState(null);
+  const [username, setUsername] = useState('');
   const [time, setTime] = useState(new Date());
 
   // Authentication and user settings
@@ -562,7 +563,7 @@ export default function Dashboard() {
             <div className="dashboard-brand">
               <span className="dashboard-brand-icon" style={{ display: 'inline-flex', alignItems: 'center' }}><PixelWheat size={18} /></span>
               <span className="dashboard-brand-name">
-                Fih Valley
+                {username ? `${username.charAt(0).toUpperCase() + username.slice(1)}'s Valley` : 'Fih Valley'}
               </span>
             </div>
 
