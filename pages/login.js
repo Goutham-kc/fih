@@ -6,8 +6,11 @@ import AuroraBackground from '@/components/AuroraBackground';
 
 export default function Login() {
   const router = useRouter();
+  const [mode, setMode] = useState('signin'); // 'signin' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -15,30 +18,74 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error?.message || 'Login failed');
-      } else {
-        router.push('/');
+
+    if (mode === 'register') {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        setLoading(false);
+        return;
       }
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        setLoading(false);
+        return;
+      }
+      const cleanPhone = whatsappNumber.replace(/\D/g, '');
+      if (cleanPhone.length < 10) {
+        setError('Please enter a valid phone number with country code (e.g. 919876543210)');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, whatsappNumber: cleanPhone }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error?.message || 'Registration failed');
+        } else {
+          router.push('/');
+        }
+      } catch {
+        setError('Network error. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Sign In
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error?.message || 'Login failed');
+        } else {
+          router.push('/');
+        }
+      } catch {
+        setError('Network error. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
+  }
+
+  function toggleMode(newMode) {
+    setMode(newMode);
+    setError('');
   }
 
   return (
     <>
       <Head>
-        <title>Sign In — fih</title>
-        <meta name="description" content="Sign in to your fih personal operating system" />
+        <title>{mode === 'register' ? 'Create Account' : 'Sign In'} — fih</title>
+        <meta name="description" content="Sign in or register for your fih personal operating system" />
       </Head>
 
       <div
@@ -68,19 +115,19 @@ export default function Login() {
           className="fih-card animate-fade"
           style={{
             width: '100%',
-            maxWidth: '400px',
-            padding: '40px 32px',
+            maxWidth: '420px',
+            padding: '36px 30px',
             position: 'relative',
             zIndex: 10,
           }}
         >
           {/* Brand Identity */}
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div
               style={{
                 fontFamily: 'var(--font-display)',
                 fontStyle: 'italic',
-                fontSize: 48,
+                fontSize: 44,
                 color: 'var(--text-primary)',
                 letterSpacing: '-0.03em',
                 lineHeight: 1,
@@ -94,8 +141,59 @@ export default function Login() {
             </p>
           </div>
 
+          {/* Mode Switcher Tabs */}
+          <div
+            style={{
+              display: 'flex',
+              background: 'var(--bg-sunken)',
+              padding: 4,
+              borderRadius: 10,
+              marginBottom: 24,
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => toggleMode('signin')}
+              style={{
+                flex: 1,
+                padding: '8px 0',
+                border: 'none',
+                borderRadius: 7,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                background: mode === 'signin' ? 'var(--bg-card)' : 'transparent',
+                color: mode === 'signin' ? 'var(--text-primary)' : 'var(--text-muted)',
+                boxShadow: mode === 'signin' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleMode('register')}
+              style={{
+                flex: 1,
+                padding: '8px 0',
+                border: 'none',
+                borderRadius: 7,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                background: mode === 'register' ? 'var(--bg-card)' : 'transparent',
+                color: mode === 'register' ? 'var(--text-primary)' : 'var(--text-muted)',
+                boxShadow: mode === 'register' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              }}
+            >
+              Create Account
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 18 }}>
+            <div style={{ marginBottom: 16 }}>
               <label
                 htmlFor="email"
                 style={{
@@ -121,7 +219,37 @@ export default function Login() {
               />
             </div>
 
-            <div style={{ marginBottom: 22 }}>
+            {mode === 'register' && (
+              <div style={{ marginBottom: 16 }}>
+                <label
+                  htmlFor="whatsapp"
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                    marginBottom: 6,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  WHATSAPP PHONE NUMBER
+                </label>
+                <input
+                  id="whatsapp"
+                  type="tel"
+                  className="fih-input"
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  placeholder="e.g. 919876543210 (with country code)"
+                  required
+                />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>
+                  Include country code without + (e.g. India 91…, US 1…)
+                </span>
+              </div>
+            )}
+
+            <div style={{ marginBottom: mode === 'register' ? 16 : 22 }}>
               <label
                 htmlFor="password"
                 style={{
@@ -145,6 +273,33 @@ export default function Login() {
                 required
               />
             </div>
+
+            {mode === 'register' && (
+              <div style={{ marginBottom: 22 }}>
+                <label
+                  htmlFor="confirmPassword"
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                    marginBottom: 6,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  CONFIRM PASSWORD
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  className="fih-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            )}
 
             {error && (
               <div
@@ -173,13 +328,21 @@ export default function Login() {
               {loading ? (
                 <>
                   <span className="spin-loading" style={{ marginRight: 8, fontSize: 16 }}>⟳</span>
-                  Authenticating...
+                  {mode === 'register' ? 'Creating Account...' : 'Authenticating...'}
                 </>
+              ) : mode === 'register' ? (
+                'Create Account →'
               ) : (
                 'Sign In →'
               )}
             </button>
           </form>
+
+          {mode === 'register' && (
+            <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 16, lineHeight: 1.4 }}>
+              💡 Once registered, any WhatsApp message you send to the bot from this phone number will sync automatically to your private dashboard.
+            </p>
+          )}
         </div>
       </div>
     </>

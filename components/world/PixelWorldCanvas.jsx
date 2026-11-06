@@ -1263,6 +1263,77 @@ export default function PixelWorldCanvas(props) {
   return <ClassicPixelCanvas {...props} />;
 }
 
+
+/**
+ * Renders an animated authentic 16-bit Mistria villager sprite with name tag & shadow
+ */
+function renderVillagerEntity(ctx, { px, py, charId, dir, walking, animFrame, name, isSelf, heroColor, images }) {
+  const hero = VILLAGE_HEROES.find(h => h.id === charId) || VILLAGE_HEROES[0];
+
+  // Soft ground drop shadow under feet
+  ctx.save();
+  ctx.fillStyle = 'rgba(20, 25, 20, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(px + 8, py + 18, 9, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Select animation sheet based on movement and direction
+  let action = 'idle';
+  let dirKey = 'south';
+  let isFlipped = false;
+  let frameIndex = 0;
+
+  if (walking) {
+    action = 'walk';
+    frameIndex = Math.floor(animFrame * 0.16) % 4;
+    if (dir === 0) dirKey = 'south';
+    else if (dir === 3) dirKey = 'north';
+    else if (dir === 2) { dirKey = 'east'; isFlipped = false; }
+    else if (dir === 1) { dirKey = 'east'; isFlipped = true; }
+  } else {
+    action = 'idle';
+    if (dir === 0) dirKey = 'south';
+    else if (dir === 3) dirKey = 'north';
+    else if (dir === 2) { dirKey = 'east'; isFlipped = false; }
+    else if (dir === 1) { dirKey = 'east'; isFlipped = true; }
+  }
+
+  const spriteKey = `${charId}_${action}_${dirKey}`;
+  const charImg = images[spriteKey];
+
+  if (charImg && charImg.complete && charImg.naturalWidth > 0) {
+    ctx.save();
+    const drawX = px + 8;
+    const drawY = py + 20 - 54;
+
+    ctx.translate(drawX, drawY);
+    if (isFlipped) {
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(
+      charImg,
+      frameIndex * 80, 0, 80, 80,
+      -40, 0, 80, 80
+    );
+    ctx.restore();
+  }
+
+  // Character Name Tag Badge
+  ctx.save();
+  ctx.font = 'bold 7px monospace';
+  const nameText = isSelf ? `${hero.name} (You)` : `🟢 ${name}`;
+  const tW = ctx.measureText(nameText).width;
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+  ctx.fillRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
+  ctx.strokeStyle = heroColor || hero.color || '#22c55e';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
+  ctx.fillStyle = isSelf ? '#fef08a' : '#5eead4';
+  ctx.fillText(nameText, px + 8 - tW / 2, py - 11);
+  ctx.restore();
+}
+
 function ClassicPixelCanvas({
   activeTab = null, // null or 'map' = Full Overworld Exploration Mode
   debtsData = [],
@@ -1368,9 +1439,90 @@ function ClassicPixelCanvas({
     fireflies: createInitialFireflies(),
     petals: createInitialPetals(),
     rain: createInitialRain(),
+    otherPlayers: {},
+    selfName: 'You',
   });
 
-  // 1. Load 16-bit sprite sheets (Purely from new asset collections)
+
+  // ── Multi-User World Presence Heartbeat ──
+  useEffect(() => {
+    let active = true;
+    let isFetching = false;
+
+    async function sendPresenceHeartbeat() {
+      if (!active || isFetching) return;
+      isFetching = true;
+      try {
+        const pip = stateRef.current.pip;
+        const charId = stateRef.current.characterId || 'celine';
+        const res = await fetch('/api/world/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            x: Math.round(pip.x),
+            y: Math.round(pip.y),
+            dir: pip.dir,
+            walking: pip.walking,
+            characterId: charId,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (!active) return;
+          if (data.self?.name) {
+            stateRef.current.selfName = data.self.name;
+          }
+
+          const currentMap = stateRef.current.otherPlayers || {};
+          const nextMap = {};
+
+          (data.players || []).forEach((p) => {
+            const existing = currentMap[p.id];
+            if (existing) {
+              nextMap[p.id] = {
+                ...existing,
+                targetX: p.x,
+                targetY: p.y,
+                dir: p.dir,
+                walking: p.walking,
+                characterId: p.characterId,
+                name: p.name,
+              };
+            } else {
+              nextMap[p.id] = {
+                id: p.id,
+                currentX: p.x,
+                currentY: p.y,
+                targetX: p.x,
+                targetY: p.y,
+                dir: p.dir,
+                walking: p.walking,
+                characterId: p.characterId,
+                name: p.name,
+              };
+            }
+          });
+
+          stateRef.current.otherPlayers = nextMap;
+        }
+      } catch (err) {
+        // Silently tolerate background network timeouts
+      } finally {
+        isFetching = false;
+      }
+    }
+
+    sendPresenceHeartbeat();
+    const interval = setInterval(sendPresenceHeartbeat, 1500);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+    // 1. Load 16-bit sprite sheets (Purely from new asset collections)
   useEffect(() => {
     let mounted = true;
     const imagesToLoad = [
@@ -1844,79 +1996,51 @@ function ClassicPixelCanvas({
         });
       }
 
-      // ── 13. Authentic Village Character (Celine / Mistria Villagers) ──
+      // ── 13. Authentic Village Character (Self) ──
+      const selfHero = VILLAGE_HEROES.find(h => h.id === (state.characterId || 'celine')) || VILLAGE_HEROES[0];
       renderables.push({
         y: pip.y + 20, // foot Y for depth sorting
         render: () => {
-          const px = Math.floor(pip.x);
-          const py = Math.floor(pip.y);
-          const charId = state.characterId || 'celine';
-          const hero = VILLAGE_HEROES.find(h => h.id === charId) || VILLAGE_HEROES[0];
-
-          // Soft ground drop shadow under feet
-          ctx.save();
-          ctx.fillStyle = 'rgba(20, 25, 20, 0.35)';
-          ctx.beginPath();
-          ctx.ellipse(px + 8, py + 18, 9, 4, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-
-          // Select animation sheet based on movement and direction
-          let action = 'idle';
-          let dirKey = 'south';
-          let isFlipped = false;
-          let frameIndex = 0;
-
-          if (pip.walking) {
-            action = 'walk';
-            frameIndex = Math.floor(state.animFrame * 0.16) % 4;
-            if (pip.dir === 0) dirKey = 'south';
-            else if (pip.dir === 3) dirKey = 'north';
-            else if (pip.dir === 2) { dirKey = 'east'; isFlipped = false; }
-            else if (pip.dir === 1) { dirKey = 'east'; isFlipped = true; }
-          } else {
-            action = 'idle';
-            if (pip.dir === 0) dirKey = 'south';
-            else if (pip.dir === 3) dirKey = 'north';
-            else if (pip.dir === 2) { dirKey = 'east'; isFlipped = false; }
-            else if (pip.dir === 1) { dirKey = 'east'; isFlipped = true; }
-          }
-
-          const spriteKey = `${charId}_${action}_${dirKey}`;
-          const charImg = state.images[spriteKey];
-
-          if (charImg && charImg.complete && charImg.naturalWidth > 0) {
-            ctx.save();
-            // Authentic 80x80 frame, feet at vertical offset ~54
-            const drawX = px + 8;
-            const drawY = py + 20 - 54;
-
-            ctx.translate(drawX, drawY);
-            if (isFlipped) {
-              ctx.scale(-1, 1);
-            }
-            ctx.drawImage(
-              charImg,
-              frameIndex * 80, 0, 80, 80,
-              -40, 0, 80, 80
-            );
-            ctx.restore();
-          }
-
-          // Character Name Tag: e.g. "Celine (You)"
-          ctx.save();
-          ctx.font = 'bold 7px monospace';
-          const nameText = `${hero.name} (You)`;
-          const tW = ctx.measureText(nameText).width;
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-          ctx.fillRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
-          ctx.strokeStyle = hero.color || '#22c55e';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
-          ctx.fillStyle = '#fef08a';
-          ctx.fillText(nameText, px + 8 - tW / 2, py - 11);
-          ctx.restore();
+          renderVillagerEntity(ctx, {
+            px: Math.floor(pip.x),
+            py: Math.floor(pip.y),
+            charId: state.characterId || 'celine',
+            dir: pip.dir,
+            walking: pip.walking,
+            animFrame: state.animFrame,
+            name: state.selfName || 'You',
+            isSelf: true,
+            heroColor: selfHero.color,
+            images: state.images,
+          });
         },
+      });
+
+      // ── 14. Other Online Logged-In Villagers (Multi-User Presence) ──
+      Object.values(state.otherPlayers || {}).forEach((other) => {
+        // Smooth linear interpolation towards target position
+        other.currentX += (other.targetX - other.currentX) * 0.18;
+        other.currentY += (other.targetY - other.currentY) * 0.18;
+
+        const otherHero = VILLAGE_HEROES.find(h => h.id === other.characterId) || VILLAGE_HEROES[0];
+
+        renderables.push({
+          y: other.currentY + 20, // foot Y for depth sorting
+          render: () => {
+            renderVillagerEntity(ctx, {
+              px: Math.floor(other.currentX),
+              py: Math.floor(other.currentY),
+              charId: other.characterId || 'march',
+              dir: other.dir ?? 0,
+              walking: other.walking,
+              animFrame: state.animFrame,
+              name: other.name,
+              isSelf: false,
+              heroColor: otherHero.color,
+              images: state.images,
+            });
+          },
+        });
       });
 
       // Sort all renderables by foot Y for depth sorting

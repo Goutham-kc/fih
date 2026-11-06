@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
 import { toast } from 'sonner';
 import {
@@ -11,6 +11,8 @@ import {
   Compass,
   Wrench,
   KeyRound,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import WoodPanel from '@/components/ui/WoodPanel';
 import PixelButton from '@/components/ui/PixelButton';
@@ -22,6 +24,51 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [wiping, setWiping] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // 'live' | 'development' | null
+  // User Profile & Multi-User Phone
+  const [email, setEmail] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneModified, setPhoneModified] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/user/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.email) setEmail(data.email);
+        if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
+      })
+      .catch((err) => console.error('Failed to load profile settings:', err));
+  }, []);
+
+  async function handleSavePhone(e) {
+    e.preventDefault();
+    const cleanPhone = whatsappNumber.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      toast.error('Please enter a valid phone number with country code (e.g. 919876543210)');
+      return;
+    }
+
+    setSavingPhone(true);
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappNumber: cleanPhone }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWhatsappNumber(data.whatsappNumber);
+        setPhoneModified(false);
+        toast.success('WhatsApp number updated successfully!');
+      } else {
+        toast.error(data.error || 'Failed to update WhatsApp number');
+      }
+    } catch {
+      toast.error('Network error when updating phone number.');
+    } finally {
+      setSavingPhone(false);
+    }
+  }
 
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -201,6 +248,75 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             <p style={{ fontSize: 13, color: '#c4b5a5', margin: '4px 0 0 0' }}>
               Tune your village soundscapes, seasonal skies, hearthfire lanterns, iron keyring, and realm forge archives.
             </p>
+          </div>
+        </div>
+      </WoodPanel>
+
+      
+      {/* 0. Account & WhatsApp Number Card */}
+      <WoodPanel variant="default" style={{ padding: '20px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fdf6e2', margin: 0 }}>
+              Account Profile & WhatsApp Line
+            </h3>
+            <p style={{ fontSize: 12, color: '#c4b5a5', margin: '2px 0 0 0' }}>
+              Your account identity and the private phone number linked to your WhatsApp assistant bot.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#f2c230', marginBottom: 6, letterSpacing: '0.04em' }}>
+              LOGIN EMAIL
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#101e18', padding: '10px 14px', borderRadius: 8, border: '1.5px solid #2b523e' }}>
+              <Mail size={16} color="#468662" />
+              <span style={{ fontSize: 13, color: '#fdfbf4', fontWeight: 500 }}>{email || 'Loading profile...'}</span>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#f2c230', marginBottom: 6, letterSpacing: '0.04em' }}>
+              LINKED WHATSAPP NUMBER
+            </label>
+            <form onSubmit={handleSavePhone} style={{ display: 'flex', gap: 10 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Phone size={15} color="#468662" style={{ position: 'absolute', left: 12, top: 12 }} />
+                <input
+                  type="tel"
+                  style={{
+                    width: '100%',
+                    paddingLeft: 34,
+                    height: 40,
+                    background: '#101e18',
+                    color: '#fdfbf4',
+                    border: '1.5px solid #2b523e',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                  }}
+                  value={whatsappNumber}
+                  onChange={(e) => {
+                    setWhatsappNumber(e.target.value);
+                    setPhoneModified(true);
+                  }}
+                  placeholder="e.g. 919876543210 (with country code)"
+                />
+              </div>
+              <PixelButton
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={savingPhone || !phoneModified}
+              >
+                {savingPhone ? 'Saving...' : 'Update Phone'}
+              </PixelButton>
+            </form>
+            <span style={{ fontSize: 11, color: '#c4b5a5', marginTop: 6, display: 'block' }}>
+              💡 Messages sent to the bot from this phone number sync exclusively to your private account.
+            </span>
           </div>
         </div>
       </WoodPanel>
