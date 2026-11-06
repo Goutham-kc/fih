@@ -276,6 +276,45 @@ async function bake() {
     'Level_1_Assets_Manor_Lamps'
   ];
 
+  const extraGidMap = {
+    // Plaza Fixed (Blacksmith Planter, Beach Benches, Vertical Hedges)
+    29050: { baseName: 'spr_town_building_blacksmith_planter_spring.png' },
+    29084: { baseName: 'spr_beach_bench_south_spring.png' },
+    29167: { baseName: 'spr_town_plaza_vertical_hedge_spring.png' },
+
+    // Stall Zorel
+    29187: { baseName: 'spr_town_stall_zorel_carpet.png' },
+    29190: { baseName: 'spr_town_stall_zorel_stage_main.png' },
+    29185: { baseName: 'spr_town_stall_zorel_desk_main.png' },
+    29183: { baseName: 'spr_town_stall_zorel_lute_main.png' },
+
+    // Stall Stillwell
+    29181: { baseName: 'spr_town_stall_stillwell_carpet.png' },
+    29179: { baseName: 'spr_town_stall_stillwell_backdrop_spring.png' },
+    29173: { baseName: 'spr_town_stall_stillwell_small_table_v1_spring.png' },
+    29170: { baseName: 'spr_town_stall_stillwell_small_table_v2_spring.png' },
+    29174: { baseName: 'spr_town_stall_stillwell_large_table_spring.png' },
+
+    // Bell Tower Fixed
+    29291: { baseName: 'spr_town_building_bell_tower_fixed_spring.png' },
+    29297: { baseName: 'spr_exterior_lighting_bell_tower_insert.png' },
+    29289: { baseName: 'spr_town_building_bell_tower_door_spring_closed.png' },
+    29285: { baseName: 'spr_town_building_bell_tower_bell_idle.png' },
+
+    // Clinic Door 2 & Bathhouse Wheel
+    29314: { baseName: 'spr_town_building_clinic_door2_spring_closed.png' },
+    29343: { baseName: 'spr_town_building_bathhouse_wheel_spring_on.png' },
+
+    // Manor House Exterior Lighting Inserts
+    29375: { baseName: 'spr_town_building_manor_exterior_lighting_insert_1_spring.png' },
+    29373: { baseName: 'spr_town_building_manor_exterior_lighting_insert_2_spring.png' },
+    29377: { baseName: 'spr_town_building_manor_exterior_lighting_insert_3_spring.png' },
+    29378: { baseName: 'spr_town_building_manor_exterior_lighting_insert_4_spring.png' },
+    29366: { baseName: 'spr_town_building_manor_exterior_lighting_insert_5_spring.png' },
+    29372: { baseName: 'spr_town_building_manor_exterior_lighting_insert_6_spring.png' },
+    29376: { baseName: 'spr_town_building_manor_exterior_lighting_insert_7_spring.png' },
+  };
+
   async function renderObjectLayer(l) {
     if (l.visible === false) return;
     if (l.objects && objectLayersToBake.includes(l.name)) {
@@ -285,7 +324,16 @@ async function bake() {
       for (const obj of sorted) {
         if (!obj.gid) continue;
         const cleanGid = (obj.gid & 0x1fffffff) - 1;
-        const info = gmTiles.get(cleanGid);
+        let info = gmTiles.get(cleanGid);
+
+        if (!info && extraGidMap[cleanGid]) {
+          const extra = extraGidMap[cleanGid];
+          const resolved = allImages.get(extra.baseName.toLowerCase());
+          if (resolved) {
+            info = { file: resolved, baseName: extra.baseName, tileW: obj.width, tileH: obj.height };
+          }
+        }
+
         if (!info) continue;
 
         // Skip broken mill blits if any (Mill is handled by Mill_Fixed)
