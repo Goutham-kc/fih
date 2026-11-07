@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import User from '@/models/User';
 import { logAudit } from '@/lib/audit';
+import { invalidateUserCache } from '@/lib/worldPresenceHub';
 
 async function handler(req, res) {
   try {
@@ -11,9 +12,12 @@ async function handler(req, res) {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (req.method === 'GET') {
+      const displayName = user.username || (user.email ? user.email.split('@')[0] : 'Villager');
       return res.status(200).json({
+        id: user._id.toString(),
         email: user.email,
         username: user.username || '',
+        name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
         whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode || 'live',
         theme: user.theme || 'dark',
@@ -84,6 +88,7 @@ async function handler(req, res) {
       }
 
       await user.save();
+      invalidateUserCache(userId, user.username);
 
       // Only log audit after user.save() succeeds
       if (modeChanged) {
@@ -95,9 +100,12 @@ async function handler(req, res) {
         });
       }
 
+      const displayName = user.username || (user.email ? user.email.split('@')[0] : 'Villager');
       return res.status(200).json({
+        id: user._id.toString(),
         email: user.email,
         username: user.username || '',
+        name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
         whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode,
         theme: user.theme,

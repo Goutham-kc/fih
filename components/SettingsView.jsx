@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
 import { toast } from 'sonner';
 import { Moon, Sun, Monitor, AlertTriangle, Database, Phone, Mail, User } from 'lucide-react';
+import { eventBus, EVENTS } from '@/lib/eventBus';
 
 export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -48,6 +49,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         setUsername(data.username || '');
         setUsernameModified(false);
         toast.success('Username updated successfully!');
+        eventBus.emit(EVENTS.USER_UPDATED, { username: data.username || '', name: data.name || '' });
       } else {
         toast.error(data.error || 'Failed to update username');
       }

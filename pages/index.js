@@ -2,6 +2,7 @@ import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ThemeToggle } from '@/lib/theme';
+import { eventBus, EVENTS } from '@/lib/eventBus';
 import {
   CheckSquare,
   Clock,
@@ -101,6 +102,14 @@ export default function Dashboard() {
         }
       })
       .catch(() => router.push('/login'));
+
+    const unsubUser = eventBus.on(EVENTS.USER_UPDATED, (data) => {
+      if (data?.username) setUsername(data.username);
+    });
+
+    return () => {
+      unsubUser();
+    };
   }, []);
 
   async function switchEnvMode(newMode) {
