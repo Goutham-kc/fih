@@ -1322,15 +1322,33 @@ function renderVillagerEntity(ctx, { px, py, charId, dir, walking, animFrame, na
   // Character Name Tag Badge
   ctx.save();
   ctx.font = 'bold 7px monospace';
-  const nameText = isSelf ? `${hero.name} (You)` : `🟢 ${name}`;
-  const tW = ctx.measureText(nameText).width;
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-  ctx.fillRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
+  const displayName = isSelf
+    ? (name && name !== 'You' ? `${name} (You)` : `${hero.name} (You)`)
+    : (name || hero.name);
+
+  const textW = Math.ceil(ctx.measureText(displayName).width);
+  const dotWidth = isSelf ? 0 : 7;
+  const totalW = textW + dotWidth + 8;
+  const badgeX = Math.round(px + 8 - totalW / 2);
+  const badgeY = Math.round(py - 18);
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.fillRect(badgeX + 1, badgeY + 1, totalW, 10);
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  ctx.fillRect(badgeX, badgeY, totalW, 10);
   ctx.strokeStyle = heroColor || hero.color || '#22c55e';
   ctx.lineWidth = 1;
-  ctx.strokeRect(px + 8 - tW / 2 - 3, py - 18, tW + 6, 9);
+  ctx.strokeRect(badgeX, badgeY, totalW, 10);
+
+  if (!isSelf) {
+    // Sharp retro pixel online dot (3x3 green square)
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(badgeX + 4, badgeY + 3.5, 3, 3);
+  }
+
   ctx.fillStyle = isSelf ? '#fef08a' : '#5eead4';
-  ctx.fillText(nameText, px + 8 - tW / 2, py - 11);
+  const textX = badgeX + 4 + (isSelf ? 0 : 7);
+  ctx.fillText(displayName, textX, badgeY + 7.5);
   ctx.restore();
 }
 
@@ -1350,6 +1368,7 @@ function ClassicPixelCanvas({
   onPlayerInteract,
   onNearbyBuildingChange,
   reducedMotion = false,
+  currentUser = null,
   className = '',
   style = {},
 }) {
@@ -1447,8 +1466,35 @@ function ClassicPixelCanvas({
     petals: createInitialPetals(),
     rain: createInitialRain(),
     otherPlayers: {},
-    selfName: 'You',
+    selfId: currentUser?.id || currentUser?._id || null,
+    selfName: currentUser?.name || currentUser?.username || 'You',
   });
+
+  // Keep selfId & selfName synced with currentUser prop
+  useEffect(() => {
+    if (currentUser) {
+      const uId = currentUser.id || currentUser._id;
+      const uName = currentUser.name || currentUser.username || (currentUser.email ? currentUser.email.split('@')[0] : null);
+      if (uId) stateRef.current.selfId = String(uId);
+      if (uName) stateRef.current.selfName = uName;
+
+      // Purge self from otherPlayers immediately if present
+      if (stateRef.current.otherPlayers) {
+        if (uId && stateRef.current.otherPlayers[String(uId)]) {
+          delete stateRef.current.otherPlayers[String(uId)];
+        }
+        if (uName) {
+          const lower = uName.toLowerCase();
+          Object.keys(stateRef.current.otherPlayers).forEach((k) => {
+            const op = stateRef.current.otherPlayers[k];
+            if (op && op.name && op.name.toLowerCase() === lower) {
+              delete stateRef.current.otherPlayers[k];
+            }
+          });
+        }
+      }
+    }
+  }, [currentUser]);
 
 
   // ── Multi-User Real-Time World Presence (SSE Stream + Fallback) ──
@@ -1457,12 +1503,26 @@ function ClassicPixelCanvas({
     let es = null;
     let fallbackTimer = null;
 
+    function isSelfPlayer(p) {
+      if (!p) return false;
+      const sId = stateRef.current.selfId ? String(stateRef.current.selfId) : null;
+      const sName = stateRef.current.selfName ? String(stateRef.current.selfName).toLowerCase() : null;
+      const pId = p.id ? String(p.id) : null;
+      const pName = p.name ? String(p.name).toLowerCase() : null;
+
+      if (sId && pId && sId === pId) return true;
+      if (sName && pName && sName === pName) return true;
+      return false;
+    }
+
     function applyPresenceSync(players = []) {
       if (!active) return;
       const currentMap = stateRef.current.otherPlayers || {};
       const nextMap = {};
 
       players.forEach((p) => {
+        if (!p || isSelfPlayer(p)) return;
+
         const existing = currentMap[p.id];
         if (existing) {
           nextMap[p.id] = {
@@ -1494,6 +1554,13 @@ function ClassicPixelCanvas({
 
     function applyPlayerUpdate(player) {
       if (!active || !player || !player.id) return;
+      if (isSelfPlayer(player)) {
+        if (stateRef.current.otherPlayers && stateRef.current.otherPlayers[player.id]) {
+          delete stateRef.current.otherPlayers[player.id];
+        }
+        return;
+      }
+
       const others = stateRef.current.otherPlayers || {};
       const existing = others[player.id];
       if (existing) {
@@ -1579,8 +1646,18 @@ function ClassicPixelCanvas({
     })
       .then((r) => r.json())
       .then((d) => {
-        if (d.self?.name && stateRef.current) {
+        if (d.self && stateRef.current) {
+          stateRef.current.selfId = String(d.self.id);
           stateRef.current.selfName = d.self.name;
+          if (stateRef.current.otherPlayers) {
+            delete stateRef.current.otherPlayers[String(d.self.id)];
+            Object.keys(stateRef.current.otherPlayers).forEach((k) => {
+              const op = stateRef.current.otherPlayers[k];
+              if (isSelfPlayer(op)) {
+                delete stateRef.current.otherPlayers[k];
+              }
+            });
+          }
         }
       })
       .catch(() => {});
@@ -2003,8 +2080,12 @@ function ClassicPixelCanvas({
         })
           .then((r) => r.json())
           .then((d) => {
-            if (d.self?.name && state) {
+            if (d.self && state) {
+              state.selfId = String(d.self.id);
               state.selfName = d.self.name;
+              if (state.otherPlayers && state.otherPlayers[d.self.id]) {
+                delete state.otherPlayers[d.self.id];
+              }
             }
           })
           .catch(() => {});
@@ -2137,6 +2218,13 @@ function ClassicPixelCanvas({
 
       // ── 14. Other Online Logged-In Villagers (Multi-User Real-Time Presence) ──
       Object.values(state.otherPlayers || {}).forEach((other) => {
+        if (!other || !other.id) return;
+        const sId = state.selfId ? String(state.selfId) : null;
+        const sName = state.selfName ? String(state.selfName).toLowerCase() : null;
+        if ((sId && String(other.id) === sId) || (sName && other.name && other.name.toLowerCase() === sName)) {
+          return; // Strictly never render self as an other player
+        }
+
         const dx = other.targetX - other.currentX;
         const dy = other.targetY - other.currentY;
         const dist = Math.hypot(dx, dy);

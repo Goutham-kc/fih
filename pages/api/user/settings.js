@@ -11,9 +11,12 @@ async function handler(req, res) {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (req.method === 'GET') {
+      const displayName = user.username || (user.email ? user.email.split('@')[0] : 'Villager');
       return res.status(200).json({
+        id: user._id.toString(),
         email: user.email,
         username: user.username || '',
+        name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
         whatsappNumber: user.whatsappNumber,
         environmentMode: user.environmentMode || 'live',
         theme: user.theme || 'dark',

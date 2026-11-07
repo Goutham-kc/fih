@@ -51,6 +51,7 @@ export default function Dashboard() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [nearbyBuilding, setNearbyBuilding] = useState(null);
   const [username, setUsername] = useState('');
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [time, setTime] = useState(new Date());
 
   // Authentication and user settings
@@ -68,6 +69,12 @@ export default function Dashboard() {
               if (data.environmentMode) {
                 setEnvMode(data.environmentMode);
               }
+              if (data.name || data.username) {
+                setUsername(data.name || data.username);
+              } else if (data.email) {
+                setUsername(data.email.split('@')[0]);
+              }
+              setCurrentUserProfile(data);
             });
         }
       })
@@ -544,6 +551,7 @@ export default function Dashboard() {
               activeTab={activeTab}
               debtsData={debts}
               reducedMotion={reducedMotion}
+              currentUser={currentUserProfile}
               onNavigateToChapter={handleTabChange}
               onCloseChapter={handleCloseChapter}
               onPlayerInteract={() => setHasInteracted(true)}
