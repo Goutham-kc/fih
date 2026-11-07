@@ -13,6 +13,7 @@ import {
   KeyRound,
   Mail,
   Phone,
+  User,
 } from 'lucide-react';
 import WoodPanel from '@/components/ui/WoodPanel';
 import PixelButton from '@/components/ui/PixelButton';
@@ -44,7 +45,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
       .catch((err) => console.error('Failed to load profile settings:', err));
   }, []);
 
-    async function handleSaveUsername(e) {
+  async function handleSaveUsername(e) {
     e.preventDefault();
     const cleanUsername = username.toLowerCase().trim();
     if (cleanUsername && !/^[a-zA-Z0-9_.-]{3,30}$/.test(cleanUsername)) {
@@ -64,6 +65,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
         setUsername(data.username || '');
         setUsernameModified(false);
         toast.success('Username updated successfully!');
+        soundManager.playSfx('wood');
+        eventBus.emit(EVENTS.USER_UPDATED, {
+          username: data.username || '',
+          name: data.name || (data.username ? data.username.charAt(0).toUpperCase() + data.username.slice(1) : ''),
+        });
       } else {
         toast.error(data.error || 'Failed to update username');
       }
@@ -311,9 +317,9 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
             </div>
           </div>
 
-                    <div>
+          <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#f2c230', marginBottom: 6, letterSpacing: '0.04em' }}>
-              USERNAME
+              VILLAGE USERNAME / DISPLAY TAG
             </label>
             <form onSubmit={handleSaveUsername} style={{ display: 'flex', gap: 10 }}>
               <div style={{ position: 'relative', flex: 1 }}>
@@ -336,7 +342,7 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
                     setUsername(e.target.value);
                     setUsernameModified(true);
                   }}
-                  placeholder="e.g. johndoe (optional unique handle)"
+                  placeholder="e.g. gouthamkc153 (3-30 letters, numbers, _, -)"
                 />
               </div>
               <PixelButton
@@ -345,11 +351,11 @@ export default function SettingsView({ envMode, onSwitchEnvMode, updatingEnv }) 
                 size="sm"
                 disabled={savingUsername || !usernameModified}
               >
-                {savingUsername ? 'Saving...' : 'Set Username'}
+                {savingUsername ? 'Saving...' : (usernameModified ? 'Save Username' : 'Saved')}
               </PixelButton>
             </form>
             <span style={{ fontSize: 11, color: '#c4b5a5', marginTop: 4, display: 'block' }}>
-              Used to sign in or display your player tag in the village overworld.
+              Used to display your player tag over your character in the overworld and identify you to friends.
             </span>
           </div>
 

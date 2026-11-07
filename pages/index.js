@@ -112,11 +112,25 @@ export default function Dashboard() {
 
   // Clock
   useEffect(() => {
+    const unsubUser = eventBus.on(EVENTS.USER_UPDATED, (data) => {
+      if (data?.username) {
+        setUsername(data.username);
+        setCurrentUserProfile((prev) => ({
+          ...prev,
+          username: data.username,
+          name: data.name || (data.username.charAt(0).toUpperCase() + data.username.slice(1)),
+        }));
+      }
+    });
+
     const clockTimer = setInterval(() => {
       setTime(new Date());
     }, 10000);
 
-    return () => clearInterval(clockTimer);
+    return () => {
+      unsubUser();
+      clearInterval(clockTimer);
+    };
   }, []);
 
   // Reduced motion preference
