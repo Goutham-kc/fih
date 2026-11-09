@@ -226,15 +226,38 @@ function formatTodo(t, i) {
   return `${i + 1}. ${t.title}${due}${priority}`;
 }
 
-function formatDebt(person, debts) {
+function formatPersonDebts(person, debts, isSinglePerson = false) {
   let owe = 0, owed = 0;
-  debts.forEach(d => {
+  const itemLines = debts.map((d, i) => {
     if (d.direction === 'i_owe') owe += d.amount;
     else owed += d.amount;
+    const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
+    const noteStr = d.note ? ` (${d.note})` : '';
+    const dateStr = d.createdAt
+      ? ` — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })}`
+      : '';
+    const statusStr = d.settled ? ' [Settled]' : '';
+    return `${i + 1}. ${dir} ₹${d.amount}${noteStr}${dateStr}${statusStr}`;
   });
+
   const net = owed - owe;
-  const label = net > 0 ? `owes you ₹${net}` : net < 0 ? `you owe ₹${Math.abs(net)}` : 'settled';
-  return `${person}: ${label}`;
+  const absNet = Math.abs(net);
+  const formattedNet = absNet % 1 === 0 ? absNet : absNet.toFixed(2);
+  const netLabel = net > 0.001
+    ? `${person} owes you ₹${formattedNet}`
+    : net < -0.001
+    ? `you owe ${person} ₹${formattedNet}`
+    : 'All settled up (₹0)';
+
+  if (isSinglePerson) {
+    return `${itemLines.join('\n')}\n\n─────────────────\n📊 *Net Balance:* ${netLabel}`;
+  } else {
+    return `👤 *${person}*:\n${itemLines.map(l => `  ${l}`).join('\n')}\n  👉 *Net:* ${netLabel}`;
+  }
+}
+
+function formatDebt(person, debts) {
+  return formatPersonDebts(person, debts, false);
 }
 
 function parseDebtInput(text, defaultData = {}) {
@@ -350,14 +373,19 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
 
     case 'debt': {
       if (parsed.action === 'history' || parsed.action === 'journal') {
-        const debts = await Debt.find(envQuery).sort({ createdAt: -1 }).limit(10);
-        if (!debts.length) return reply('Your transaction journal is empty.');
+        const query = { ...envQuery };
+        if (parsed.person) {
+          query.person = new RegExp(parsed.person, 'i');
+        }
+        const debts = await Debt.find(query).sort({ createdAt: -1 }).limit(20);
+        if (!debts.length) return reply(parsed.person ? `No transaction history found for "${parsed.person}".` : 'Your transaction journal is empty.');
         const lines = debts.map((d, i) => {
           const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
-          const status = d.settled ? ` [Settled ${d.settledDate ? new Date(d.settledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) : ''}]` : ' [Active]';
-          return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${d.note ? ` - ${d.note}` : ''}${status}`;
+          const status = d.settled ? ` [Settled ${d.settledDate ? new Date(d.settledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' }) : ''}]` : ' [Active]';
+          const dateStr = d.createdAt ? ` — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })}` : '';
+          return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${d.note ? ` - ${d.note}` : ''}${dateStr}${status}`;
         });
-        return reply(`📜 Transaction Journal (Last 10):\n\n${lines.join('\n')}`);
+        return reply(`📜 Transaction Journal${parsed.person ? ` (${parsed.person})` : ''} (Last ${debts.length}):\n\n${lines.join('\n')}`);
       }
 
       if (parsed.action === 'settle_all') {
@@ -537,21 +565,47 @@ async function handleCommand(parsed, userId, reply, envMode = 'live') {
       }
 
       if (mod === 'debt') {
-        let debts = await Debt.find({ ...envQuery, settled: false });
+        let debts = await Debt.find({ ...envQuery, settled: false }).sort({ createdAt: 1 });
         if (pf) {
           const filter = pf.toLowerCase();
           debts = debts.filter(d => d.person.toLowerCase().includes(filter));
         }
+        if (!debts.length) return reply(pf ? `No active debts found for "${pf}".` : 'No unsettled debts!');
+
+        if (pf) {
+          const targetPerson = debts[0].person;
+          const formatted = formatPersonDebts(targetPerson, debts, true);
+          return reply(`💰 *Active Debts with ${targetPerson}* (${debts.length} pending):\n\n${formatted}`);
+        }
+
         if (sort === 'amount') {
           debts.sort((a, b) => b.amount - a.amount);
+          const lines = debts.map((d, i) => {
+            const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
+            const noteStr = d.note ? ` (${d.note})` : '';
+            const dateStr = d.createdAt
+              ? ` — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })}`
+              : '';
+            return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${noteStr}${dateStr}`;
+          });
+          return reply(`💰 *Active Debts (Sorted by Amount)*:\n\n${lines.join('\n')}`);
         } else if (sort === 'time') {
           debts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          const lines = debts.map((d, i) => {
+            const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
+            const noteStr = d.note ? ` (${d.note})` : '';
+            const dateStr = d.createdAt
+              ? ` — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })}`
+              : '';
+            return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${noteStr}${dateStr}`;
+          });
+          return reply(`💰 *Active Debts (Sorted by Time)*:\n\n${lines.join('\n')}`);
         }
-        if (!debts.length) return reply(pf ? `No unsettled debts with ${pf}!` : 'No unsettled debts!');
+
         const byPerson = {};
         debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
-        const lines = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
-        return reply(`💰 Debts${pf ? ` (${pf})` : ''}${sort !== 'default' ? ` (sorted by ${sort})` : ''}:\n${lines.join('\n')}`);
+        const blocks = Object.entries(byPerson).map(([p, ds]) => formatPersonDebts(p, ds, false));
+        return reply(`💰 *Active Debts*:\n\n${blocks.join('\n\n')}`);
       }
 
       if (mod === 'deadline') {
@@ -1148,41 +1202,48 @@ async function handleListQuery(userId, { module, sortBy = 'default', personFilte
     if (personFilter) {
       filter.person = new RegExp(personFilter, 'i');
     }
-    let debts = await Debt.find(filter);
+    let debts = await Debt.find(filter).sort({ createdAt: 1 });
 
     if (!debts.length) {
       return reply(personFilter ? `No active debts found for "${personFilter}".` : 'No active debts found!');
+    }
+
+    if (personFilter) {
+      const targetPerson = debts[0].person;
+      const formatted = formatPersonDebts(targetPerson, debts, true);
+      return reply(`💰 *Active Debts with ${targetPerson}* (${debts.length} pending):\n\n${formatted}`);
     }
 
     if (sortBy === 'amount') {
       debts.sort((a, b) => b.amount - a.amount);
       const lines = debts.map((d, i) => {
         const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
-        return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${d.note ? ` - ${d.note}` : ''}`;
+        const noteStr = d.note ? ` (${d.note})` : '';
+        const dateStr = d.createdAt
+          ? ` — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })}`
+          : '';
+        return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${noteStr}${dateStr}`;
       });
-      return reply(`💰 Debts (Sorted by Amount):\n\n${lines.join('\n')}`);
-    }
-
-    if (sortBy === 'person') {
-      const byPerson = {};
-      debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
-      const blocks = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
-      return reply(`💰 Debts (Grouped by Person):\n\n${blocks.join('\n')}`);
+      return reply(`💰 *Active Debts (Sorted by Amount)*:\n\n${lines.join('\n')}`);
     }
 
     if (sortBy === 'time') {
       debts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       const lines = debts.map((d, i) => {
         const dir = d.direction === 'i_owe' ? 'you owe' : 'owes you';
-        return `${i + 1}. ${d.person} (${dir} ₹${d.amount}) — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+        const noteStr = d.note ? ` (${d.note})` : '';
+        const dateStr = d.createdAt
+          ? ` — ${new Date(d.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })}`
+          : '';
+        return `${i + 1}. ${d.person} (${dir} ₹${d.amount})${noteStr}${dateStr}`;
       });
-      return reply(`💰 Debts (Sorted by Time):\n\n${lines.join('\n')}`);
+      return reply(`💰 *Active Debts (Sorted by Time)*:\n\n${lines.join('\n')}`);
     }
 
     const byPerson = {};
     debts.forEach(d => { byPerson[d.person] = byPerson[d.person] || []; byPerson[d.person].push(d); });
-    const lines = Object.entries(byPerson).map(([p, ds]) => formatDebt(p, ds));
-    return reply(`💰 Debts:\n\n${lines.join('\n')}`);
+    const blocks = Object.entries(byPerson).map(([p, ds]) => formatPersonDebts(p, ds, false));
+    return reply(`💰 *Active Debts*:\n\n${blocks.join('\n\n')}`);
   }
 
   if (module === 'todo') {
