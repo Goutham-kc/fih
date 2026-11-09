@@ -8,6 +8,7 @@ export default function RPGDialogueBox({
   chapterName = 'Chapter 2: The Ledger Hut',
   text = '“Clear accounts make steadfast friends,” as we say in the valley. Settle your tabs before the autumn fair, and your pouch will always jingle with prosperity.',
   onNext,
+  onClose,
   className = '',
   style = {},
 }) {
@@ -40,12 +41,15 @@ export default function RPGDialogueBox({
     };
   }, [text, character]);
 
-  const handleClick = () => {
+  const handleClick = (e) => {
+    if (e?.target?.closest?.('.rpg-dialogue-close-btn')) return;
     if (isTyping) {
       setDisplayedText(text);
       setIsTyping(false);
     } else if (onNext) {
       onNext();
+    } else if (onClose) {
+      onClose();
     }
   };
 
@@ -69,6 +73,50 @@ export default function RPGDialogueBox({
       }}
       title="Click to skip or proceed dialogue"
     >
+      {/* Pixel Close Button */}
+      {onClose && (
+        <button
+          type="button"
+          className="rpg-dialogue-close-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            soundManager.playSfx('wood');
+            onClose();
+          }}
+          title="Dismiss dialogue"
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 20,
+            height: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#0d1c16',
+            border: '1px solid #2b523e',
+            color: '#a38d7b',
+            cursor: 'pointer',
+            padding: 0,
+            fontFamily: 'var(--font-pixel-display, monospace)',
+            fontSize: 10,
+            lineHeight: 1,
+            zIndex: 10,
+            transition: 'color 0.15s, border-color 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#facc15';
+            e.currentTarget.style.borderColor = '#facc15';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#a38d7b';
+            e.currentTarget.style.borderColor = '#2b523e';
+          }}
+        >
+          ✕
+        </button>
+      )}
+
       {/* 16-bit Character Portrait Frame */}
       <div
         style={{
@@ -85,7 +133,7 @@ export default function RPGDialogueBox({
           position: 'relative',
         }}
       >
-        <CharacterSprite character={character} state={isTyping ? 'talk' : 'idle'} size={44} />
+        <CharacterSprite characterId={character} character={character} state={isTyping ? 'talk' : 'idle'} size={44} />
       </div>
 
       {/* Text Area */}

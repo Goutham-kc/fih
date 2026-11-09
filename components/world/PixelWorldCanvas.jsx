@@ -1505,13 +1505,21 @@ function ClassicPixelCanvas({
 
     function isSelfPlayer(p) {
       if (!p) return false;
-      const sId = stateRef.current.selfId ? String(stateRef.current.selfId) : null;
-      const sName = stateRef.current.selfName ? String(stateRef.current.selfName).toLowerCase() : null;
+      const sId = stateRef.current.selfId
+        ? String(stateRef.current.selfId)
+        : (currentUser?.id || currentUser?._id ? String(currentUser.id || currentUser._id) : null);
+      const sName = stateRef.current.selfName && stateRef.current.selfName !== 'You'
+        ? String(stateRef.current.selfName).toLowerCase()
+        : (currentUser?.name || currentUser?.username ? String(currentUser.name || currentUser.username).toLowerCase() : null);
+      const sEmail = currentUser?.email ? String(currentUser.email).toLowerCase() : null;
+
       const pId = p.id ? String(p.id) : null;
       const pName = p.name ? String(p.name).toLowerCase() : null;
+      const pEmail = p.email ? String(p.email).toLowerCase() : null;
 
       if (sId && pId && sId === pId) return true;
-      if (sName && pName && sName === pName) return true;
+      if (sName && pName && (sName === pName || pName.includes(sName) || sName.includes(pName))) return true;
+      if (sEmail && pEmail && sEmail === pEmail) return true;
       return false;
     }
 
@@ -2219,11 +2227,21 @@ function ClassicPixelCanvas({
       // ── 14. Other Online Logged-In Villagers (Multi-User Real-Time Presence) ──
       Object.values(state.otherPlayers || {}).forEach((other) => {
         if (!other || !other.id) return;
-        const sId = state.selfId ? String(state.selfId) : null;
-        const sName = state.selfName ? String(state.selfName).toLowerCase() : null;
-        if ((sId && String(other.id) === sId) || (sName && other.name && other.name.toLowerCase() === sName)) {
-          return; // Strictly never render self as an other player
-        }
+        const sId = state.selfId
+          ? String(state.selfId)
+          : (currentUser?.id || currentUser?._id ? String(currentUser.id || currentUser._id) : null);
+        const sName = state.selfName && state.selfName !== 'You'
+          ? String(state.selfName).toLowerCase()
+          : (currentUser?.name || currentUser?.username ? String(currentUser.name || currentUser.username).toLowerCase() : null);
+        const sEmail = currentUser?.email ? String(currentUser.email).toLowerCase() : null;
+
+        const oId = other.id ? String(other.id) : null;
+        const oName = other.name ? String(other.name).toLowerCase() : null;
+        const oEmail = other.email ? String(other.email).toLowerCase() : null;
+
+        if (sId && oId && sId === oId) return;
+        if (sName && oName && (sName === oName || oName.includes(sName) || sName.includes(oName))) return;
+        if (sEmail && oEmail && sEmail === oEmail) return;
 
         const dx = other.targetX - other.currentX;
         const dy = other.targetY - other.currentY;

@@ -52,31 +52,36 @@ export default function Dashboard() {
   const [nearbyBuilding, setNearbyBuilding] = useState(null);
   const [username, setUsername] = useState('');
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
+  const [dismissedDialogueKey, setDismissedDialogueKey] = useState(null);
   const [time, setTime] = useState(new Date());
 
   // Authentication and user settings
   useEffect(() => {
-    fetch('/api/todos')
-      .then((res) => {
-        if (res.status === 401) {
+    Promise.all([
+      fetch('/api/todos'),
+      fetch('/api/user/settings').then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([todosRes, settingsData]) => {
+        if (todosRes.status === 401) {
           router.push('/login');
-        } else {
-          setAuthChecked(true);
-
-          fetch('/api/user/settings')
-            .then((r) => r.json())
-            .then((data) => {
-              if (data.environmentMode) {
-                setEnvMode(data.environmentMode);
-              }
-              if (data.name || data.username) {
-                setUsername(data.name || data.username);
-              } else if (data.email) {
-                setUsername(data.email.split('@')[0]);
-              }
-              setCurrentUserProfile(data);
-            });
+          return;
         }
+
+        if (settingsData) {
+          if (settingsData.environmentMode) {
+            setEnvMode(settingsData.environmentMode);
+          }
+          const uName =
+            settingsData.name ||
+            settingsData.username ||
+            (settingsData.email ? settingsData.email.split('@')[0] : '');
+          if (uName) {
+            setUsername(uName);
+          }
+          setCurrentUserProfile(settingsData);
+        }
+
+        setAuthChecked(true);
       })
       .catch(() => router.push('/login'));
   }, [router]);
@@ -491,11 +496,28 @@ export default function Dashboard() {
       `${speech} Press [E] to enter or [P] for Panel Only.`;
   }
 
-  const showDialogue = shouldShowDialogue({
-    activeTab,
-    hasInteracted,
-    nearbyBuilding,
-  });
+  const currentDialogueKey = activeTab
+    ? `chapter-${activeTab}`
+    : nearbyBuilding
+    ? `building-${nearbyBuilding.id}`
+    : 'welcome';
+
+  const isDialogueDismissed = dismissedDialogueKey === currentDialogueKey;
+
+  const showDialogue =
+    !isDialogueDismissed &&
+    shouldShowDialogue({
+      activeTab,
+      hasInteracted,
+      nearbyBuilding,
+    });
+
+  const handleDismissDialogue = () => {
+    setDismissedDialogueKey(currentDialogueKey);
+    if (!activeTab && !nearbyBuilding) {
+      setHasInteracted(true);
+    }
+  };
 
   const hudControlsGuide = getHudControlsGuide({
     activeTab,
@@ -828,27 +850,16 @@ export default function Dashboard() {
         {!isMobile && showDialogue && (
           <div
             className="rpg-dialogue-wrapper"
-            onClick={() => {
-              if (!activeTab && !nearbyBuilding) {
-                setHasInteracted(true);
-              }
-            }}
-            title={
-              !activeTab && !nearbyBuilding
-                ? 'Click to dismiss welcome'
-                : undefined
-            }
+            onClick={handleDismissDialogue}
+            title="Click to dismiss dialogue"
           >
             <RPGDialogueBox
               character={currentResidentId}
               name={residentFullName}
               chapterName={chapterTitle}
               text={dialogueLine}
-              onNext={() => {
-                if (!activeTab && !nearbyBuilding) {
-                  setHasInteracted(true);
-                }
-              }}
+              onClose={handleDismissDialogue}
+              onNext={handleDismissDialogue}
             />
           </div>
         )}
@@ -1211,10 +1222,10 @@ export default function Dashboard() {
 
         .rpg-dialogue-wrapper {
           position: fixed;
-          bottom: 82px;
+          bottom: 104px;
           left: 14px;
-          z-index: 80;
-          width: min(580px, calc(100vw - 28px));
+          z-index: 100;
+          width: min(540px, calc(100vw - 28px));
           cursor: pointer;
         }
 

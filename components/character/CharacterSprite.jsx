@@ -68,7 +68,8 @@ export const CHARACTER_META = {
 };
 
 export default function CharacterSprite({
-  characterId = 'pip',
+  characterId = null,
+  character = null,
   state: forcedState = null,
   size = 64,
   interactive = true,
@@ -77,7 +78,7 @@ export default function CharacterSprite({
   style = {},
 }) {
   const [internalState, setInternalState] = useState('idle');
-
+  const effectiveId = characterId || character || 'pip';
   const effectiveState = forcedState || internalState;
 
   // EventBus auto-reactions
@@ -91,32 +92,32 @@ export default function CharacterSprite({
 
     const unsubscribers = [];
 
-    if (characterId === 'pip') {
+    if (effectiveId === 'pip') {
       unsubscribers.push(
         eventBus.on(EVENTS.TASK_COMPLETED, triggerReaction),
         eventBus.on(EVENTS.TASK_CREATED, triggerReaction)
       );
-    } else if (characterId === 'hoot') {
+    } else if (effectiveId === 'hoot') {
       unsubscribers.push(
         eventBus.on(EVENTS.REMINDER_FIRED, triggerReaction),
         eventBus.on(EVENTS.REMINDER_CREATED, triggerReaction)
       );
-    } else if (characterId === 'bram') {
+    } else if (effectiveId === 'bram') {
       unsubscribers.push(
         eventBus.on(EVENTS.DEBT_SETTLED, triggerReaction),
         eventBus.on(EVENTS.DEBT_PAYMENT, triggerReaction)
       );
-    } else if (characterId === 'marigold') {
+    } else if (effectiveId === 'marigold') {
       unsubscribers.push(
         eventBus.on(EVENTS.DEADLINE_COMPLETED, triggerReaction),
         eventBus.on(EVENTS.DEADLINE_CREATED, triggerReaction)
       );
-    } else if (characterId === 'juniper') {
+    } else if (effectiveId === 'juniper') {
       unsubscribers.push(
         eventBus.on(EVENTS.WATCH_STATUS, triggerReaction),
         eventBus.on(EVENTS.WATCH_ADDED, triggerReaction)
       );
-    } else if (characterId === 'wren') {
+    } else if (effectiveId === 'wren') {
       unsubscribers.push(eventBus.on(EVENTS.WHATSAPP_ITEM_RECEIVED, triggerReaction));
     }
 
@@ -124,7 +125,7 @@ export default function CharacterSprite({
       clearTimeout(timeoutId);
       unsubscribers.forEach((unsub) => unsub());
     };
-  }, [characterId]);
+  }, [effectiveId]);
 
   function handleClick(e) {
     if (!forcedState && interactive) {
@@ -138,7 +139,7 @@ export default function CharacterSprite({
   return (
     <div
       onClick={handleClick}
-      className={`pixel-character-sprite character-${characterId} state-${effectiveState} ${className}`}
+      className={`pixel-character-sprite character-${effectiveId} state-${effectiveState} ${className}`}
       style={{
         width: size,
         height: size,
@@ -150,7 +151,7 @@ export default function CharacterSprite({
         userSelect: 'none',
         ...style,
       }}
-      title={`${CHARACTER_META[characterId]?.name || characterId} (${effectiveState})`}
+      title={`${CHARACTER_META[effectiveId]?.name || effectiveId} (${effectiveState})`}
     >
       {/* Floating reaction particle */}
       {effectiveState === 'react' && (
@@ -205,7 +206,7 @@ export default function CharacterSprite({
         }}
       >
         {/* Render crisp pixel shapes based on characterId */}
-        {renderCharacterPixels(characterId, effectiveState)}
+        {renderCharacterPixels(effectiveId, effectiveState)}
       </svg>
     </div>
   );
